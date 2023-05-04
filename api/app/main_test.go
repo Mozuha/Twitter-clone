@@ -19,8 +19,8 @@ func SetUpRouter() *gin.Engine {
 
 func TestGetUsersHandlerSuccess(t *testing.T) {
 	r := SetUpRouter()
-	r.GET("/users", GetUsersHandler)
-	req, _ := http.NewRequest("GET", "/users", nil)
+	r.GET("/api/users", GetUsersHandler)
+	req, _ := http.NewRequest("GET", "/api/users", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -33,8 +33,8 @@ func TestGetUsersHandlerSuccess(t *testing.T) {
 
 func TestGetUserByIdHandlerSuccess(t *testing.T) {
 	r := SetUpRouter()
-	r.GET("/users/:id", GetUserByIdHandler)
-	req, _ := http.NewRequest("GET", "/users/3", nil)
+	r.GET("/api/users/:id", GetUserByIdHandler)
+	req, _ := http.NewRequest("GET", "/api/users/3", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -47,8 +47,8 @@ func TestGetUserByIdHandlerSuccess(t *testing.T) {
 
 func TestGetUserByIdHandlerNotFound(t *testing.T) {
 	r := SetUpRouter()
-	r.GET("/users/:id", GetUserByIdHandler)
-	req, _ := http.NewRequest("GET", "/users/100", nil)
+	r.GET("/api/users/:id", GetUserByIdHandler)
+	req, _ := http.NewRequest("GET", "/api/users/100", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
@@ -60,7 +60,7 @@ func TestGetUserByIdHandlerNotFound(t *testing.T) {
 
 func TestCreateUserHandlerSuccess(t *testing.T) {
 	r := SetUpRouter()
-	r.POST("/user", CreateUserHandler)
+	r.POST("/api/user", CreateUserHandler)
 	user := models.User{
 		DisplayName: "test4",
 		Username:    "test 4",
@@ -68,7 +68,7 @@ func TestCreateUserHandlerSuccess(t *testing.T) {
 		Password:    "12345",
 	}
 	jsonBody, _ := json.Marshal(user)
-	req, _ := http.NewRequest("POST", "/user", bytes.NewBuffer(jsonBody))
+	req, _ := http.NewRequest("POST", "/api/user", bytes.NewBuffer(jsonBody))
 
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -78,7 +78,7 @@ func TestCreateUserHandlerSuccess(t *testing.T) {
 
 func TestCreateUserHandlerBadRequest(t *testing.T) {
 	r := SetUpRouter()
-	r.POST("/user", CreateUserHandler)
+	r.POST("/api/user", CreateUserHandler)
 
 	// lacking Username
 	user := models.User{
@@ -87,7 +87,7 @@ func TestCreateUserHandlerBadRequest(t *testing.T) {
 		Password:    "12345",
 	}
 	jsonBody, _ := json.Marshal(user)
-	req, _ := http.NewRequest("POST", "/user", bytes.NewBuffer(jsonBody))
+	req, _ := http.NewRequest("POST", "/api/user", bytes.NewBuffer(jsonBody))
 
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)

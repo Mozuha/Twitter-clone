@@ -36,11 +36,14 @@ func CreateUserHandler(ctx *gin.Context) {
 func main() {
 	router := gin.Default()
 
-	router.GET("/users", GetUsersHandler)
+	apiRoutes := router.Group("/api")
+	{
+		apiRoutes.GET("/users", GetUsersHandler)
 
-	router.GET("/users/:id", GetUserByIdHandler)
+		apiRoutes.GET("/users/:id", GetUserByIdHandler)
 
-	router.POST("/user", CreateUserHandler)
+		apiRoutes.POST("/user", CreateUserHandler)
+	}
 
 	router.Run("localhost:8080")
 }
