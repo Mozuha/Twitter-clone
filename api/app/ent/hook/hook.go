@@ -8,6 +8,30 @@ import (
 	"fmt"
 )
 
+// The LikeFunc type is an adapter to allow the use of ordinary
+// function as Like mutator.
+type LikeFunc func(context.Context, *ent.LikeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LikeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LikeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LikeMutation", m)
+}
+
+// The TweetFunc type is an adapter to allow the use of ordinary
+// function as Tweet mutator.
+type TweetFunc func(context.Context, *ent.TweetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TweetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TweetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TweetMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

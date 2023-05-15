@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"api/ent/like"
+	"api/ent/tweet"
 	"api/ent/user"
 	"context"
 	"errors"
@@ -76,6 +78,66 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 		uc.SetUpdatedAt(*t)
 	}
 	return uc
+}
+
+// AddPostIDs adds the "posts" edge to the Tweet entity by IDs.
+func (uc *UserCreate) AddPostIDs(ids ...int) *UserCreate {
+	uc.mutation.AddPostIDs(ids...)
+	return uc
+}
+
+// AddPosts adds the "posts" edges to the Tweet entity.
+func (uc *UserCreate) AddPosts(t ...*Tweet) *UserCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddPostIDs(ids...)
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (uc *UserCreate) AddFollowerIDs(ids ...int) *UserCreate {
+	uc.mutation.AddFollowerIDs(ids...)
+	return uc
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (uc *UserCreate) AddFollowers(u ...*User) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddFollowerIDs(ids...)
+}
+
+// AddFollowingIDs adds the "following" edge to the User entity by IDs.
+func (uc *UserCreate) AddFollowingIDs(ids ...int) *UserCreate {
+	uc.mutation.AddFollowingIDs(ids...)
+	return uc
+}
+
+// AddFollowing adds the "following" edges to the User entity.
+func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddFollowingIDs(ids...)
+}
+
+// AddPutIDs adds the "puts" edge to the Like entity by IDs.
+func (uc *UserCreate) AddPutIDs(ids ...int) *UserCreate {
+	uc.mutation.AddPutIDs(ids...)
+	return uc
+}
+
+// AddPuts adds the "puts" edges to the Like entity.
+func (uc *UserCreate) AddPuts(l ...*Like) *UserCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uc.AddPutIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -219,6 +281,70 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := uc.mutation.PostsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.FollowingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowingTable,
+			Columns: user.FollowingPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.PutsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PutsTable,
+			Columns: []string{user.PutsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

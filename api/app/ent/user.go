@@ -30,8 +30,62 @@ type User struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Posts holds the value of the posts edge.
+	Posts []*Tweet `json:"posts,omitempty"`
+	// Followers holds the value of the followers edge.
+	Followers []*User `json:"followers,omitempty"`
+	// Following holds the value of the following edge.
+	Following []*User `json:"following,omitempty"`
+	// Puts holds the value of the puts edge.
+	Puts []*Like `json:"puts,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// PostsOrErr returns the Posts value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PostsOrErr() ([]*Tweet, error) {
+	if e.loadedTypes[0] {
+		return e.Posts, nil
+	}
+	return nil, &NotLoadedError{edge: "posts"}
+}
+
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowersOrErr() ([]*User, error) {
+	if e.loadedTypes[1] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// FollowingOrErr returns the Following value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowingOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.Following, nil
+	}
+	return nil, &NotLoadedError{edge: "following"}
+}
+
+// PutsOrErr returns the Puts value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PutsOrErr() ([]*Like, error) {
+	if e.loadedTypes[3] {
+		return e.Puts, nil
+	}
+	return nil, &NotLoadedError{edge: "puts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -119,6 +173,26 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryPosts queries the "posts" edge of the User entity.
+func (u *User) QueryPosts() *TweetQuery {
+	return NewUserClient(u.config).QueryPosts(u)
+}
+
+// QueryFollowers queries the "followers" edge of the User entity.
+func (u *User) QueryFollowers() *UserQuery {
+	return NewUserClient(u.config).QueryFollowers(u)
+}
+
+// QueryFollowing queries the "following" edge of the User entity.
+func (u *User) QueryFollowing() *UserQuery {
+	return NewUserClient(u.config).QueryFollowing(u)
+}
+
+// QueryPuts queries the "puts" edge of the User entity.
+func (u *User) QueryPuts() *LikeQuery {
+	return NewUserClient(u.config).QueryPuts(u)
 }
 
 // Update returns a builder for updating this User.

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"api/ent/schema"
+	"api/ent/tweet"
 	"api/ent/user"
 	"time"
 )
@@ -12,6 +13,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	tweetFields := schema.Tweet{}.Fields()
+	_ = tweetFields
+	// tweetDescText is the schema descriptor for text field.
+	tweetDescText := tweetFields[0].Descriptor()
+	// tweet.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	tweet.TextValidator = tweetDescText.Validators[0].(func(string) error)
+	// tweetDescCreatedAt is the schema descriptor for created_at field.
+	tweetDescCreatedAt := tweetFields[3].Descriptor()
+	// tweet.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tweet.DefaultCreatedAt = tweetDescCreatedAt.Default.(time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.

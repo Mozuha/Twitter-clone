@@ -10,11 +10,14 @@ import (
 
 	"api/ent/migrate"
 
+	"api/ent/like"
+	"api/ent/tweet"
 	"api/ent/user"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -22,6 +25,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Like is the client for interacting with the Like builders.
+	Like *LikeClient
+	// Tweet is the client for interacting with the Tweet builders.
+	Tweet *TweetClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -37,6 +44,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Like = NewLikeClient(c.config)
+	c.Tweet = NewTweetClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -120,6 +129,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:    ctx,
 		config: cfg,
+		Like:   NewLikeClient(cfg),
+		Tweet:  NewTweetClient(cfg),
 		User:   NewUserClient(cfg),
 	}, nil
 }
@@ -140,6 +151,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:    ctx,
 		config: cfg,
+		Like:   NewLikeClient(cfg),
+		Tweet:  NewTweetClient(cfg),
 		User:   NewUserClient(cfg),
 	}, nil
 }
@@ -147,7 +160,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		User.
+//		Like.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -169,22 +182,362 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Like.Use(hooks...)
+	c.Tweet.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Like.Intercept(interceptors...)
+	c.Tweet.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *LikeMutation:
+		return c.Like.mutate(ctx, m)
+	case *TweetMutation:
+		return c.Tweet.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// LikeClient is a client for the Like schema.
+type LikeClient struct {
+	config
+}
+
+// NewLikeClient returns a client for the Like from the given config.
+func NewLikeClient(c config) *LikeClient {
+	return &LikeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `like.Hooks(f(g(h())))`.
+func (c *LikeClient) Use(hooks ...Hook) {
+	c.hooks.Like = append(c.hooks.Like, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `like.Intercept(f(g(h())))`.
+func (c *LikeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Like = append(c.inters.Like, interceptors...)
+}
+
+// Create returns a builder for creating a Like entity.
+func (c *LikeClient) Create() *LikeCreate {
+	mutation := newLikeMutation(c.config, OpCreate)
+	return &LikeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Like entities.
+func (c *LikeClient) CreateBulk(builders ...*LikeCreate) *LikeCreateBulk {
+	return &LikeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Like.
+func (c *LikeClient) Update() *LikeUpdate {
+	mutation := newLikeMutation(c.config, OpUpdate)
+	return &LikeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LikeClient) UpdateOne(l *Like) *LikeUpdateOne {
+	mutation := newLikeMutation(c.config, OpUpdateOne, withLike(l))
+	return &LikeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LikeClient) UpdateOneID(id int) *LikeUpdateOne {
+	mutation := newLikeMutation(c.config, OpUpdateOne, withLikeID(id))
+	return &LikeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Like.
+func (c *LikeClient) Delete() *LikeDelete {
+	mutation := newLikeMutation(c.config, OpDelete)
+	return &LikeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LikeClient) DeleteOne(l *Like) *LikeDeleteOne {
+	return c.DeleteOneID(l.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LikeClient) DeleteOneID(id int) *LikeDeleteOne {
+	builder := c.Delete().Where(like.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LikeDeleteOne{builder}
+}
+
+// Query returns a query builder for Like.
+func (c *LikeClient) Query() *LikeQuery {
+	return &LikeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLike},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Like entity by its id.
+func (c *LikeClient) Get(ctx context.Context, id int) (*Like, error) {
+	return c.Query().Where(like.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LikeClient) GetX(ctx context.Context, id int) *Like {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPutBy queries the put_by edge of a Like.
+func (c *LikeClient) QueryPutBy(l *Like) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := l.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(like.Table, like.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, like.PutByTable, like.PutByColumn),
+		)
+		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBelongTo queries the belong_to edge of a Like.
+func (c *LikeClient) QueryBelongTo(l *Like) *TweetQuery {
+	query := (&TweetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := l.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(like.Table, like.FieldID, id),
+			sqlgraph.To(tweet.Table, tweet.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, like.BelongToTable, like.BelongToColumn),
+		)
+		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LikeClient) Hooks() []Hook {
+	return c.hooks.Like
+}
+
+// Interceptors returns the client interceptors.
+func (c *LikeClient) Interceptors() []Interceptor {
+	return c.inters.Like
+}
+
+func (c *LikeClient) mutate(ctx context.Context, m *LikeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LikeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LikeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LikeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LikeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Like mutation op: %q", m.Op())
+	}
+}
+
+// TweetClient is a client for the Tweet schema.
+type TweetClient struct {
+	config
+}
+
+// NewTweetClient returns a client for the Tweet from the given config.
+func NewTweetClient(c config) *TweetClient {
+	return &TweetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tweet.Hooks(f(g(h())))`.
+func (c *TweetClient) Use(hooks ...Hook) {
+	c.hooks.Tweet = append(c.hooks.Tweet, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tweet.Intercept(f(g(h())))`.
+func (c *TweetClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Tweet = append(c.inters.Tweet, interceptors...)
+}
+
+// Create returns a builder for creating a Tweet entity.
+func (c *TweetClient) Create() *TweetCreate {
+	mutation := newTweetMutation(c.config, OpCreate)
+	return &TweetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Tweet entities.
+func (c *TweetClient) CreateBulk(builders ...*TweetCreate) *TweetCreateBulk {
+	return &TweetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Tweet.
+func (c *TweetClient) Update() *TweetUpdate {
+	mutation := newTweetMutation(c.config, OpUpdate)
+	return &TweetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TweetClient) UpdateOne(t *Tweet) *TweetUpdateOne {
+	mutation := newTweetMutation(c.config, OpUpdateOne, withTweet(t))
+	return &TweetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TweetClient) UpdateOneID(id int) *TweetUpdateOne {
+	mutation := newTweetMutation(c.config, OpUpdateOne, withTweetID(id))
+	return &TweetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Tweet.
+func (c *TweetClient) Delete() *TweetDelete {
+	mutation := newTweetMutation(c.config, OpDelete)
+	return &TweetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TweetClient) DeleteOne(t *Tweet) *TweetDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TweetClient) DeleteOneID(id int) *TweetDeleteOne {
+	builder := c.Delete().Where(tweet.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TweetDeleteOne{builder}
+}
+
+// Query returns a query builder for Tweet.
+func (c *TweetClient) Query() *TweetQuery {
+	return &TweetQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTweet},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Tweet entity by its id.
+func (c *TweetClient) Get(ctx context.Context, id int) (*Tweet, error) {
+	return c.Query().Where(tweet.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TweetClient) GetX(ctx context.Context, id int) *Tweet {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPostedBy queries the posted_by edge of a Tweet.
+func (c *TweetClient) QueryPostedBy(t *Tweet) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tweet.Table, tweet.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tweet.PostedByTable, tweet.PostedByColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChild queries the child edge of a Tweet.
+func (c *TweetClient) QueryChild(t *Tweet) *TweetQuery {
+	query := (&TweetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tweet.Table, tweet.FieldID, id),
+			sqlgraph.To(tweet.Table, tweet.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, tweet.ChildTable, tweet.ChildPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParent queries the parent edge of a Tweet.
+func (c *TweetClient) QueryParent(t *Tweet) *TweetQuery {
+	query := (&TweetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tweet.Table, tweet.FieldID, id),
+			sqlgraph.To(tweet.Table, tweet.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, tweet.ParentTable, tweet.ParentPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHas queries the has edge of a Tweet.
+func (c *TweetClient) QueryHas(t *Tweet) *LikeQuery {
+	query := (&LikeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tweet.Table, tweet.FieldID, id),
+			sqlgraph.To(like.Table, like.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tweet.HasTable, tweet.HasColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TweetClient) Hooks() []Hook {
+	return c.hooks.Tweet
+}
+
+// Interceptors returns the client interceptors.
+func (c *TweetClient) Interceptors() []Interceptor {
+	return c.inters.Tweet
+}
+
+func (c *TweetClient) mutate(ctx context.Context, m *TweetMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TweetCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TweetUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TweetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TweetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Tweet mutation op: %q", m.Op())
 	}
 }
 
@@ -281,6 +634,70 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
+// QueryPosts queries the posts edge of a User.
+func (c *UserClient) QueryPosts(u *User) *TweetQuery {
+	query := (&TweetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(tweet.Table, tweet.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PostsTable, user.PostsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollowers queries the followers edge of a User.
+func (c *UserClient) QueryFollowers(u *User) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.FollowersTable, user.FollowersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollowing queries the following edge of a User.
+func (c *UserClient) QueryFollowing(u *User) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowingTable, user.FollowingPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPuts queries the puts edge of a User.
+func (c *UserClient) QueryPuts(u *User) *LikeQuery {
+	query := (&LikeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(like.Table, like.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PutsTable, user.PutsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -309,9 +726,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		User []ent.Hook
+		Like, Tweet, User []ent.Hook
 	}
 	inters struct {
-		User []ent.Interceptor
+		Like, Tweet, User []ent.Interceptor
 	}
 )
