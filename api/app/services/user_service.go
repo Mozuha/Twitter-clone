@@ -3,7 +3,6 @@ package services
 import (
 	"api/models"
 	"errors"
-	"time"
 )
 
 type UserService interface {
@@ -16,15 +15,8 @@ type userService struct {
 	users []models.User
 }
 
-// for mockup
-var usersMock = []models.User{
-	{Id: 1, DisplayName: "test1", Username: "test 1", Email: "test1@gmail.com", Password: "pass", ProfileImage: "images/test1.jpg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-	{Id: 2, DisplayName: "test2", Username: "test 2", Email: "test2@ymail.ne.jp", Password: "word", ProfileImage: "images/test2.jpg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-	{Id: 3, DisplayName: "test3", Username: "test 3", Email: "test3@gmail.com", Password: "password", ProfileImage: "images/test3.jpg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-}
-
 func New() UserService {
-	return &userService{usersMock}
+	return &userService{}
 }
 
 func (service *userService) GetUsers() []models.User {

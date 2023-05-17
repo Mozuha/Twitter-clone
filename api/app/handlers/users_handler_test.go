@@ -82,10 +82,10 @@ func (s *UsersHandlerTestSuite) TestGetUserByIdHandlerNotFound() {
 
 func (s *UsersHandlerTestSuite) TestCreateUserHandlerSuccess() {
 	user := models.User{
-		DisplayName: "test4",
-		Username:    "test 4",
-		Email:       "test4@ymail.ne.jp",
-		Password:    "12345",
+		ScreenName: "test4",
+		Username:   "test 4",
+		Email:      "test4@ymail.ne.jp",
+		Password:   "12345",
 	}
 	jsonBody, _ := json.Marshal(user)
 	req, _ := http.NewRequest("POST", "/api/user", bytes.NewBuffer(jsonBody))
@@ -99,9 +99,9 @@ func (s *UsersHandlerTestSuite) TestCreateUserHandlerSuccess() {
 func (s *UsersHandlerTestSuite) TestCreateUserHandlerBadRequest() {
 	// lacking Username
 	user := models.User{
-		DisplayName: "test4",
-		Email:       "test4@ymail.ne.jp",
-		Password:    "12345",
+		ScreenName: "test4",
+		Email:      "test4@ymail.ne.jp",
+		Password:   "12345",
 	}
 	jsonBody, _ := json.Marshal(user)
 	req, _ := http.NewRequest("POST", "/api/user", bytes.NewBuffer(jsonBody))

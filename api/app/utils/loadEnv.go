@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// detect running environment (docker or local) for choosing appropriate db host name
+// detect go app running environment (docker or local) for choosing appropriate db host name
 var runningEnv string
 
 const projectRoot = "twitter-clone"
