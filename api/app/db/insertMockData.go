@@ -27,11 +27,11 @@ func InsertMockData(ctx context.Context, client *ent.Client) error {
 			SetCreatedAt(user.CreatedAt).
 			SetUpdatedAt(user.UpdatedAt)
 	}
-	users, err := client.User.CreateBulk(bulk...).Save(ctx)
-	if err != nil {
-		return fmt.Errorf("creating users: %w", err)
-	}
-	fmt.Println("users: ", users)
 
+	// Insert mock users if not exist; otherwise do nothing
+	err := client.User.CreateBulk(bulk...).OnConflictColumns("email").DoNothing().Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("creating mock users: %w", err)
+	}
 	return nil
 }

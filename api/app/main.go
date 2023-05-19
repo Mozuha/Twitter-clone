@@ -30,7 +30,7 @@ func main() {
 	}
 	defer entClient.Close()
 
-	router := route.SetUpRouter()
+	router := route.SetUpRouter(entClient)
 
 	router.Run(":8080")
 }

@@ -1,14 +1,16 @@
 package route
 
 import (
+	"api/ent"
 	"api/handlers"
 	"api/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetUpRouter() *gin.Engine {
+func SetUpRouter(entClient *ent.Client) *gin.Engine {
 	router := gin.Default()
+	userHandlers := handlers.NewUsersHandler(entClient)
 
 	// Authentication + Token creation
 	router.POST("/login", handlers.LoginHandler)
@@ -16,11 +18,11 @@ func SetUpRouter() *gin.Engine {
 	// JWT auth middleware applies to "/api" only
 	apiRoutes := router.Group("/api", middlewares.AuthorizeJWT())
 	{
-		apiRoutes.GET("/users", handlers.GetUsersHandler)
+		apiRoutes.GET("/users", userHandlers.GetUsersHandler)
 
-		apiRoutes.GET("/users/:id", handlers.GetUserByIdHandler)
+		apiRoutes.GET("/users/:id", userHandlers.GetUserByIdHandler)
 
-		apiRoutes.POST("/user", handlers.CreateUserHandler)
+		apiRoutes.POST("/user", userHandlers.CreateUserHandler)
 	}
 
 	return router
