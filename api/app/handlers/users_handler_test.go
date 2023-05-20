@@ -1,14 +1,19 @@
 package handlers
 
 import (
+	"api/db"
+	"api/ent"
 	"api/middlewares"
 	"api/models"
 	"api/services"
 	"api/utils"
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -17,22 +22,31 @@ import (
 
 type UsersHandlerTestSuite struct {
 	suite.Suite
+	db          *ent.Client
+	ctx         context.Context
 	r           *gin.Engine
 	authedToken string
 }
 
 func (s *UsersHandlerTestSuite) SetupTest() {
 	utils.LoadEnv()
+	entClient, err := db.ConnectTestDB()
+	if err != nil {
+		os.Exit(2)
+	}
+	userHandlers := NewUsersHandler(entClient)
+	s.db = entClient
+	s.ctx = context.Background()
 	gin.SetMode(gin.TestMode)
 
 	s.r = gin.Default()
 	apiRoutes := s.r.Group("/api", middlewares.AuthorizeJWT())
 	{
-		apiRoutes.GET("/users", GetUsersHandler)
+		apiRoutes.GET("/users", userHandlers.GetUsersHandler)
 
-		apiRoutes.GET("/users/:id", GetUserByIdHandler)
+		apiRoutes.GET("/users/:id", userHandlers.GetUserByIdHandler)
 
-		apiRoutes.POST("/user", CreateUserHandler)
+		apiRoutes.POST("/user", userHandlers.CreateUserHandler)
 	}
 
 	s.authedToken, _ = services.NewJWTService().GenerateToken("test1@gmail.com")
@@ -56,7 +70,12 @@ func (s *UsersHandlerTestSuite) TestGetUsersHandlerSuccess() {
 }
 
 func (s *UsersHandlerTestSuite) TestGetUserByIdHandlerSuccess() {
-	req, _ := http.NewRequest("GET", "/api/users/3", nil)
+	id, err := s.db.User.Query().FirstID(s.ctx)
+	if err != nil {
+		s.Error(err)
+	}
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/users/%d", id), nil)
 	req.Header.Add("Authorization", "Bearer "+s.authedToken)
 	w := httptest.NewRecorder()
 	s.r.ServeHTTP(w, req)
@@ -97,7 +116,7 @@ func (s *UsersHandlerTestSuite) TestCreateUserHandlerSuccess() {
 }
 
 func (s *UsersHandlerTestSuite) TestCreateUserHandlerBadRequest() {
-	// lacking Username
+	// lacking Username which is required
 	user := models.User{
 		ScreenName: "test4",
 		Email:      "test4@ymail.ne.jp",

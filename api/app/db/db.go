@@ -12,32 +12,25 @@ import (
 )
 
 var (
-	host               string
-	port               string
-	user               string
-	dbname             string
-	password           string
-	runningEnvironment string
+	host     string
+	port     string
+	user     string
+	dbname   string
+	password string
 )
 
-func ConnectDB(runningEnv string) (*ent.Client, error) {
-	runningEnvironment = runningEnv
+func ConnectDB() (*ent.Client, error) {
 	log.Println("opening connection to dev database...")
 	return newEntClient(false)
 }
 
-func ConnectTestDB(runningEnv string) (*ent.Client, error) {
-	runningEnvironment = runningEnv
+func ConnectTestDB() (*ent.Client, error) {
 	log.Println("opening connection to test database...")
 	return newEntClient(true)
 }
 
 func newEntClient(isTest bool) (*ent.Client, error) {
-	if runningEnvironment == "local" {
-		host = "localhost"
-	} else {
-		host = os.Getenv("DB_HOST")
-	}
+	host = "localhost"
 	if isTest {
 		port = os.Getenv("DB_TEST_PORT")
 	} else {
@@ -51,15 +44,20 @@ func newEntClient(isTest bool) (*ent.Client, error) {
 
 	client, err := ent.Open("postgres", dbinfo)
 	if err != nil {
-		log.Fatalf("failed opening connection to postgres: %v", err)
+		host = os.Getenv("DB_HOST")
+		dbinfo = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", host, port, user, dbname, password)
+		client, err = ent.Open("postgres", dbinfo)
+		if err != nil {
+			log.Fatalf("failed opening connection to postgres: %v", err)
+		}
 	}
 
 	log.Println("connected to database")
 
 	ctx := context.Background()
 
-	// Auto migration; Debug mode will print all SQL queries; Enable UUID PK by passing WithGlobalUniqueID option, for GraphQL integration
-	if err := client.Debug().Schema.Create(
+	// Auto migration; Enable UUID PK by passing WithGlobalUniqueID option, for GraphQL integration
+	if err := client.Schema.Create(
 		ctx,
 		migrate.WithGlobalUniqueID(true),
 		migrate.WithDropIndex(true),
@@ -74,6 +72,8 @@ func newEntClient(isTest bool) (*ent.Client, error) {
 			log.Fatal(err)
 		}
 	}
+
+	log.Println("migration done")
 
 	return client, err
 }
