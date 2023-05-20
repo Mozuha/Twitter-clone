@@ -1,1 +1,4 @@
 .env
+
+# go build
+/api/app/api

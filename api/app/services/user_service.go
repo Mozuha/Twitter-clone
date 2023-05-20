@@ -1,45 +1,97 @@
 package services
 
 import (
+	"api/ent"
 	"api/models"
-	"errors"
-	"time"
+	"context"
+	"fmt"
 )
 
+// TODO: create and use response type instead of models.User type
 type UserService interface {
-	GetUsers() []models.User
-	GetUserById(uint) (models.User, error)
-	CreateUser(models.User)
+	GetUsers(context.Context) ([]models.User, error)
+	GetUserById(context.Context, uint) (models.User, error)
+	CreateUser(context.Context, models.User) (models.User, error)
 }
 
 type userService struct {
-	users []models.User
+	client *ent.UserClient
 }
 
-// for mockup
-var usersMock = []models.User{
-	{Id: 1, DisplayName: "test1", Username: "test 1", Email: "test1@gmail.com", Password: "pass", ProfileImage: "images/test1.jpg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-	{Id: 2, DisplayName: "test2", Username: "test 2", Email: "test2@ymail.ne.jp", Password: "word", ProfileImage: "images/test2.jpg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-	{Id: 3, DisplayName: "test3", Username: "test 3", Email: "test3@gmail.com", Password: "password", ProfileImage: "images/test3.jpg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-}
-
-func New() UserService {
-	return &userService{usersMock}
-}
-
-func (service *userService) GetUsers() []models.User {
-	return service.users
-}
-
-func (service *userService) GetUserById(id uint) (models.User, error) {
-	for _, c := range service.users {
-		if c.Id == id {
-			return c, nil
-		}
+func NewUserService(userClient *ent.UserClient) UserService {
+	return &userService{
+		client: userClient,
 	}
-	return service.users[1], errors.New("user with specified id not found")
 }
 
-func (service *userService) CreateUser(user models.User) {
-	service.users = append(service.users, user)
+func (srv *userService) GetUsers(ctx context.Context) ([]models.User, error) {
+	users, err := srv.client.Query().All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting users: %w", err)
+	}
+
+	var res []models.User
+	for _, user := range users {
+		res = append(res, models.User{
+			Id:           uint(user.ID),
+			ScreenName:   user.ScreenName,
+			Username:     user.Name,
+			Email:        user.Email,
+			Password:     user.Password,
+			ProfileImage: user.ProfileImage,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+func (srv *userService) GetUserById(ctx context.Context, id uint) (models.User, error) {
+	user, err := srv.client.Get(ctx, int(id))
+	if err != nil {
+		return models.User{}, fmt.Errorf("getting user: %w", err)
+	}
+
+	res := models.User{
+		Id:           uint(user.ID),
+		ScreenName:   user.ScreenName,
+		Username:     user.Name,
+		Email:        user.Email,
+		Password:     user.Password,
+		ProfileImage: user.ProfileImage,
+		CreatedAt:    user.CreatedAt,
+		UpdatedAt:    user.UpdatedAt,
+	}
+
+	return res, nil
+}
+
+func (srv *userService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	newUser, err := srv.client.
+		Create().
+		SetScreenName(user.ScreenName).
+		SetName(user.Username).
+		SetEmail(user.Email).
+		SetPassword(user.Password).
+		SetProfileImage(user.ProfileImage).
+		SetCreatedAt(user.CreatedAt).
+		SetUpdatedAt(user.UpdatedAt).
+		Save(ctx)
+	if err != nil {
+		return models.User{}, fmt.Errorf("creating user: %w", err)
+	}
+
+	res := models.User{
+		Id:           uint(newUser.ID),
+		ScreenName:   newUser.ScreenName,
+		Username:     newUser.Name,
+		Email:        newUser.Email,
+		Password:     newUser.Password,
+		ProfileImage: newUser.ProfileImage,
+		CreatedAt:    newUser.CreatedAt,
+		UpdatedAt:    newUser.UpdatedAt,
+	}
+
+	return res, nil
 }
