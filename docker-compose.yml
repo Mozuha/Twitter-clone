@@ -33,7 +33,8 @@ services:
 
   db-test:
     image: postgres:alpine
-    hostname: ${DB_HOST}
+    container_name: ${DB_TEST_HOST}
+    hostname: ${DB_TEST_HOST}
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}

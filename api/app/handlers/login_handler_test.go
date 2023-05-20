@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,10 @@ type LoginHandlerTestSuite struct {
 }
 
 func (s *LoginHandlerTestSuite) SetupTest() {
-	utils.LoadEnv()
+	if _, err := utils.LoadEnv(); err != nil {
+		os.Exit(2)
+	}
+
 	gin.SetMode(gin.TestMode)
 
 	s.r = gin.Default()

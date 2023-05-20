@@ -17,25 +17,36 @@ var (
 	user     string
 	dbname   string
 	password string
+	isTest   bool
 )
 
-func ConnectDB() (*ent.Client, error) {
-	log.Println("opening connection to dev database...")
-	return newEntClient(false)
-}
-
-func ConnectTestDB() (*ent.Client, error) {
-	log.Println("opening connection to test database...")
-	return newEntClient(true)
-}
-
-func newEntClient(isTest bool) (*ent.Client, error) {
-	host = "localhost"
-	if isTest {
-		port = os.Getenv("DB_TEST_PORT")
+func ConnectDB(runningEnv string) (*ent.Client, error) {
+	if runningEnv == "docker" {
+		host = os.Getenv("DB_HOST")
 	} else {
-		port = os.Getenv("DB_PORT")
+		host = "localhost"
 	}
+	port = os.Getenv("DB_PORT")
+	isTest = false
+
+	log.Println("opening connection to dev database...")
+	return newEntClient()
+}
+
+func ConnectTestDB(runningEnv string) (*ent.Client, error) {
+	if runningEnv == "docker" {
+		host = os.Getenv("DB_TEST_HOST")
+	} else {
+		host = "localhost"
+	}
+	port = os.Getenv("DB_TEST_PORT")
+	isTest = true
+
+	log.Println("opening connection to test database...")
+	return newEntClient()
+}
+
+func newEntClient() (*ent.Client, error) {
 	user = os.Getenv("DB_USER")
 	dbname = os.Getenv("DB_DATABASE")
 	password = os.Getenv("DB_PASSWORD")
@@ -44,12 +55,7 @@ func newEntClient(isTest bool) (*ent.Client, error) {
 
 	client, err := ent.Open("postgres", dbinfo)
 	if err != nil {
-		host = os.Getenv("DB_HOST")
-		dbinfo = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", host, port, user, dbname, password)
-		client, err = ent.Open("postgres", dbinfo)
-		if err != nil {
-			log.Fatalf("failed opening connection to postgres: %v", err)
-		}
+		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
 
 	log.Println("connected to database")

@@ -6,8 +6,7 @@ on:
       - api/app/**
       - .github/workflows/goCI.yml
   pull_request:
-    types:
-      - opened
+    types: [opened, edited]
 
 jobs:
   test:
@@ -33,6 +32,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Create env file
+        working-directory: ./api/app
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Set up Go

@@ -29,11 +29,16 @@ type UsersHandlerTestSuite struct {
 }
 
 func (s *UsersHandlerTestSuite) SetupTest() {
-	utils.LoadEnv()
-	entClient, err := db.ConnectTestDB()
+	runningEnv, err := utils.LoadEnv()
 	if err != nil {
 		os.Exit(2)
 	}
+
+	entClient, err := db.ConnectTestDB(runningEnv)
+	if err != nil {
+		os.Exit(2)
+	}
+
 	userHandlers := NewUsersHandler(entClient)
 	s.db = entClient
 	s.ctx = context.Background()
