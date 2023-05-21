@@ -36,10 +36,11 @@ func ConnectDB(runningEnv string) (*ent.Client, error) {
 func ConnectTestDB(runningEnv string) (*ent.Client, error) {
 	if runningEnv == "docker" {
 		host = os.Getenv("DB_TEST_HOST")
+		port = "5432"
 	} else {
 		host = "localhost"
+		port = os.Getenv("DB_TEST_PORT")
 	}
-	port = os.Getenv("DB_TEST_PORT")
 	isTest = true
 
 	log.Println("opening connection to test database...")
