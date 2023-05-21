@@ -5,6 +5,7 @@ import (
 	"api/utils"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,6 +22,7 @@ type LoginHandlerTestSuite struct {
 
 func (s *LoginHandlerTestSuite) SetupTest() {
 	if _, err := utils.LoadEnv(); err != nil {
+		fmt.Println(err)
 		os.Exit(2)
 	}
 

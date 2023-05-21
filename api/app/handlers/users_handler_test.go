@@ -31,11 +31,13 @@ type UsersHandlerTestSuite struct {
 func (s *UsersHandlerTestSuite) SetupTest() {
 	runningEnv, err := utils.LoadEnv()
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(2)
 	}
 
 	entClient, err := db.ConnectTestDB(runningEnv)
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(2)
 	}
 
