@@ -8,7 +8,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// running in local: twitter-clone/.env
+// running in go container: foo/app/.env
 const projectRoot = "twitter-clone/"
+const goAppRoot = "app/"
 
 var runningEnvironment string
 
@@ -27,7 +30,8 @@ func LoadEnv() (string, error) {
 		}
 
 		// Otherwise env file might be in this directory
-		rootPath = make([]byte, 0)
+		re = regexp.MustCompile(`^(.*` + goAppRoot + `)`)
+		rootPath = re.Find([]byte(cwd))
 		runningEnvironment = "docker"
 	}
 
