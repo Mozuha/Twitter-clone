@@ -64,8 +64,10 @@ func newEntClient() (*ent.Client, error) {
 	ctx := context.Background()
 
 	// Auto migration
+	// Enable Universal ID support by setting WithGlobalUniqueID option to true, for GraphQL integration (GraphQL requires that the object IDs are unique)
 	if err := client.Schema.Create(
 		ctx,
+		migrate.WithGlobalUniqueID(true),
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true),
 	); err != nil {

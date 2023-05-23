@@ -12,6 +12,9 @@ func SetUpRouter(entClient *ent.Client) *gin.Engine {
 	router := gin.Default()
 	userHandlers := handlers.NewUsersHandler(entClient)
 
+	router.POST("/query", handlers.GqlHandler(entClient))
+	router.GET("/gqlplayground", handlers.PlaygroundHandler())
+
 	// Authentication + Token creation
 	router.POST("/login", handlers.LoginHandler)
 

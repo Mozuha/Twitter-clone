@@ -3,7 +3,9 @@ package schema
 import (
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -30,5 +32,12 @@ func (Tweet) Edges() []ent.Edge {
 		edge.From("posted_by", User.Type).Unique().Required().Ref("posts"),
 		edge.To("parent", Tweet.Type).From("child"),
 		edge.To("has", Like.Type),
+	}
+}
+
+func (Tweet) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate()),
 	}
 }

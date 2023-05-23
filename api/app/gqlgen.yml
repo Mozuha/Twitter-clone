@@ -1,6 +1,13 @@
 # schema tells gqlgen where the GraphQL schema is located.
 schema:
   - ent/ent.graphql
+  - ent/user.graphql
+
+# exec reports where the generated server code go.
+exec:
+  layout: follow-schema
+  dir: gql/generated
+  package: generated
 
 # resolver reports where the resolver implementations go.
 resolver:
