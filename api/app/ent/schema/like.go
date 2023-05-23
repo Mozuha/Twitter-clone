@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // Like holds the schema definition for the Like entity.
@@ -15,8 +16,8 @@ type Like struct {
 // Fields of the Like.
 func (Like) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("user_id", uuid.UUID{}),
-		field.UUID("tweet_id", uuid.UUID{}),
+		field.Int("user_id"),
+		field.Int("tweet_id"),
 	}
 }
 
@@ -25,5 +26,12 @@ func (Like) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("put_by", User.Type).Unique().Required().Ref("puts"),
 		edge.From("belong_to", Tweet.Type).Unique().Required().Ref("has"),
+	}
+}
+
+func (Like) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate()),
 	}
 }

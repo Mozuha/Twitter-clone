@@ -3,17 +3,15 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"errors"
 	"fmt"
 
-	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // LikeCreate is the builder for creating a Like entity.
@@ -21,18 +19,17 @@ type LikeCreate struct {
 	config
 	mutation *LikeMutation
 	hooks    []Hook
-	conflict []sql.ConflictOption
 }
 
 // SetUserID sets the "user_id" field.
-func (lc *LikeCreate) SetUserID(u uuid.UUID) *LikeCreate {
-	lc.mutation.SetUserID(u)
+func (lc *LikeCreate) SetUserID(i int) *LikeCreate {
+	lc.mutation.SetUserID(i)
 	return lc
 }
 
 // SetTweetID sets the "tweet_id" field.
-func (lc *LikeCreate) SetTweetID(u uuid.UUID) *LikeCreate {
-	lc.mutation.SetTweetID(u)
+func (lc *LikeCreate) SetTweetID(i int) *LikeCreate {
+	lc.mutation.SetTweetID(i)
 	return lc
 }
 
@@ -130,13 +127,12 @@ func (lc *LikeCreate) createSpec() (*Like, *sqlgraph.CreateSpec) {
 		_node = &Like{config: lc.config}
 		_spec = sqlgraph.NewCreateSpec(like.Table, sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt))
 	)
-	_spec.OnConflict = lc.conflict
 	if value, ok := lc.mutation.UserID(); ok {
-		_spec.SetField(like.FieldUserID, field.TypeUUID, value)
+		_spec.SetField(like.FieldUserID, field.TypeInt, value)
 		_node.UserID = value
 	}
 	if value, ok := lc.mutation.TweetID(); ok {
-		_spec.SetField(like.FieldTweetID, field.TypeUUID, value)
+		_spec.SetField(like.FieldTweetID, field.TypeInt, value)
 		_node.TweetID = value
 	}
 	if nodes := lc.mutation.PutByIDs(); len(nodes) > 0 {
@@ -176,185 +172,10 @@ func (lc *LikeCreate) createSpec() (*Like, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.Like.Create().
-//		SetUserID(v).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.LikeUpsert) {
-//			SetUserID(v+v).
-//		}).
-//		Exec(ctx)
-func (lc *LikeCreate) OnConflict(opts ...sql.ConflictOption) *LikeUpsertOne {
-	lc.conflict = opts
-	return &LikeUpsertOne{
-		create: lc,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.Like.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (lc *LikeCreate) OnConflictColumns(columns ...string) *LikeUpsertOne {
-	lc.conflict = append(lc.conflict, sql.ConflictColumns(columns...))
-	return &LikeUpsertOne{
-		create: lc,
-	}
-}
-
-type (
-	// LikeUpsertOne is the builder for "upsert"-ing
-	//  one Like node.
-	LikeUpsertOne struct {
-		create *LikeCreate
-	}
-
-	// LikeUpsert is the "OnConflict" setter.
-	LikeUpsert struct {
-		*sql.UpdateSet
-	}
-)
-
-// SetUserID sets the "user_id" field.
-func (u *LikeUpsert) SetUserID(v uuid.UUID) *LikeUpsert {
-	u.Set(like.FieldUserID, v)
-	return u
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *LikeUpsert) UpdateUserID() *LikeUpsert {
-	u.SetExcluded(like.FieldUserID)
-	return u
-}
-
-// SetTweetID sets the "tweet_id" field.
-func (u *LikeUpsert) SetTweetID(v uuid.UUID) *LikeUpsert {
-	u.Set(like.FieldTweetID, v)
-	return u
-}
-
-// UpdateTweetID sets the "tweet_id" field to the value that was provided on create.
-func (u *LikeUpsert) UpdateTweetID() *LikeUpsert {
-	u.SetExcluded(like.FieldTweetID)
-	return u
-}
-
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
-// Using this option is equivalent to using:
-//
-//	client.Like.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *LikeUpsertOne) UpdateNewValues() *LikeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.Like.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
-func (u *LikeUpsertOne) Ignore() *LikeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *LikeUpsertOne) DoNothing() *LikeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the LikeCreate.OnConflict
-// documentation for more info.
-func (u *LikeUpsertOne) Update(set func(*LikeUpsert)) *LikeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&LikeUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUserID sets the "user_id" field.
-func (u *LikeUpsertOne) SetUserID(v uuid.UUID) *LikeUpsertOne {
-	return u.Update(func(s *LikeUpsert) {
-		s.SetUserID(v)
-	})
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *LikeUpsertOne) UpdateUserID() *LikeUpsertOne {
-	return u.Update(func(s *LikeUpsert) {
-		s.UpdateUserID()
-	})
-}
-
-// SetTweetID sets the "tweet_id" field.
-func (u *LikeUpsertOne) SetTweetID(v uuid.UUID) *LikeUpsertOne {
-	return u.Update(func(s *LikeUpsert) {
-		s.SetTweetID(v)
-	})
-}
-
-// UpdateTweetID sets the "tweet_id" field to the value that was provided on create.
-func (u *LikeUpsertOne) UpdateTweetID() *LikeUpsertOne {
-	return u.Update(func(s *LikeUpsert) {
-		s.UpdateTweetID()
-	})
-}
-
-// Exec executes the query.
-func (u *LikeUpsertOne) Exec(ctx context.Context) error {
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for LikeCreate.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *LikeUpsertOne) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *LikeUpsertOne) ID(ctx context.Context) (id int, err error) {
-	node, err := u.create.Save(ctx)
-	if err != nil {
-		return id, err
-	}
-	return node.ID, nil
-}
-
-// IDX is like ID, but panics if an error occurs.
-func (u *LikeUpsertOne) IDX(ctx context.Context) int {
-	id, err := u.ID(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
 // LikeCreateBulk is the builder for creating many Like entities in bulk.
 type LikeCreateBulk struct {
 	config
 	builders []*LikeCreate
-	conflict []sql.ConflictOption
 }
 
 // Save creates the Like entities in the database.
@@ -380,7 +201,6 @@ func (lcb *LikeCreateBulk) Save(ctx context.Context) ([]*Like, error) {
 					_, err = mutators[i+1].Mutate(root, lcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = lcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, lcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -431,135 +251,6 @@ func (lcb *LikeCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (lcb *LikeCreateBulk) ExecX(ctx context.Context) {
 	if err := lcb.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.Like.CreateBulk(builders...).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.LikeUpsert) {
-//			SetUserID(v+v).
-//		}).
-//		Exec(ctx)
-func (lcb *LikeCreateBulk) OnConflict(opts ...sql.ConflictOption) *LikeUpsertBulk {
-	lcb.conflict = opts
-	return &LikeUpsertBulk{
-		create: lcb,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.Like.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (lcb *LikeCreateBulk) OnConflictColumns(columns ...string) *LikeUpsertBulk {
-	lcb.conflict = append(lcb.conflict, sql.ConflictColumns(columns...))
-	return &LikeUpsertBulk{
-		create: lcb,
-	}
-}
-
-// LikeUpsertBulk is the builder for "upsert"-ing
-// a bulk of Like nodes.
-type LikeUpsertBulk struct {
-	create *LikeCreateBulk
-}
-
-// UpdateNewValues updates the mutable fields using the new values that
-// were set on create. Using this option is equivalent to using:
-//
-//	client.Like.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *LikeUpsertBulk) UpdateNewValues() *LikeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.Like.Create().
-//		OnConflict(sql.ResolveWithIgnore()).
-//		Exec(ctx)
-func (u *LikeUpsertBulk) Ignore() *LikeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *LikeUpsertBulk) DoNothing() *LikeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the LikeCreateBulk.OnConflict
-// documentation for more info.
-func (u *LikeUpsertBulk) Update(set func(*LikeUpsert)) *LikeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&LikeUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUserID sets the "user_id" field.
-func (u *LikeUpsertBulk) SetUserID(v uuid.UUID) *LikeUpsertBulk {
-	return u.Update(func(s *LikeUpsert) {
-		s.SetUserID(v)
-	})
-}
-
-// UpdateUserID sets the "user_id" field to the value that was provided on create.
-func (u *LikeUpsertBulk) UpdateUserID() *LikeUpsertBulk {
-	return u.Update(func(s *LikeUpsert) {
-		s.UpdateUserID()
-	})
-}
-
-// SetTweetID sets the "tweet_id" field.
-func (u *LikeUpsertBulk) SetTweetID(v uuid.UUID) *LikeUpsertBulk {
-	return u.Update(func(s *LikeUpsert) {
-		s.SetTweetID(v)
-	})
-}
-
-// UpdateTweetID sets the "tweet_id" field to the value that was provided on create.
-func (u *LikeUpsertBulk) UpdateTweetID() *LikeUpsertBulk {
-	return u.Update(func(s *LikeUpsert) {
-		s.UpdateTweetID()
-	})
-}
-
-// Exec executes the query.
-func (u *LikeUpsertBulk) Exec(ctx context.Context) error {
-	for i, b := range u.create.builders {
-		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the LikeCreateBulk instead", i)
-		}
-	}
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for LikeCreateBulk.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *LikeUpsertBulk) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

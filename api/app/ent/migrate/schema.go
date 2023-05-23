@@ -11,8 +11,8 @@ var (
 	// LikesColumns holds the columns for the "likes" table.
 	LikesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_id", Type: field.TypeUUID},
-		{Name: "tweet_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "tweet_id", Type: field.TypeInt},
 		{Name: "tweet_has", Type: field.TypeInt},
 		{Name: "user_puts", Type: field.TypeInt},
 	}
@@ -40,8 +40,8 @@ var (
 	TweetsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "text", Type: field.TypeString},
-		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_posts", Type: field.TypeInt},
 	}

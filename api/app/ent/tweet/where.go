@@ -3,12 +3,11 @@
 package tweet
 
 import (
-	"api/ent/predicate"
+	"app/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
@@ -62,12 +61,12 @@ func Text(v string) predicate.Tweet {
 }
 
 // ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
-func ParentID(v uuid.UUID) predicate.Tweet {
+func ParentID(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldParentID, v))
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v uuid.UUID) predicate.Tweet {
+func UserID(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -142,42 +141,42 @@ func TextContainsFold(v string) predicate.Tweet {
 }
 
 // ParentIDEQ applies the EQ predicate on the "parent_id" field.
-func ParentIDEQ(v uuid.UUID) predicate.Tweet {
+func ParentIDEQ(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldParentID, v))
 }
 
 // ParentIDNEQ applies the NEQ predicate on the "parent_id" field.
-func ParentIDNEQ(v uuid.UUID) predicate.Tweet {
+func ParentIDNEQ(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldNEQ(FieldParentID, v))
 }
 
 // ParentIDIn applies the In predicate on the "parent_id" field.
-func ParentIDIn(vs ...uuid.UUID) predicate.Tweet {
+func ParentIDIn(vs ...int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldIn(FieldParentID, vs...))
 }
 
 // ParentIDNotIn applies the NotIn predicate on the "parent_id" field.
-func ParentIDNotIn(vs ...uuid.UUID) predicate.Tweet {
+func ParentIDNotIn(vs ...int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldNotIn(FieldParentID, vs...))
 }
 
 // ParentIDGT applies the GT predicate on the "parent_id" field.
-func ParentIDGT(v uuid.UUID) predicate.Tweet {
+func ParentIDGT(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldGT(FieldParentID, v))
 }
 
 // ParentIDGTE applies the GTE predicate on the "parent_id" field.
-func ParentIDGTE(v uuid.UUID) predicate.Tweet {
+func ParentIDGTE(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldGTE(FieldParentID, v))
 }
 
 // ParentIDLT applies the LT predicate on the "parent_id" field.
-func ParentIDLT(v uuid.UUID) predicate.Tweet {
+func ParentIDLT(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldLT(FieldParentID, v))
 }
 
 // ParentIDLTE applies the LTE predicate on the "parent_id" field.
-func ParentIDLTE(v uuid.UUID) predicate.Tweet {
+func ParentIDLTE(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldLTE(FieldParentID, v))
 }
 
@@ -192,42 +191,42 @@ func ParentIDNotNil() predicate.Tweet {
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v uuid.UUID) predicate.Tweet {
+func UserIDEQ(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v uuid.UUID) predicate.Tweet {
+func UserIDNEQ(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...uuid.UUID) predicate.Tweet {
+func UserIDIn(vs ...int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...uuid.UUID) predicate.Tweet {
+func UserIDNotIn(vs ...int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v uuid.UUID) predicate.Tweet {
+func UserIDGT(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldGT(FieldUserID, v))
 }
 
 // UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v uuid.UUID) predicate.Tweet {
+func UserIDGTE(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldGTE(FieldUserID, v))
 }
 
 // UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v uuid.UUID) predicate.Tweet {
+func UserIDLT(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldLT(FieldUserID, v))
 }
 
 // UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v uuid.UUID) predicate.Tweet {
+func UserIDLTE(v int) predicate.Tweet {
 	return predicate.Tweet(sql.FieldLTE(FieldUserID, v))
 }
 

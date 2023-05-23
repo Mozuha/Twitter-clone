@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/predicate"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/predicate"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -15,7 +15,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 )
 
 const (
@@ -38,8 +37,10 @@ type LikeMutation struct {
 	op               Op
 	typ              string
 	id               *int
-	user_id          *uuid.UUID
-	tweet_id         *uuid.UUID
+	user_id          *int
+	adduser_id       *int
+	tweet_id         *int
+	addtweet_id      *int
 	clearedFields    map[string]struct{}
 	put_by           *int
 	clearedput_by    bool
@@ -149,12 +150,13 @@ func (m *LikeMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *LikeMutation) SetUserID(u uuid.UUID) {
-	m.user_id = &u
+func (m *LikeMutation) SetUserID(i int) {
+	m.user_id = &i
+	m.adduser_id = nil
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *LikeMutation) UserID() (r uuid.UUID, exists bool) {
+func (m *LikeMutation) UserID() (r int, exists bool) {
 	v := m.user_id
 	if v == nil {
 		return
@@ -165,7 +167,7 @@ func (m *LikeMutation) UserID() (r uuid.UUID, exists bool) {
 // OldUserID returns the old "user_id" field's value of the Like entity.
 // If the Like object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LikeMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *LikeMutation) OldUserID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -179,18 +181,38 @@ func (m *LikeMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
 	return oldValue.UserID, nil
 }
 
+// AddUserID adds i to the "user_id" field.
+func (m *LikeMutation) AddUserID(i int) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *LikeMutation) AddedUserID() (r int, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetUserID resets all changes to the "user_id" field.
 func (m *LikeMutation) ResetUserID() {
 	m.user_id = nil
+	m.adduser_id = nil
 }
 
 // SetTweetID sets the "tweet_id" field.
-func (m *LikeMutation) SetTweetID(u uuid.UUID) {
-	m.tweet_id = &u
+func (m *LikeMutation) SetTweetID(i int) {
+	m.tweet_id = &i
+	m.addtweet_id = nil
 }
 
 // TweetID returns the value of the "tweet_id" field in the mutation.
-func (m *LikeMutation) TweetID() (r uuid.UUID, exists bool) {
+func (m *LikeMutation) TweetID() (r int, exists bool) {
 	v := m.tweet_id
 	if v == nil {
 		return
@@ -201,7 +223,7 @@ func (m *LikeMutation) TweetID() (r uuid.UUID, exists bool) {
 // OldTweetID returns the old "tweet_id" field's value of the Like entity.
 // If the Like object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LikeMutation) OldTweetID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *LikeMutation) OldTweetID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTweetID is only allowed on UpdateOne operations")
 	}
@@ -215,9 +237,28 @@ func (m *LikeMutation) OldTweetID(ctx context.Context) (v uuid.UUID, err error) 
 	return oldValue.TweetID, nil
 }
 
+// AddTweetID adds i to the "tweet_id" field.
+func (m *LikeMutation) AddTweetID(i int) {
+	if m.addtweet_id != nil {
+		*m.addtweet_id += i
+	} else {
+		m.addtweet_id = &i
+	}
+}
+
+// AddedTweetID returns the value that was added to the "tweet_id" field in this mutation.
+func (m *LikeMutation) AddedTweetID() (r int, exists bool) {
+	v := m.addtweet_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetTweetID resets all changes to the "tweet_id" field.
 func (m *LikeMutation) ResetTweetID() {
 	m.tweet_id = nil
+	m.addtweet_id = nil
 }
 
 // SetPutByID sets the "put_by" edge to the User entity by id.
@@ -374,14 +415,14 @@ func (m *LikeMutation) OldField(ctx context.Context, name string) (ent.Value, er
 func (m *LikeMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case like.FieldUserID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserID(v)
 		return nil
 	case like.FieldTweetID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -394,13 +435,26 @@ func (m *LikeMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *LikeMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, like.FieldUserID)
+	}
+	if m.addtweet_id != nil {
+		fields = append(fields, like.FieldTweetID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *LikeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case like.FieldUserID:
+		return m.AddedUserID()
+	case like.FieldTweetID:
+		return m.AddedTweetID()
+	}
 	return nil, false
 }
 
@@ -409,6 +463,20 @@ func (m *LikeMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *LikeMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case like.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
+	case like.FieldTweetID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTweetID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Like numeric field %s", name)
 }
@@ -545,8 +613,10 @@ type TweetMutation struct {
 	typ              string
 	id               *int
 	text             *string
-	parent_id        *uuid.UUID
-	user_id          *uuid.UUID
+	parent_id        *int
+	addparent_id     *int
+	user_id          *int
+	adduser_id       *int
 	created_at       *time.Time
 	clearedFields    map[string]struct{}
 	posted_by        *int
@@ -700,12 +770,13 @@ func (m *TweetMutation) ResetText() {
 }
 
 // SetParentID sets the "parent_id" field.
-func (m *TweetMutation) SetParentID(u uuid.UUID) {
-	m.parent_id = &u
+func (m *TweetMutation) SetParentID(i int) {
+	m.parent_id = &i
+	m.addparent_id = nil
 }
 
 // ParentID returns the value of the "parent_id" field in the mutation.
-func (m *TweetMutation) ParentID() (r uuid.UUID, exists bool) {
+func (m *TweetMutation) ParentID() (r int, exists bool) {
 	v := m.parent_id
 	if v == nil {
 		return
@@ -716,7 +787,7 @@ func (m *TweetMutation) ParentID() (r uuid.UUID, exists bool) {
 // OldParentID returns the old "parent_id" field's value of the Tweet entity.
 // If the Tweet object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TweetMutation) OldParentID(ctx context.Context) (v *uuid.UUID, err error) {
+func (m *TweetMutation) OldParentID(ctx context.Context) (v *int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
 	}
@@ -730,9 +801,28 @@ func (m *TweetMutation) OldParentID(ctx context.Context) (v *uuid.UUID, err erro
 	return oldValue.ParentID, nil
 }
 
+// AddParentID adds i to the "parent_id" field.
+func (m *TweetMutation) AddParentID(i int) {
+	if m.addparent_id != nil {
+		*m.addparent_id += i
+	} else {
+		m.addparent_id = &i
+	}
+}
+
+// AddedParentID returns the value that was added to the "parent_id" field in this mutation.
+func (m *TweetMutation) AddedParentID() (r int, exists bool) {
+	v := m.addparent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ClearParentID clears the value of the "parent_id" field.
 func (m *TweetMutation) ClearParentID() {
 	m.parent_id = nil
+	m.addparent_id = nil
 	m.clearedFields[tweet.FieldParentID] = struct{}{}
 }
 
@@ -745,16 +835,18 @@ func (m *TweetMutation) ParentIDCleared() bool {
 // ResetParentID resets all changes to the "parent_id" field.
 func (m *TweetMutation) ResetParentID() {
 	m.parent_id = nil
+	m.addparent_id = nil
 	delete(m.clearedFields, tweet.FieldParentID)
 }
 
 // SetUserID sets the "user_id" field.
-func (m *TweetMutation) SetUserID(u uuid.UUID) {
-	m.user_id = &u
+func (m *TweetMutation) SetUserID(i int) {
+	m.user_id = &i
+	m.adduser_id = nil
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *TweetMutation) UserID() (r uuid.UUID, exists bool) {
+func (m *TweetMutation) UserID() (r int, exists bool) {
 	v := m.user_id
 	if v == nil {
 		return
@@ -765,7 +857,7 @@ func (m *TweetMutation) UserID() (r uuid.UUID, exists bool) {
 // OldUserID returns the old "user_id" field's value of the Tweet entity.
 // If the Tweet object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TweetMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *TweetMutation) OldUserID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -779,9 +871,28 @@ func (m *TweetMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) 
 	return oldValue.UserID, nil
 }
 
+// AddUserID adds i to the "user_id" field.
+func (m *TweetMutation) AddUserID(i int) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *TweetMutation) AddedUserID() (r int, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetUserID resets all changes to the "user_id" field.
 func (m *TweetMutation) ResetUserID() {
 	m.user_id = nil
+	m.adduser_id = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1118,14 +1229,14 @@ func (m *TweetMutation) SetField(name string, value ent.Value) error {
 		m.SetText(v)
 		return nil
 	case tweet.FieldParentID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetParentID(v)
 		return nil
 	case tweet.FieldUserID:
-		v, ok := value.(uuid.UUID)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1145,13 +1256,26 @@ func (m *TweetMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *TweetMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addparent_id != nil {
+		fields = append(fields, tweet.FieldParentID)
+	}
+	if m.adduser_id != nil {
+		fields = append(fields, tweet.FieldUserID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *TweetMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case tweet.FieldParentID:
+		return m.AddedParentID()
+	case tweet.FieldUserID:
+		return m.AddedUserID()
+	}
 	return nil, false
 }
 
@@ -1160,6 +1284,20 @@ func (m *TweetMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TweetMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case tweet.FieldParentID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddParentID(v)
+		return nil
+	case tweet.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Tweet numeric field %s", name)
 }

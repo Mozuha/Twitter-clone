@@ -1,8 +1,8 @@
 package db
 
 import (
-	"api/ent"
-	"api/ent/migrate"
+	"app/ent"
+	"app/ent/migrate"
 	"context"
 	"fmt"
 	"log"
@@ -63,7 +63,8 @@ func newEntClient() (*ent.Client, error) {
 
 	ctx := context.Background()
 
-	// Auto migration; Enable UUID PK by passing WithGlobalUniqueID option, for GraphQL integration
+	// Auto migration
+	// Enable Universal ID support by setting WithGlobalUniqueID option to true, for GraphQL integration (GraphQL requires that the object IDs are unique)
 	if err := client.Schema.Create(
 		ctx,
 		migrate.WithGlobalUniqueID(true),

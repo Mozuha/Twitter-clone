@@ -1,9 +1,9 @@
 package route
 
 import (
-	"api/ent"
-	"api/handlers"
-	"api/middlewares"
+	"app/ent"
+	"app/handlers"
+	"app/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +11,9 @@ import (
 func SetUpRouter(entClient *ent.Client) *gin.Engine {
 	router := gin.Default()
 	userHandlers := handlers.NewUsersHandler(entClient)
+
+	router.POST("/query", handlers.GqlHandler(entClient))
+	router.GET("/gqlplayground", handlers.PlaygroundHandler())
 
 	// Authentication + Token creation
 	router.POST("/login", handlers.LoginHandler)

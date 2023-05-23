@@ -3,15 +3,14 @@
 package ent
 
 import (
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/tweet"
+	"app/ent/user"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 )
 
 // Tweet is the model entity for the Tweet schema.
@@ -22,9 +21,9 @@ type Tweet struct {
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
-	ParentID *uuid.UUID `json:"parent_id,omitempty"`
+	ParentID *int `json:"parent_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
-	UserID uuid.UUID `json:"user_id,omitempty"`
+	UserID int `json:"user_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -47,6 +46,12 @@ type TweetEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
+	// totalCount holds the count of the edges above.
+	totalCount [4]map[string]int
+
+	namedChild  map[string][]*Tweet
+	namedParent map[string][]*Tweet
+	namedHas    map[string][]*Like
 }
 
 // PostedByOrErr returns the PostedBy value or an error if the edge
@@ -94,16 +99,12 @@ func (*Tweet) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case tweet.FieldParentID:
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case tweet.FieldID:
+		case tweet.FieldID, tweet.FieldParentID, tweet.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case tweet.FieldText:
 			values[i] = new(sql.NullString)
 		case tweet.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case tweet.FieldUserID:
-			values[i] = new(uuid.UUID)
 		case tweet.ForeignKeys[0]: // user_posts
 			values[i] = new(sql.NullInt64)
 		default:
@@ -134,17 +135,17 @@ func (t *Tweet) assignValues(columns []string, values []any) error {
 				t.Text = value.String
 			}
 		case tweet.FieldParentID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field parent_id", values[i])
 			} else if value.Valid {
-				t.ParentID = new(uuid.UUID)
-				*t.ParentID = *value.S.(*uuid.UUID)
+				t.ParentID = new(int)
+				*t.ParentID = int(value.Int64)
 			}
 		case tweet.FieldUserID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value != nil {
-				t.UserID = *value
+			} else if value.Valid {
+				t.UserID = int(value.Int64)
 			}
 		case tweet.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -230,6 +231,78 @@ func (t *Tweet) String() string {
 	builder.WriteString(t.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedChild returns the Child named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (t *Tweet) NamedChild(name string) ([]*Tweet, error) {
+	if t.Edges.namedChild == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := t.Edges.namedChild[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (t *Tweet) appendNamedChild(name string, edges ...*Tweet) {
+	if t.Edges.namedChild == nil {
+		t.Edges.namedChild = make(map[string][]*Tweet)
+	}
+	if len(edges) == 0 {
+		t.Edges.namedChild[name] = []*Tweet{}
+	} else {
+		t.Edges.namedChild[name] = append(t.Edges.namedChild[name], edges...)
+	}
+}
+
+// NamedParent returns the Parent named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (t *Tweet) NamedParent(name string) ([]*Tweet, error) {
+	if t.Edges.namedParent == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := t.Edges.namedParent[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (t *Tweet) appendNamedParent(name string, edges ...*Tweet) {
+	if t.Edges.namedParent == nil {
+		t.Edges.namedParent = make(map[string][]*Tweet)
+	}
+	if len(edges) == 0 {
+		t.Edges.namedParent[name] = []*Tweet{}
+	} else {
+		t.Edges.namedParent[name] = append(t.Edges.namedParent[name], edges...)
+	}
+}
+
+// NamedHas returns the Has named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (t *Tweet) NamedHas(name string) ([]*Like, error) {
+	if t.Edges.namedHas == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := t.Edges.namedHas[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (t *Tweet) appendNamedHas(name string, edges ...*Like) {
+	if t.Edges.namedHas == nil {
+		t.Edges.namedHas = make(map[string][]*Like)
+	}
+	if len(edges) == 0 {
+		t.Edges.namedHas[name] = []*Like{}
+	} else {
+		t.Edges.namedHas[name] = append(t.Edges.namedHas[name], edges...)
+	}
 }
 
 // Tweets is a parsable slice of Tweet.

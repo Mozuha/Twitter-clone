@@ -3,8 +3,8 @@
 package ent
 
 import (
-	"api/ent/predicate"
-	"api/ent/tweet"
+	"app/ent/predicate"
+	"app/ent/tweet"
 	"context"
 
 	"entgo.io/ent/dialect/sql"

@@ -3,11 +3,10 @@
 package like
 
 import (
-	"api/ent/predicate"
+	"app/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
@@ -56,92 +55,92 @@ func IDLTE(id int) predicate.Like {
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v uuid.UUID) predicate.Like {
+func UserID(v int) predicate.Like {
 	return predicate.Like(sql.FieldEQ(FieldUserID, v))
 }
 
 // TweetID applies equality check predicate on the "tweet_id" field. It's identical to TweetIDEQ.
-func TweetID(v uuid.UUID) predicate.Like {
+func TweetID(v int) predicate.Like {
 	return predicate.Like(sql.FieldEQ(FieldTweetID, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v uuid.UUID) predicate.Like {
+func UserIDEQ(v int) predicate.Like {
 	return predicate.Like(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v uuid.UUID) predicate.Like {
+func UserIDNEQ(v int) predicate.Like {
 	return predicate.Like(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...uuid.UUID) predicate.Like {
+func UserIDIn(vs ...int) predicate.Like {
 	return predicate.Like(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...uuid.UUID) predicate.Like {
+func UserIDNotIn(vs ...int) predicate.Like {
 	return predicate.Like(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v uuid.UUID) predicate.Like {
+func UserIDGT(v int) predicate.Like {
 	return predicate.Like(sql.FieldGT(FieldUserID, v))
 }
 
 // UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v uuid.UUID) predicate.Like {
+func UserIDGTE(v int) predicate.Like {
 	return predicate.Like(sql.FieldGTE(FieldUserID, v))
 }
 
 // UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v uuid.UUID) predicate.Like {
+func UserIDLT(v int) predicate.Like {
 	return predicate.Like(sql.FieldLT(FieldUserID, v))
 }
 
 // UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v uuid.UUID) predicate.Like {
+func UserIDLTE(v int) predicate.Like {
 	return predicate.Like(sql.FieldLTE(FieldUserID, v))
 }
 
 // TweetIDEQ applies the EQ predicate on the "tweet_id" field.
-func TweetIDEQ(v uuid.UUID) predicate.Like {
+func TweetIDEQ(v int) predicate.Like {
 	return predicate.Like(sql.FieldEQ(FieldTweetID, v))
 }
 
 // TweetIDNEQ applies the NEQ predicate on the "tweet_id" field.
-func TweetIDNEQ(v uuid.UUID) predicate.Like {
+func TweetIDNEQ(v int) predicate.Like {
 	return predicate.Like(sql.FieldNEQ(FieldTweetID, v))
 }
 
 // TweetIDIn applies the In predicate on the "tweet_id" field.
-func TweetIDIn(vs ...uuid.UUID) predicate.Like {
+func TweetIDIn(vs ...int) predicate.Like {
 	return predicate.Like(sql.FieldIn(FieldTweetID, vs...))
 }
 
 // TweetIDNotIn applies the NotIn predicate on the "tweet_id" field.
-func TweetIDNotIn(vs ...uuid.UUID) predicate.Like {
+func TweetIDNotIn(vs ...int) predicate.Like {
 	return predicate.Like(sql.FieldNotIn(FieldTweetID, vs...))
 }
 
 // TweetIDGT applies the GT predicate on the "tweet_id" field.
-func TweetIDGT(v uuid.UUID) predicate.Like {
+func TweetIDGT(v int) predicate.Like {
 	return predicate.Like(sql.FieldGT(FieldTweetID, v))
 }
 
 // TweetIDGTE applies the GTE predicate on the "tweet_id" field.
-func TweetIDGTE(v uuid.UUID) predicate.Like {
+func TweetIDGTE(v int) predicate.Like {
 	return predicate.Like(sql.FieldGTE(FieldTweetID, v))
 }
 
 // TweetIDLT applies the LT predicate on the "tweet_id" field.
-func TweetIDLT(v uuid.UUID) predicate.Like {
+func TweetIDLT(v int) predicate.Like {
 	return predicate.Like(sql.FieldLT(FieldTweetID, v))
 }
 
 // TweetIDLTE applies the LTE predicate on the "tweet_id" field.
-func TweetIDLTE(v uuid.UUID) predicate.Like {
+func TweetIDLTE(v int) predicate.Like {
 	return predicate.Like(sql.FieldLTE(FieldTweetID, v))
 }
 

@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"api/ent/user"
+	"app/ent/user"
 	"fmt"
 	"strings"
 	"time"
@@ -50,6 +50,13 @@ type UserEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
+	// totalCount holds the count of the edges above.
+	totalCount [4]map[string]int
+
+	namedPosts     map[string][]*Tweet
+	namedFollowers map[string][]*User
+	namedFollowing map[string][]*User
+	namedPuts      map[string][]*Like
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -240,6 +247,102 @@ func (u *User) String() string {
 	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedPosts returns the Posts named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedPosts(name string) ([]*Tweet, error) {
+	if u.Edges.namedPosts == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedPosts[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedPosts(name string, edges ...*Tweet) {
+	if u.Edges.namedPosts == nil {
+		u.Edges.namedPosts = make(map[string][]*Tweet)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedPosts[name] = []*Tweet{}
+	} else {
+		u.Edges.namedPosts[name] = append(u.Edges.namedPosts[name], edges...)
+	}
+}
+
+// NamedFollowers returns the Followers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedFollowers(name string) ([]*User, error) {
+	if u.Edges.namedFollowers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedFollowers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedFollowers(name string, edges ...*User) {
+	if u.Edges.namedFollowers == nil {
+		u.Edges.namedFollowers = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedFollowers[name] = []*User{}
+	} else {
+		u.Edges.namedFollowers[name] = append(u.Edges.namedFollowers[name], edges...)
+	}
+}
+
+// NamedFollowing returns the Following named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedFollowing(name string) ([]*User, error) {
+	if u.Edges.namedFollowing == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedFollowing[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedFollowing(name string, edges ...*User) {
+	if u.Edges.namedFollowing == nil {
+		u.Edges.namedFollowing = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedFollowing[name] = []*User{}
+	} else {
+		u.Edges.namedFollowing[name] = append(u.Edges.namedFollowing[name], edges...)
+	}
+}
+
+// NamedPuts returns the Puts named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedPuts(name string) ([]*Like, error) {
+	if u.Edges.namedPuts == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedPuts[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedPuts(name string, edges ...*Like) {
+	if u.Edges.namedPuts == nil {
+		u.Edges.namedPuts = make(map[string][]*Like)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedPuts[name] = []*Like{}
+	} else {
+		u.Edges.namedPuts[name] = append(u.Edges.namedPuts[name], edges...)
+	}
 }
 
 // Users is a parsable slice of User.

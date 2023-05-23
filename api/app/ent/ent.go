@@ -3,9 +3,9 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"errors"
 	"fmt"

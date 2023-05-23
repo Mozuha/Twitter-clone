@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"api/dto"
-	"api/utils"
+	"app/dto"
+	"app/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
