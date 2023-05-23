@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"log"
 
-	"api/ent/migrate"
+	"app/ent/migrate"
 
-	"api/ent/like"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/tweet"
+	"app/ent/user"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -31,6 +31,8 @@ type Client struct {
 	Tweet *TweetClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// additional fields for node api
+	tables tables
 }
 
 // NewClient creates a new client configured with the given options.

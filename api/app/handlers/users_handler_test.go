@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"api/db"
-	"api/ent"
-	"api/middlewares"
-	"api/models"
-	"api/services"
-	"api/utils"
+	"app/db"
+	"app/ent"
+	"app/middlewares"
+	"app/models"
+	"app/services"
+	"app/utils"
 	"bytes"
 	"context"
 	"encoding/json"

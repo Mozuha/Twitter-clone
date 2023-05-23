@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/predicate"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/predicate"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // LikeUpdate is the builder for updating Like entities.
@@ -31,14 +30,28 @@ func (lu *LikeUpdate) Where(ps ...predicate.Like) *LikeUpdate {
 }
 
 // SetUserID sets the "user_id" field.
-func (lu *LikeUpdate) SetUserID(u uuid.UUID) *LikeUpdate {
-	lu.mutation.SetUserID(u)
+func (lu *LikeUpdate) SetUserID(i int) *LikeUpdate {
+	lu.mutation.ResetUserID()
+	lu.mutation.SetUserID(i)
+	return lu
+}
+
+// AddUserID adds i to the "user_id" field.
+func (lu *LikeUpdate) AddUserID(i int) *LikeUpdate {
+	lu.mutation.AddUserID(i)
 	return lu
 }
 
 // SetTweetID sets the "tweet_id" field.
-func (lu *LikeUpdate) SetTweetID(u uuid.UUID) *LikeUpdate {
-	lu.mutation.SetTweetID(u)
+func (lu *LikeUpdate) SetTweetID(i int) *LikeUpdate {
+	lu.mutation.ResetTweetID()
+	lu.mutation.SetTweetID(i)
+	return lu
+}
+
+// AddTweetID adds i to the "tweet_id" field.
+func (lu *LikeUpdate) AddTweetID(i int) *LikeUpdate {
+	lu.mutation.AddTweetID(i)
 	return lu
 }
 
@@ -132,10 +145,16 @@ func (lu *LikeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := lu.mutation.UserID(); ok {
-		_spec.SetField(like.FieldUserID, field.TypeUUID, value)
+		_spec.SetField(like.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := lu.mutation.AddedUserID(); ok {
+		_spec.AddField(like.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := lu.mutation.TweetID(); ok {
-		_spec.SetField(like.FieldTweetID, field.TypeUUID, value)
+		_spec.SetField(like.FieldTweetID, field.TypeInt, value)
+	}
+	if value, ok := lu.mutation.AddedTweetID(); ok {
+		_spec.AddField(like.FieldTweetID, field.TypeInt, value)
 	}
 	if lu.mutation.PutByCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -216,14 +235,28 @@ type LikeUpdateOne struct {
 }
 
 // SetUserID sets the "user_id" field.
-func (luo *LikeUpdateOne) SetUserID(u uuid.UUID) *LikeUpdateOne {
-	luo.mutation.SetUserID(u)
+func (luo *LikeUpdateOne) SetUserID(i int) *LikeUpdateOne {
+	luo.mutation.ResetUserID()
+	luo.mutation.SetUserID(i)
+	return luo
+}
+
+// AddUserID adds i to the "user_id" field.
+func (luo *LikeUpdateOne) AddUserID(i int) *LikeUpdateOne {
+	luo.mutation.AddUserID(i)
 	return luo
 }
 
 // SetTweetID sets the "tweet_id" field.
-func (luo *LikeUpdateOne) SetTweetID(u uuid.UUID) *LikeUpdateOne {
-	luo.mutation.SetTweetID(u)
+func (luo *LikeUpdateOne) SetTweetID(i int) *LikeUpdateOne {
+	luo.mutation.ResetTweetID()
+	luo.mutation.SetTweetID(i)
+	return luo
+}
+
+// AddTweetID adds i to the "tweet_id" field.
+func (luo *LikeUpdateOne) AddTweetID(i int) *LikeUpdateOne {
+	luo.mutation.AddTweetID(i)
 	return luo
 }
 
@@ -347,10 +380,16 @@ func (luo *LikeUpdateOne) sqlSave(ctx context.Context) (_node *Like, err error) 
 		}
 	}
 	if value, ok := luo.mutation.UserID(); ok {
-		_spec.SetField(like.FieldUserID, field.TypeUUID, value)
+		_spec.SetField(like.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := luo.mutation.AddedUserID(); ok {
+		_spec.AddField(like.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := luo.mutation.TweetID(); ok {
-		_spec.SetField(like.FieldTweetID, field.TypeUUID, value)
+		_spec.SetField(like.FieldTweetID, field.TypeInt, value)
+	}
+	if value, ok := luo.mutation.AddedTweetID(); ok {
+		_spec.AddField(like.FieldTweetID, field.TypeInt, value)
 	}
 	if luo.mutation.PutByCleared() {
 		edge := &sqlgraph.EdgeSpec{

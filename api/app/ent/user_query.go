@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/predicate"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/predicate"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"database/sql/driver"
 	"fmt"
@@ -20,14 +20,20 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx           *QueryContext
-	order         []user.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.User
-	withPosts     *TweetQuery
-	withFollowers *UserQuery
-	withFollowing *UserQuery
-	withPuts      *LikeQuery
+	ctx                *QueryContext
+	order              []user.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.User
+	withPosts          *TweetQuery
+	withFollowers      *UserQuery
+	withFollowing      *UserQuery
+	withPuts           *LikeQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*User) error
+	withNamedPosts     map[string]*TweetQuery
+	withNamedFollowers map[string]*UserQuery
+	withNamedFollowing map[string]*UserQuery
+	withNamedPuts      map[string]*LikeQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -492,6 +498,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(uq.modifiers) > 0 {
+		_spec.Modifiers = uq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -526,6 +535,39 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadPuts(ctx, query, nodes,
 			func(n *User) { n.Edges.Puts = []*Like{} },
 			func(n *User, e *Like) { n.Edges.Puts = append(n.Edges.Puts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedPosts {
+		if err := uq.loadPosts(ctx, query, nodes,
+			func(n *User) { n.appendNamedPosts(name) },
+			func(n *User, e *Tweet) { n.appendNamedPosts(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedFollowers {
+		if err := uq.loadFollowers(ctx, query, nodes,
+			func(n *User) { n.appendNamedFollowers(name) },
+			func(n *User, e *User) { n.appendNamedFollowers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedFollowing {
+		if err := uq.loadFollowing(ctx, query, nodes,
+			func(n *User) { n.appendNamedFollowing(name) },
+			func(n *User, e *User) { n.appendNamedFollowing(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedPuts {
+		if err := uq.loadPuts(ctx, query, nodes,
+			func(n *User) { n.appendNamedPuts(name) },
+			func(n *User, e *Like) { n.appendNamedPuts(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range uq.loadTotal {
+		if err := uq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -719,6 +761,9 @@ func (uq *UserQuery) loadPuts(ctx context.Context, query *LikeQuery, nodes []*Us
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uq.querySpec()
+	if len(uq.modifiers) > 0 {
+		_spec.Modifiers = uq.modifiers
+	}
 	_spec.Node.Columns = uq.ctx.Fields
 	if len(uq.ctx.Fields) > 0 {
 		_spec.Unique = uq.ctx.Unique != nil && *uq.ctx.Unique
@@ -796,6 +841,62 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedPosts tells the query-builder to eager-load the nodes that are connected to the "posts"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedPosts(name string, opts ...func(*TweetQuery)) *UserQuery {
+	query := (&TweetClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedPosts == nil {
+		uq.withNamedPosts = make(map[string]*TweetQuery)
+	}
+	uq.withNamedPosts[name] = query
+	return uq
+}
+
+// WithNamedFollowers tells the query-builder to eager-load the nodes that are connected to the "followers"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedFollowers(name string, opts ...func(*UserQuery)) *UserQuery {
+	query := (&UserClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedFollowers == nil {
+		uq.withNamedFollowers = make(map[string]*UserQuery)
+	}
+	uq.withNamedFollowers[name] = query
+	return uq
+}
+
+// WithNamedFollowing tells the query-builder to eager-load the nodes that are connected to the "following"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedFollowing(name string, opts ...func(*UserQuery)) *UserQuery {
+	query := (&UserClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedFollowing == nil {
+		uq.withNamedFollowing = make(map[string]*UserQuery)
+	}
+	uq.withNamedFollowing[name] = query
+	return uq
+}
+
+// WithNamedPuts tells the query-builder to eager-load the nodes that are connected to the "puts"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedPuts(name string, opts ...func(*LikeQuery)) *UserQuery {
+	query := (&LikeClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedPuts == nil {
+		uq.withNamedPuts = make(map[string]*LikeQuery)
+	}
+	uq.withNamedPuts[name] = query
+	return uq
 }
 
 // UserGroupBy is the group-by builder for User entities.

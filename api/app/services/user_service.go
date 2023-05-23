@@ -1,8 +1,8 @@
 package services
 
 import (
-	"api/ent"
-	"api/models"
+	"app/ent"
+	"app/models"
 	"context"
 	"fmt"
 )

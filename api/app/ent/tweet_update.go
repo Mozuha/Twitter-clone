@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/predicate"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/predicate"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -15,7 +15,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // TweetUpdate is the builder for updating Tweet entities.
@@ -38,16 +37,23 @@ func (tu *TweetUpdate) SetText(s string) *TweetUpdate {
 }
 
 // SetParentID sets the "parent_id" field.
-func (tu *TweetUpdate) SetParentID(u uuid.UUID) *TweetUpdate {
-	tu.mutation.SetParentID(u)
+func (tu *TweetUpdate) SetParentID(i int) *TweetUpdate {
+	tu.mutation.ResetParentID()
+	tu.mutation.SetParentID(i)
 	return tu
 }
 
 // SetNillableParentID sets the "parent_id" field if the given value is not nil.
-func (tu *TweetUpdate) SetNillableParentID(u *uuid.UUID) *TweetUpdate {
-	if u != nil {
-		tu.SetParentID(*u)
+func (tu *TweetUpdate) SetNillableParentID(i *int) *TweetUpdate {
+	if i != nil {
+		tu.SetParentID(*i)
 	}
+	return tu
+}
+
+// AddParentID adds i to the "parent_id" field.
+func (tu *TweetUpdate) AddParentID(i int) *TweetUpdate {
+	tu.mutation.AddParentID(i)
 	return tu
 }
 
@@ -58,8 +64,15 @@ func (tu *TweetUpdate) ClearParentID() *TweetUpdate {
 }
 
 // SetUserID sets the "user_id" field.
-func (tu *TweetUpdate) SetUserID(u uuid.UUID) *TweetUpdate {
-	tu.mutation.SetUserID(u)
+func (tu *TweetUpdate) SetUserID(i int) *TweetUpdate {
+	tu.mutation.ResetUserID()
+	tu.mutation.SetUserID(i)
+	return tu
+}
+
+// AddUserID adds i to the "user_id" field.
+func (tu *TweetUpdate) AddUserID(i int) *TweetUpdate {
+	tu.mutation.AddUserID(i)
 	return tu
 }
 
@@ -263,13 +276,19 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(tweet.FieldText, field.TypeString, value)
 	}
 	if value, ok := tu.mutation.ParentID(); ok {
-		_spec.SetField(tweet.FieldParentID, field.TypeUUID, value)
+		_spec.SetField(tweet.FieldParentID, field.TypeInt, value)
+	}
+	if value, ok := tu.mutation.AddedParentID(); ok {
+		_spec.AddField(tweet.FieldParentID, field.TypeInt, value)
 	}
 	if tu.mutation.ParentIDCleared() {
-		_spec.ClearField(tweet.FieldParentID, field.TypeUUID)
+		_spec.ClearField(tweet.FieldParentID, field.TypeInt)
 	}
 	if value, ok := tu.mutation.UserID(); ok {
-		_spec.SetField(tweet.FieldUserID, field.TypeUUID, value)
+		_spec.SetField(tweet.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := tu.mutation.AddedUserID(); ok {
+		_spec.AddField(tweet.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := tu.mutation.CreatedAt(); ok {
 		_spec.SetField(tweet.FieldCreatedAt, field.TypeTime, value)
@@ -465,16 +484,23 @@ func (tuo *TweetUpdateOne) SetText(s string) *TweetUpdateOne {
 }
 
 // SetParentID sets the "parent_id" field.
-func (tuo *TweetUpdateOne) SetParentID(u uuid.UUID) *TweetUpdateOne {
-	tuo.mutation.SetParentID(u)
+func (tuo *TweetUpdateOne) SetParentID(i int) *TweetUpdateOne {
+	tuo.mutation.ResetParentID()
+	tuo.mutation.SetParentID(i)
 	return tuo
 }
 
 // SetNillableParentID sets the "parent_id" field if the given value is not nil.
-func (tuo *TweetUpdateOne) SetNillableParentID(u *uuid.UUID) *TweetUpdateOne {
-	if u != nil {
-		tuo.SetParentID(*u)
+func (tuo *TweetUpdateOne) SetNillableParentID(i *int) *TweetUpdateOne {
+	if i != nil {
+		tuo.SetParentID(*i)
 	}
+	return tuo
+}
+
+// AddParentID adds i to the "parent_id" field.
+func (tuo *TweetUpdateOne) AddParentID(i int) *TweetUpdateOne {
+	tuo.mutation.AddParentID(i)
 	return tuo
 }
 
@@ -485,8 +511,15 @@ func (tuo *TweetUpdateOne) ClearParentID() *TweetUpdateOne {
 }
 
 // SetUserID sets the "user_id" field.
-func (tuo *TweetUpdateOne) SetUserID(u uuid.UUID) *TweetUpdateOne {
-	tuo.mutation.SetUserID(u)
+func (tuo *TweetUpdateOne) SetUserID(i int) *TweetUpdateOne {
+	tuo.mutation.ResetUserID()
+	tuo.mutation.SetUserID(i)
+	return tuo
+}
+
+// AddUserID adds i to the "user_id" field.
+func (tuo *TweetUpdateOne) AddUserID(i int) *TweetUpdateOne {
+	tuo.mutation.AddUserID(i)
 	return tuo
 }
 
@@ -720,13 +753,19 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 		_spec.SetField(tweet.FieldText, field.TypeString, value)
 	}
 	if value, ok := tuo.mutation.ParentID(); ok {
-		_spec.SetField(tweet.FieldParentID, field.TypeUUID, value)
+		_spec.SetField(tweet.FieldParentID, field.TypeInt, value)
+	}
+	if value, ok := tuo.mutation.AddedParentID(); ok {
+		_spec.AddField(tweet.FieldParentID, field.TypeInt, value)
 	}
 	if tuo.mutation.ParentIDCleared() {
-		_spec.ClearField(tweet.FieldParentID, field.TypeUUID)
+		_spec.ClearField(tweet.FieldParentID, field.TypeInt)
 	}
 	if value, ok := tuo.mutation.UserID(); ok {
-		_spec.SetField(tweet.FieldUserID, field.TypeUUID, value)
+		_spec.SetField(tweet.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := tuo.mutation.AddedUserID(); ok {
+		_spec.AddField(tweet.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := tuo.mutation.CreatedAt(); ok {
 		_spec.SetField(tweet.FieldCreatedAt, field.TypeTime, value)

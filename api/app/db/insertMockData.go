@@ -1,8 +1,8 @@
 package db
 
 import (
-	"api/ent"
-	"api/models"
+	"app/ent"
+	"app/models"
 	"context"
 	"fmt"
 	"time"

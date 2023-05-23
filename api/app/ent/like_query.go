@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/predicate"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/predicate"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"fmt"
 	"math"
@@ -26,6 +26,8 @@ type LikeQuery struct {
 	withPutBy    *UserQuery
 	withBelongTo *TweetQuery
 	withFKs      bool
+	modifiers    []func(*sql.Selector)
+	loadTotal    []func(context.Context, []*Like) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -334,7 +336,7 @@ func (lq *LikeQuery) WithBelongTo(opts ...func(*TweetQuery)) *LikeQuery {
 // Example:
 //
 //	var v []struct {
-//		UserID uuid.UUID `json:"user_id,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -357,7 +359,7 @@ func (lq *LikeQuery) GroupBy(field string, fields ...string) *LikeGroupBy {
 // Example:
 //
 //	var v []struct {
-//		UserID uuid.UUID `json:"user_id,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //	}
 //
 //	client.Like.Query().
@@ -427,6 +429,9 @@ func (lq *LikeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Like, e
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(lq.modifiers) > 0 {
+		_spec.Modifiers = lq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -445,6 +450,11 @@ func (lq *LikeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Like, e
 	if query := lq.withBelongTo; query != nil {
 		if err := lq.loadBelongTo(ctx, query, nodes, nil,
 			func(n *Like, e *Tweet) { n.Edges.BelongTo = e }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range lq.loadTotal {
+		if err := lq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -518,6 +528,9 @@ func (lq *LikeQuery) loadBelongTo(ctx context.Context, query *TweetQuery, nodes 
 
 func (lq *LikeQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := lq.querySpec()
+	if len(lq.modifiers) > 0 {
+		_spec.Modifiers = lq.modifiers
+	}
 	_spec.Node.Columns = lq.ctx.Fields
 	if len(lq.ctx.Fields) > 0 {
 		_spec.Unique = lq.ctx.Unique != nil && *lq.ctx.Unique

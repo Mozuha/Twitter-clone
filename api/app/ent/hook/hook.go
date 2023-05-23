@@ -3,7 +3,7 @@
 package hook
 
 import (
-	"api/ent"
+	"app/ent"
 	"context"
 	"fmt"
 )

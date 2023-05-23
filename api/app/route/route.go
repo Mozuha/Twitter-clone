@@ -1,9 +1,9 @@
 package route
 
 import (
-	"api/ent"
-	"api/handlers"
-	"api/middlewares"
+	"app/ent"
+	"app/handlers"
+	"app/middlewares"
 
 	"github.com/gin-gonic/gin"
 )

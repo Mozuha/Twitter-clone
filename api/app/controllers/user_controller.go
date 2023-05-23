@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"api/models"
-	"api/services"
+	"app/models"
+	"app/services"
 	"strconv"
 	"time"
 

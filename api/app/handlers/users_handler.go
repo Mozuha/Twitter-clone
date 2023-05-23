@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"api/controllers"
-	"api/ent"
-	"api/services"
+	"app/controllers"
+	"app/ent"
+	"app/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

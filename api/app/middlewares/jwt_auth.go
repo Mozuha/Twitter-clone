@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"api/services"
+	"app/services"
 	"errors"
 	"log"
 	"net/http"

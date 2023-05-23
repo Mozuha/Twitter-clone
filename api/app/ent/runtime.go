@@ -3,9 +3,9 @@
 package ent
 
 import (
-	"api/ent/schema"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/schema"
+	"app/ent/tweet"
+	"app/ent/user"
 	"time"
 )
 

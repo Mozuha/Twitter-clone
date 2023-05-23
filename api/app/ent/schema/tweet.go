@@ -6,7 +6,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // Tweet holds the schema definition for the Tweet entity.
@@ -19,8 +18,8 @@ func (Tweet) Fields() []ent.Field {
 	return []ent.Field{
 		// field.String("id_str"),
 		field.String("text").NotEmpty(),
-		field.UUID("parent_id", uuid.UUID{}).Nillable().Optional(),
-		field.UUID("user_id", uuid.UUID{}),
+		field.Int("parent_id").Nillable().Optional(),
+		field.Int("user_id"),
 		field.Time("created_at").Default(time.Now()),
 	}
 }

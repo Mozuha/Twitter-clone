@@ -3,7 +3,7 @@
 package user
 
 import (
-	"api/ent/predicate"
+	"app/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"

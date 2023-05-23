@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"api/dto"
-	"api/services"
+	"app/dto"
+	"app/services"
 	"errors"
 
 	"github.com/gin-gonic/gin"

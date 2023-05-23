@@ -1,10 +1,10 @@
 package main
 
 import (
-	"api/db"
-	"api/ent"
-	"api/route"
-	"api/utils"
+	"app/db"
+	"app/ent"
+	"app/route"
+	"app/utils"
 	"flag"
 	"os"
 )

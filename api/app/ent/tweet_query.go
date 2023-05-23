@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/predicate"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/predicate"
+	"app/ent/tweet"
+	"app/ent/user"
 	"context"
 	"database/sql/driver"
 	"fmt"
@@ -20,15 +20,20 @@ import (
 // TweetQuery is the builder for querying Tweet entities.
 type TweetQuery struct {
 	config
-	ctx          *QueryContext
-	order        []tweet.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.Tweet
-	withPostedBy *UserQuery
-	withChild    *TweetQuery
-	withParent   *TweetQuery
-	withHas      *LikeQuery
-	withFKs      bool
+	ctx             *QueryContext
+	order           []tweet.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.Tweet
+	withPostedBy    *UserQuery
+	withChild       *TweetQuery
+	withParent      *TweetQuery
+	withHas         *LikeQuery
+	withFKs         bool
+	modifiers       []func(*sql.Selector)
+	loadTotal       []func(context.Context, []*Tweet) error
+	withNamedChild  map[string]*TweetQuery
+	withNamedParent map[string]*TweetQuery
+	withNamedHas    map[string]*LikeQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -500,6 +505,9 @@ func (tq *TweetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tweet,
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(tq.modifiers) > 0 {
+		_spec.Modifiers = tq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -533,6 +541,32 @@ func (tq *TweetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tweet,
 		if err := tq.loadHas(ctx, query, nodes,
 			func(n *Tweet) { n.Edges.Has = []*Like{} },
 			func(n *Tweet, e *Like) { n.Edges.Has = append(n.Edges.Has, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range tq.withNamedChild {
+		if err := tq.loadChild(ctx, query, nodes,
+			func(n *Tweet) { n.appendNamedChild(name) },
+			func(n *Tweet, e *Tweet) { n.appendNamedChild(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range tq.withNamedParent {
+		if err := tq.loadParent(ctx, query, nodes,
+			func(n *Tweet) { n.appendNamedParent(name) },
+			func(n *Tweet, e *Tweet) { n.appendNamedParent(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range tq.withNamedHas {
+		if err := tq.loadHas(ctx, query, nodes,
+			func(n *Tweet) { n.appendNamedHas(name) },
+			func(n *Tweet, e *Like) { n.appendNamedHas(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range tq.loadTotal {
+		if err := tq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -727,6 +761,9 @@ func (tq *TweetQuery) loadHas(ctx context.Context, query *LikeQuery, nodes []*Tw
 
 func (tq *TweetQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tq.querySpec()
+	if len(tq.modifiers) > 0 {
+		_spec.Modifiers = tq.modifiers
+	}
 	_spec.Node.Columns = tq.ctx.Fields
 	if len(tq.ctx.Fields) > 0 {
 		_spec.Unique = tq.ctx.Unique != nil && *tq.ctx.Unique
@@ -804,6 +841,48 @@ func (tq *TweetQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedChild tells the query-builder to eager-load the nodes that are connected to the "child"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (tq *TweetQuery) WithNamedChild(name string, opts ...func(*TweetQuery)) *TweetQuery {
+	query := (&TweetClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if tq.withNamedChild == nil {
+		tq.withNamedChild = make(map[string]*TweetQuery)
+	}
+	tq.withNamedChild[name] = query
+	return tq
+}
+
+// WithNamedParent tells the query-builder to eager-load the nodes that are connected to the "parent"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (tq *TweetQuery) WithNamedParent(name string, opts ...func(*TweetQuery)) *TweetQuery {
+	query := (&TweetClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if tq.withNamedParent == nil {
+		tq.withNamedParent = make(map[string]*TweetQuery)
+	}
+	tq.withNamedParent[name] = query
+	return tq
+}
+
+// WithNamedHas tells the query-builder to eager-load the nodes that are connected to the "has"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (tq *TweetQuery) WithNamedHas(name string, opts ...func(*LikeQuery)) *TweetQuery {
+	query := (&LikeClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if tq.withNamedHas == nil {
+		tq.withNamedHas = make(map[string]*LikeQuery)
+	}
+	tq.withNamedHas[name] = query
+	return tq
 }
 
 // TweetGroupBy is the group-by builder for Tweet entities.

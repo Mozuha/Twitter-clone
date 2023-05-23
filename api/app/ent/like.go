@@ -3,15 +3,14 @@
 package ent
 
 import (
-	"api/ent/like"
-	"api/ent/tweet"
-	"api/ent/user"
+	"app/ent/like"
+	"app/ent/tweet"
+	"app/ent/user"
 	"fmt"
 	"strings"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 )
 
 // Like is the model entity for the Like schema.
@@ -20,9 +19,9 @@ type Like struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// UserID holds the value of the "user_id" field.
-	UserID uuid.UUID `json:"user_id,omitempty"`
+	UserID int `json:"user_id,omitempty"`
 	// TweetID holds the value of the "tweet_id" field.
-	TweetID uuid.UUID `json:"tweet_id,omitempty"`
+	TweetID int `json:"tweet_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LikeQuery when eager-loading is set.
 	Edges        LikeEdges `json:"edges"`
@@ -40,6 +39,8 @@ type LikeEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
 }
 
 // PutByOrErr returns the PutBy value or an error if the edge
@@ -73,10 +74,8 @@ func (*Like) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case like.FieldID:
+		case like.FieldID, like.FieldUserID, like.FieldTweetID:
 			values[i] = new(sql.NullInt64)
-		case like.FieldUserID, like.FieldTweetID:
-			values[i] = new(uuid.UUID)
 		case like.ForeignKeys[0]: // tweet_has
 			values[i] = new(sql.NullInt64)
 		case like.ForeignKeys[1]: // user_puts
@@ -103,16 +102,16 @@ func (l *Like) assignValues(columns []string, values []any) error {
 			}
 			l.ID = int(value.Int64)
 		case like.FieldUserID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
-			} else if value != nil {
-				l.UserID = *value
+			} else if value.Valid {
+				l.UserID = int(value.Int64)
 			}
 		case like.FieldTweetID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field tweet_id", values[i])
-			} else if value != nil {
-				l.TweetID = *value
+			} else if value.Valid {
+				l.TweetID = int(value.Int64)
 			}
 		case like.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
