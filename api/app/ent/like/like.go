@@ -28,7 +28,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	PutByInverseTable = "users"
 	// PutByColumn is the table column denoting the put_by relation/edge.
-	PutByColumn = "user_puts"
+	PutByColumn = "user_likes"
 	// BelongToTable is the table that holds the belong_to relation/edge.
 	BelongToTable = "likes"
 	// BelongToInverseTable is the table name for the Tweet entity.
@@ -49,7 +49,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"tweet_has",
-	"user_puts",
+	"user_likes",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

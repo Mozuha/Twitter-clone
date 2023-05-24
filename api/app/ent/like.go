@@ -26,7 +26,7 @@ type Like struct {
 	// The values are being populated by the LikeQuery when eager-loading is set.
 	Edges        LikeEdges `json:"edges"`
 	tweet_has    *int
-	user_puts    *int
+	user_likes   *int
 	selectValues sql.SelectValues
 }
 
@@ -78,7 +78,7 @@ func (*Like) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case like.ForeignKeys[0]: // tweet_has
 			values[i] = new(sql.NullInt64)
-		case like.ForeignKeys[1]: // user_puts
+		case like.ForeignKeys[1]: // user_likes
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -122,10 +122,10 @@ func (l *Like) assignValues(columns []string, values []any) error {
 			}
 		case like.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_puts", value)
+				return fmt.Errorf("unexpected type %T for edge-field user_likes", value)
 			} else if value.Valid {
-				l.user_puts = new(int)
-				*l.user_puts = int(value.Int64)
+				l.user_likes = new(int)
+				*l.user_likes = int(value.Int64)
 			}
 		default:
 			l.selectValues.Set(columns[i], values[i])

@@ -28,34 +28,34 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgePosts holds the string denoting the posts edge name in mutations.
-	EdgePosts = "posts"
+	// EdgeTweets holds the string denoting the tweets edge name in mutations.
+	EdgeTweets = "tweets"
 	// EdgeFollowers holds the string denoting the followers edge name in mutations.
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
 	EdgeFollowing = "following"
-	// EdgePuts holds the string denoting the puts edge name in mutations.
-	EdgePuts = "puts"
+	// EdgeLikes holds the string denoting the likes edge name in mutations.
+	EdgeLikes = "likes"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// PostsTable is the table that holds the posts relation/edge.
-	PostsTable = "tweets"
-	// PostsInverseTable is the table name for the Tweet entity.
+	// TweetsTable is the table that holds the tweets relation/edge.
+	TweetsTable = "tweets"
+	// TweetsInverseTable is the table name for the Tweet entity.
 	// It exists in this package in order to avoid circular dependency with the "tweet" package.
-	PostsInverseTable = "tweets"
-	// PostsColumn is the table column denoting the posts relation/edge.
-	PostsColumn = "user_posts"
+	TweetsInverseTable = "tweets"
+	// TweetsColumn is the table column denoting the tweets relation/edge.
+	TweetsColumn = "user_tweets"
 	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
 	FollowersTable = "user_following"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
 	FollowingTable = "user_following"
-	// PutsTable is the table that holds the puts relation/edge.
-	PutsTable = "likes"
-	// PutsInverseTable is the table name for the Like entity.
+	// LikesTable is the table that holds the likes relation/edge.
+	LikesTable = "likes"
+	// LikesInverseTable is the table name for the Like entity.
 	// It exists in this package in order to avoid circular dependency with the "like" package.
-	PutsInverseTable = "likes"
-	// PutsColumn is the table column denoting the puts relation/edge.
-	PutsColumn = "user_puts"
+	LikesInverseTable = "likes"
+	// LikesColumn is the table column denoting the likes relation/edge.
+	LikesColumn = "user_likes"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -98,10 +98,14 @@ var (
 	EmailValidator func(string) error
 	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	PasswordValidator func(string) error
+	// DefaultProfileImage holds the default value on creation for the "profile_image" field.
+	DefaultProfileImage string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -147,17 +151,17 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByPostsCount orders the results by posts count.
-func ByPostsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByTweetsCount orders the results by tweets count.
+func ByTweetsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newPostsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newTweetsStep(), opts...)
 	}
 }
 
-// ByPosts orders the results by posts terms.
-func ByPosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByTweets orders the results by tweets terms.
+func ByTweets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTweetsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -189,24 +193,24 @@ func ByFollowing(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByPutsCount orders the results by puts count.
-func ByPutsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByLikesCount orders the results by likes count.
+func ByLikesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newPutsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newLikesStep(), opts...)
 	}
 }
 
-// ByPuts orders the results by puts terms.
-func ByPuts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByLikes orders the results by likes terms.
+func ByLikes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPutsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newLikesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newPostsStep() *sqlgraph.Step {
+func newTweetsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PostsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, PostsTable, PostsColumn),
+		sqlgraph.To(TweetsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TweetsTable, TweetsColumn),
 	)
 }
 func newFollowersStep() *sqlgraph.Step {
@@ -223,10 +227,10 @@ func newFollowingStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, FollowingTable, FollowingPrimaryKey...),
 	)
 }
-func newPutsStep() *sqlgraph.Step {
+func newLikesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PutsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, PutsTable, PutsColumn),
+		sqlgraph.To(LikesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LikesTable, LikesColumn),
 	)
 }

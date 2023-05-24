@@ -68,14 +68,14 @@ func (t *Tweet) Has(ctx context.Context) (result []*Like, err error) {
 	return result, err
 }
 
-func (u *User) Posts(ctx context.Context) (result []*Tweet, err error) {
+func (u *User) Tweets(ctx context.Context) (result []*Tweet, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedPosts(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = u.NamedTweets(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = u.Edges.PostsOrErr()
+		result, err = u.Edges.TweetsOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = u.QueryPosts().All(ctx)
+		result, err = u.QueryTweets().All(ctx)
 	}
 	return result, err
 }
@@ -104,14 +104,14 @@ func (u *User) Following(ctx context.Context) (result []*User, err error) {
 	return result, err
 }
 
-func (u *User) Puts(ctx context.Context) (result []*Like, err error) {
+func (u *User) Likes(ctx context.Context) (result []*Like, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedPuts(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = u.NamedLikes(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = u.Edges.PutsOrErr()
+		result, err = u.Edges.LikesOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = u.QueryPuts().All(ctx)
+		result, err = u.QueryLikes().All(ctx)
 	}
 	return result, err
 }

@@ -495,21 +495,21 @@ func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasPosts applies the HasEdge predicate on the "posts" edge.
-func HasPosts() predicate.User {
+// HasTweets applies the HasEdge predicate on the "tweets" edge.
+func HasTweets() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PostsTable, PostsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, TweetsTable, TweetsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPostsWith applies the HasEdge predicate on the "posts" edge with a given conditions (other predicates).
-func HasPostsWith(preds ...predicate.Tweet) predicate.User {
+// HasTweetsWith applies the HasEdge predicate on the "tweets" edge with a given conditions (other predicates).
+func HasTweetsWith(preds ...predicate.Tweet) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newPostsStep()
+		step := newTweetsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -564,21 +564,21 @@ func HasFollowingWith(preds ...predicate.User) predicate.User {
 	})
 }
 
-// HasPuts applies the HasEdge predicate on the "puts" edge.
-func HasPuts() predicate.User {
+// HasLikes applies the HasEdge predicate on the "likes" edge.
+func HasLikes() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PutsTable, PutsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, LikesTable, LikesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPutsWith applies the HasEdge predicate on the "puts" edge with a given conditions (other predicates).
-func HasPutsWith(preds ...predicate.Like) predicate.User {
+// HasLikesWith applies the HasEdge predicate on the "likes" edge with a given conditions (other predicates).
+func HasLikesWith(preds ...predicate.Like) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newPutsStep()
+		step := newLikesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -14,7 +14,7 @@ var (
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "tweet_id", Type: field.TypeInt},
 		{Name: "tweet_has", Type: field.TypeInt},
-		{Name: "user_puts", Type: field.TypeInt},
+		{Name: "user_likes", Type: field.TypeInt},
 	}
 	// LikesTable holds the schema information for the "likes" table.
 	LikesTable = &schema.Table{
@@ -29,7 +29,7 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "likes_users_puts",
+				Symbol:     "likes_users_likes",
 				Columns:    []*schema.Column{LikesColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
@@ -43,7 +43,7 @@ var (
 		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "user_posts", Type: field.TypeInt},
+		{Name: "user_tweets", Type: field.TypeInt},
 	}
 	// TweetsTable holds the schema information for the "tweets" table.
 	TweetsTable = &schema.Table{
@@ -52,7 +52,7 @@ var (
 		PrimaryKey: []*schema.Column{TweetsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "tweets_users_posts",
+				Symbol:     "tweets_users_tweets",
 				Columns:    []*schema.Column{TweetsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
@@ -62,11 +62,11 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "screen_name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(50)"}},
+		{Name: "screen_name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(15)"}},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
-		{Name: "profile_image", Type: field.TypeString},
+		{Name: "profile_image", Type: field.TypeString, Default: "images/default.jpg"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

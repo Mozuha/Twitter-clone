@@ -577,10 +577,10 @@ func (tq *TweetQuery) loadPostedBy(ctx context.Context, query *UserQuery, nodes 
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Tweet)
 	for i := range nodes {
-		if nodes[i].user_posts == nil {
+		if nodes[i].user_tweets == nil {
 			continue
 		}
-		fk := *nodes[i].user_posts
+		fk := *nodes[i].user_tweets
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -597,7 +597,7 @@ func (tq *TweetQuery) loadPostedBy(ctx context.Context, query *UserQuery, nodes 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_posts" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_tweets" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

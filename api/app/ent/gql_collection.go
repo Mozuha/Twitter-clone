@@ -8,6 +8,7 @@ import (
 	"app/ent/user"
 	"context"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -247,7 +248,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
-		case "posts":
+		case "tweets":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -256,7 +257,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, tweetImplementors)...); err != nil {
 				return err
 			}
-			u.WithNamedPosts(alias, func(wq *TweetQuery) {
+			u.WithNamedTweets(alias, func(wq *TweetQuery) {
 				*wq = *query
 			})
 		case "followers":
@@ -283,7 +284,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			u.WithNamedFollowing(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
-		case "puts":
+		case "likes":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -292,7 +293,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, likeImplementors)...); err != nil {
 				return err
 			}
-			u.WithNamedPuts(alias, func(wq *LikeQuery) {
+			u.WithNamedLikes(alias, func(wq *LikeQuery) {
 				*wq = *query
 			})
 		case "name":
@@ -309,11 +310,6 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if _, ok := fieldSeen[user.FieldEmail]; !ok {
 				selectedFields = append(selectedFields, user.FieldEmail)
 				fieldSeen[user.FieldEmail] = struct{}{}
-			}
-		case "password":
-			if _, ok := fieldSeen[user.FieldPassword]; !ok {
-				selectedFields = append(selectedFields, user.FieldPassword)
-				fieldSeen[user.FieldPassword] = struct{}{}
 			}
 		case "profileImage":
 			if _, ok := fieldSeen[user.FieldProfileImage]; !ok {
@@ -364,6 +360,28 @@ func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &UserOrder{Field: &UserOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithUserOrder(order))
+			}
+		case *UserOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithUserOrder(v))
+			}
+		}
 	}
 	return args
 }

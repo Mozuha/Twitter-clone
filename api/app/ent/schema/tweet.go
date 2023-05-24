@@ -29,7 +29,7 @@ func (Tweet) Fields() []ent.Field {
 // Edges of the Tweet.
 func (Tweet) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("posted_by", User.Type).Unique().Required().Ref("posts"),
+		edge.From("posted_by", User.Type).Unique().Required().Ref("tweets"),
 		edge.To("parent", Tweet.Type).From("child"),
 		edge.To("has", Like.Type),
 	}

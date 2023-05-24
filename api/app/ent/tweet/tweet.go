@@ -38,7 +38,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	PostedByInverseTable = "users"
 	// PostedByColumn is the table column denoting the posted_by relation/edge.
-	PostedByColumn = "user_posts"
+	PostedByColumn = "user_tweets"
 	// ChildTable is the table that holds the child relation/edge. The primary key declared below.
 	ChildTable = "tweet_parent"
 	// ParentTable is the table that holds the parent relation/edge. The primary key declared below.
@@ -64,7 +64,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "tweets"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"user_posts",
+	"user_tweets",
 }
 
 var (

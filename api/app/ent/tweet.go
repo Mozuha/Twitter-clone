@@ -29,7 +29,7 @@ type Tweet struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TweetQuery when eager-loading is set.
 	Edges        TweetEdges `json:"edges"`
-	user_posts   *int
+	user_tweets  *int
 	selectValues sql.SelectValues
 }
 
@@ -105,7 +105,7 @@ func (*Tweet) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case tweet.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case tweet.ForeignKeys[0]: // user_posts
+		case tweet.ForeignKeys[0]: // user_tweets
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -155,10 +155,10 @@ func (t *Tweet) assignValues(columns []string, values []any) error {
 			}
 		case tweet.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_posts", value)
+				return fmt.Errorf("unexpected type %T for edge-field user_tweets", value)
 			} else if value.Valid {
-				t.user_posts = new(int)
-				*t.user_posts = int(value.Int64)
+				t.user_tweets = new(int)
+				*t.user_tweets = int(value.Int64)
 			}
 		default:
 			t.selectValues.Set(columns[i], values[i])

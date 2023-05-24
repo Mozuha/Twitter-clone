@@ -24,7 +24,7 @@ type User struct {
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
-	Password string `json:"password,omitempty"`
+	Password string `json:"-"`
 	// ProfileImage holds the value of the "profile_image" field.
 	ProfileImage string `json:"profile_image,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -39,33 +39,33 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Posts holds the value of the posts edge.
-	Posts []*Tweet `json:"posts,omitempty"`
+	// Tweets holds the value of the tweets edge.
+	Tweets []*Tweet `json:"tweets,omitempty"`
 	// Followers holds the value of the followers edge.
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
-	// Puts holds the value of the puts edge.
-	Puts []*Like `json:"puts,omitempty"`
+	// Likes holds the value of the likes edge.
+	Likes []*Like `json:"likes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
 	totalCount [4]map[string]int
 
-	namedPosts     map[string][]*Tweet
+	namedTweets    map[string][]*Tweet
 	namedFollowers map[string][]*User
 	namedFollowing map[string][]*User
-	namedPuts      map[string][]*Like
+	namedLikes     map[string][]*Like
 }
 
-// PostsOrErr returns the Posts value or an error if the edge
+// TweetsOrErr returns the Tweets value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) PostsOrErr() ([]*Tweet, error) {
+func (e UserEdges) TweetsOrErr() ([]*Tweet, error) {
 	if e.loadedTypes[0] {
-		return e.Posts, nil
+		return e.Tweets, nil
 	}
-	return nil, &NotLoadedError{edge: "posts"}
+	return nil, &NotLoadedError{edge: "tweets"}
 }
 
 // FollowersOrErr returns the Followers value or an error if the edge
@@ -86,13 +86,13 @@ func (e UserEdges) FollowingOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "following"}
 }
 
-// PutsOrErr returns the Puts value or an error if the edge
+// LikesOrErr returns the Likes value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) PutsOrErr() ([]*Like, error) {
+func (e UserEdges) LikesOrErr() ([]*Like, error) {
 	if e.loadedTypes[3] {
-		return e.Puts, nil
+		return e.Likes, nil
 	}
-	return nil, &NotLoadedError{edge: "puts"}
+	return nil, &NotLoadedError{edge: "likes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -182,9 +182,9 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
-// QueryPosts queries the "posts" edge of the User entity.
-func (u *User) QueryPosts() *TweetQuery {
-	return NewUserClient(u.config).QueryPosts(u)
+// QueryTweets queries the "tweets" edge of the User entity.
+func (u *User) QueryTweets() *TweetQuery {
+	return NewUserClient(u.config).QueryTweets(u)
 }
 
 // QueryFollowers queries the "followers" edge of the User entity.
@@ -197,9 +197,9 @@ func (u *User) QueryFollowing() *UserQuery {
 	return NewUserClient(u.config).QueryFollowing(u)
 }
 
-// QueryPuts queries the "puts" edge of the User entity.
-func (u *User) QueryPuts() *LikeQuery {
-	return NewUserClient(u.config).QueryPuts(u)
+// QueryLikes queries the "likes" edge of the User entity.
+func (u *User) QueryLikes() *LikeQuery {
+	return NewUserClient(u.config).QueryLikes(u)
 }
 
 // Update returns a builder for updating this User.
@@ -234,8 +234,7 @@ func (u *User) String() string {
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", ")
-	builder.WriteString("password=")
-	builder.WriteString(u.Password)
+	builder.WriteString("password=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("profile_image=")
 	builder.WriteString(u.ProfileImage)
@@ -249,27 +248,27 @@ func (u *User) String() string {
 	return builder.String()
 }
 
-// NamedPosts returns the Posts named value or an error if the edge was not
+// NamedTweets returns the Tweets named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (u *User) NamedPosts(name string) ([]*Tweet, error) {
-	if u.Edges.namedPosts == nil {
+func (u *User) NamedTweets(name string) ([]*Tweet, error) {
+	if u.Edges.namedTweets == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := u.Edges.namedPosts[name]
+	nodes, ok := u.Edges.namedTweets[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (u *User) appendNamedPosts(name string, edges ...*Tweet) {
-	if u.Edges.namedPosts == nil {
-		u.Edges.namedPosts = make(map[string][]*Tweet)
+func (u *User) appendNamedTweets(name string, edges ...*Tweet) {
+	if u.Edges.namedTweets == nil {
+		u.Edges.namedTweets = make(map[string][]*Tweet)
 	}
 	if len(edges) == 0 {
-		u.Edges.namedPosts[name] = []*Tweet{}
+		u.Edges.namedTweets[name] = []*Tweet{}
 	} else {
-		u.Edges.namedPosts[name] = append(u.Edges.namedPosts[name], edges...)
+		u.Edges.namedTweets[name] = append(u.Edges.namedTweets[name], edges...)
 	}
 }
 
@@ -321,27 +320,27 @@ func (u *User) appendNamedFollowing(name string, edges ...*User) {
 	}
 }
 
-// NamedPuts returns the Puts named value or an error if the edge was not
+// NamedLikes returns the Likes named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (u *User) NamedPuts(name string) ([]*Like, error) {
-	if u.Edges.namedPuts == nil {
+func (u *User) NamedLikes(name string) ([]*Like, error) {
+	if u.Edges.namedLikes == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := u.Edges.namedPuts[name]
+	nodes, ok := u.Edges.namedLikes[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (u *User) appendNamedPuts(name string, edges ...*Like) {
-	if u.Edges.namedPuts == nil {
-		u.Edges.namedPuts = make(map[string][]*Like)
+func (u *User) appendNamedLikes(name string, edges ...*Like) {
+	if u.Edges.namedLikes == nil {
+		u.Edges.namedLikes = make(map[string][]*Like)
 	}
 	if len(edges) == 0 {
-		u.Edges.namedPuts[name] = []*Like{}
+		u.Edges.namedLikes[name] = []*Like{}
 	} else {
-		u.Edges.namedPuts[name] = append(u.Edges.namedPuts[name], edges...)
+		u.Edges.namedLikes[name] = append(u.Edges.namedLikes[name], edges...)
 	}
 }
 
