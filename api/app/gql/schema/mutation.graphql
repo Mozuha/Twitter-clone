@@ -2,4 +2,6 @@ type Mutation {
   createUser(input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User!
   deleteUser(id: ID!): Boolean # Ent delete operation does not return the deleted entity; Use Boolean to mimic the behaviour of returning nothing
+  createTweet(input: CreateTweetInput!): Tweet!
+  deleteTweet(id: ID!): Boolean
 }

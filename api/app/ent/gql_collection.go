@@ -154,10 +154,8 @@ func (t *TweetQuery) collectField(ctx context.Context, opCtx *graphql.OperationC
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, tweetImplementors)...); err != nil {
 				return err
 			}
-			t.WithNamedParent(alias, func(wq *TweetQuery) {
-				*wq = *query
-			})
-		case "has":
+			t.withParent = query
+		case "likedBy":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -166,23 +164,13 @@ func (t *TweetQuery) collectField(ctx context.Context, opCtx *graphql.OperationC
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, likeImplementors)...); err != nil {
 				return err
 			}
-			t.WithNamedHas(alias, func(wq *LikeQuery) {
+			t.WithNamedLikedBy(alias, func(wq *LikeQuery) {
 				*wq = *query
 			})
 		case "text":
 			if _, ok := fieldSeen[tweet.FieldText]; !ok {
 				selectedFields = append(selectedFields, tweet.FieldText)
 				fieldSeen[tweet.FieldText] = struct{}{}
-			}
-		case "parentID":
-			if _, ok := fieldSeen[tweet.FieldParentID]; !ok {
-				selectedFields = append(selectedFields, tweet.FieldParentID)
-				fieldSeen[tweet.FieldParentID] = struct{}{}
-			}
-		case "userID":
-			if _, ok := fieldSeen[tweet.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, tweet.FieldUserID)
-				fieldSeen[tweet.FieldUserID] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[tweet.FieldCreatedAt]; !ok {
@@ -223,6 +211,28 @@ func newTweetPaginateArgs(rv map[string]any) *tweetPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &TweetOrder{Field: &TweetOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithTweetOrder(order))
+			}
+		case *TweetOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithTweetOrder(v))
+			}
+		}
 	}
 	return args
 }

@@ -31,22 +31,16 @@ func (c *LikeCreate) SetInput(i CreateLikeInput) *LikeCreate {
 // CreateTweetInput represents a mutation input for creating tweets.
 type CreateTweetInput struct {
 	Text       string
-	ParentID   *int
-	UserID     int
 	CreatedAt  *time.Time
 	PostedByID int
 	ChildIDs   []int
-	ParentIDs  []int
-	HaIDs      []int
+	ParentID   *int
+	LikedByIDs []int
 }
 
 // Mutate applies the CreateTweetInput on the TweetMutation builder.
 func (i *CreateTweetInput) Mutate(m *TweetMutation) {
 	m.SetText(i.Text)
-	if v := i.ParentID; v != nil {
-		m.SetParentID(*v)
-	}
-	m.SetUserID(i.UserID)
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
@@ -54,11 +48,11 @@ func (i *CreateTweetInput) Mutate(m *TweetMutation) {
 	if v := i.ChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)
 	}
-	if v := i.ParentIDs; len(v) > 0 {
-		m.AddParentIDs(v...)
+	if v := i.ParentID; v != nil {
+		m.SetParentID(*v)
 	}
-	if v := i.HaIDs; len(v) > 0 {
-		m.AddHaIDs(v...)
+	if v := i.LikedByIDs; len(v) > 0 {
+		m.AddLikedByIDs(v...)
 	}
 }
 

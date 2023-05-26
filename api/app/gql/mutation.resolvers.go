@@ -27,6 +27,18 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*bool, error
 	return &isErr, err
 }
 
+// CreateTweet is the resolver for the createTweet field.
+func (r *mutationResolver) CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error) {
+	return r.client.Tweet.Create().SetInput(input).Save(ctx)
+}
+
+// DeleteTweet is the resolver for the deleteTweet field.
+func (r *mutationResolver) DeleteTweet(ctx context.Context, id int) (*bool, error) {
+	err := r.client.Tweet.DeleteOneID(id).Exec(ctx)
+	isErr := err == nil
+	return &isErr, err
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

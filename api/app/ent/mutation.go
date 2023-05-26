@@ -613,10 +613,6 @@ type TweetMutation struct {
 	typ              string
 	id               *int
 	text             *string
-	parent_id        *int
-	addparent_id     *int
-	user_id          *int
-	adduser_id       *int
 	created_at       *time.Time
 	clearedFields    map[string]struct{}
 	posted_by        *int
@@ -624,12 +620,11 @@ type TweetMutation struct {
 	child            map[int]struct{}
 	removedchild     map[int]struct{}
 	clearedchild     bool
-	parent           map[int]struct{}
-	removedparent    map[int]struct{}
+	parent           *int
 	clearedparent    bool
-	has              map[int]struct{}
-	removedhas       map[int]struct{}
-	clearedhas       bool
+	liked_by         map[int]struct{}
+	removedliked_by  map[int]struct{}
+	clearedliked_by  bool
 	done             bool
 	oldValue         func(context.Context) (*Tweet, error)
 	predicates       []predicate.Tweet
@@ -769,132 +764,6 @@ func (m *TweetMutation) ResetText() {
 	m.text = nil
 }
 
-// SetParentID sets the "parent_id" field.
-func (m *TweetMutation) SetParentID(i int) {
-	m.parent_id = &i
-	m.addparent_id = nil
-}
-
-// ParentID returns the value of the "parent_id" field in the mutation.
-func (m *TweetMutation) ParentID() (r int, exists bool) {
-	v := m.parent_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldParentID returns the old "parent_id" field's value of the Tweet entity.
-// If the Tweet object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TweetMutation) OldParentID(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldParentID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldParentID: %w", err)
-	}
-	return oldValue.ParentID, nil
-}
-
-// AddParentID adds i to the "parent_id" field.
-func (m *TweetMutation) AddParentID(i int) {
-	if m.addparent_id != nil {
-		*m.addparent_id += i
-	} else {
-		m.addparent_id = &i
-	}
-}
-
-// AddedParentID returns the value that was added to the "parent_id" field in this mutation.
-func (m *TweetMutation) AddedParentID() (r int, exists bool) {
-	v := m.addparent_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearParentID clears the value of the "parent_id" field.
-func (m *TweetMutation) ClearParentID() {
-	m.parent_id = nil
-	m.addparent_id = nil
-	m.clearedFields[tweet.FieldParentID] = struct{}{}
-}
-
-// ParentIDCleared returns if the "parent_id" field was cleared in this mutation.
-func (m *TweetMutation) ParentIDCleared() bool {
-	_, ok := m.clearedFields[tweet.FieldParentID]
-	return ok
-}
-
-// ResetParentID resets all changes to the "parent_id" field.
-func (m *TweetMutation) ResetParentID() {
-	m.parent_id = nil
-	m.addparent_id = nil
-	delete(m.clearedFields, tweet.FieldParentID)
-}
-
-// SetUserID sets the "user_id" field.
-func (m *TweetMutation) SetUserID(i int) {
-	m.user_id = &i
-	m.adduser_id = nil
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *TweetMutation) UserID() (r int, exists bool) {
-	v := m.user_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the Tweet entity.
-// If the Tweet object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TweetMutation) OldUserID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// AddUserID adds i to the "user_id" field.
-func (m *TweetMutation) AddUserID(i int) {
-	if m.adduser_id != nil {
-		*m.adduser_id += i
-	} else {
-		m.adduser_id = &i
-	}
-}
-
-// AddedUserID returns the value that was added to the "user_id" field in this mutation.
-func (m *TweetMutation) AddedUserID() (r int, exists bool) {
-	v := m.adduser_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *TweetMutation) ResetUserID() {
-	m.user_id = nil
-	m.adduser_id = nil
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (m *TweetMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -1024,14 +893,9 @@ func (m *TweetMutation) ResetChild() {
 	m.removedchild = nil
 }
 
-// AddParentIDs adds the "parent" edge to the Tweet entity by ids.
-func (m *TweetMutation) AddParentIDs(ids ...int) {
-	if m.parent == nil {
-		m.parent = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.parent[ids[i]] = struct{}{}
-	}
+// SetParentID sets the "parent" edge to the Tweet entity by id.
+func (m *TweetMutation) SetParentID(id int) {
+	m.parent = &id
 }
 
 // ClearParent clears the "parent" edge to the Tweet entity.
@@ -1044,29 +908,20 @@ func (m *TweetMutation) ParentCleared() bool {
 	return m.clearedparent
 }
 
-// RemoveParentIDs removes the "parent" edge to the Tweet entity by IDs.
-func (m *TweetMutation) RemoveParentIDs(ids ...int) {
-	if m.removedparent == nil {
-		m.removedparent = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.parent, ids[i])
-		m.removedparent[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedParent returns the removed IDs of the "parent" edge to the Tweet entity.
-func (m *TweetMutation) RemovedParentIDs() (ids []int) {
-	for id := range m.removedparent {
-		ids = append(ids, id)
+// ParentID returns the "parent" edge ID in the mutation.
+func (m *TweetMutation) ParentID() (id int, exists bool) {
+	if m.parent != nil {
+		return *m.parent, true
 	}
 	return
 }
 
 // ParentIDs returns the "parent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentID instead. It exists only for internal usage by the builders.
 func (m *TweetMutation) ParentIDs() (ids []int) {
-	for id := range m.parent {
-		ids = append(ids, id)
+	if id := m.parent; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1075,61 +930,60 @@ func (m *TweetMutation) ParentIDs() (ids []int) {
 func (m *TweetMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
-	m.removedparent = nil
 }
 
-// AddHaIDs adds the "has" edge to the Like entity by ids.
-func (m *TweetMutation) AddHaIDs(ids ...int) {
-	if m.has == nil {
-		m.has = make(map[int]struct{})
+// AddLikedByIDs adds the "liked_by" edge to the Like entity by ids.
+func (m *TweetMutation) AddLikedByIDs(ids ...int) {
+	if m.liked_by == nil {
+		m.liked_by = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.has[ids[i]] = struct{}{}
+		m.liked_by[ids[i]] = struct{}{}
 	}
 }
 
-// ClearHas clears the "has" edge to the Like entity.
-func (m *TweetMutation) ClearHas() {
-	m.clearedhas = true
+// ClearLikedBy clears the "liked_by" edge to the Like entity.
+func (m *TweetMutation) ClearLikedBy() {
+	m.clearedliked_by = true
 }
 
-// HasCleared reports if the "has" edge to the Like entity was cleared.
-func (m *TweetMutation) HasCleared() bool {
-	return m.clearedhas
+// LikedByCleared reports if the "liked_by" edge to the Like entity was cleared.
+func (m *TweetMutation) LikedByCleared() bool {
+	return m.clearedliked_by
 }
 
-// RemoveHaIDs removes the "has" edge to the Like entity by IDs.
-func (m *TweetMutation) RemoveHaIDs(ids ...int) {
-	if m.removedhas == nil {
-		m.removedhas = make(map[int]struct{})
+// RemoveLikedByIDs removes the "liked_by" edge to the Like entity by IDs.
+func (m *TweetMutation) RemoveLikedByIDs(ids ...int) {
+	if m.removedliked_by == nil {
+		m.removedliked_by = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.has, ids[i])
-		m.removedhas[ids[i]] = struct{}{}
+		delete(m.liked_by, ids[i])
+		m.removedliked_by[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedHas returns the removed IDs of the "has" edge to the Like entity.
-func (m *TweetMutation) RemovedHasIDs() (ids []int) {
-	for id := range m.removedhas {
+// RemovedLikedBy returns the removed IDs of the "liked_by" edge to the Like entity.
+func (m *TweetMutation) RemovedLikedByIDs() (ids []int) {
+	for id := range m.removedliked_by {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// HasIDs returns the "has" edge IDs in the mutation.
-func (m *TweetMutation) HasIDs() (ids []int) {
-	for id := range m.has {
+// LikedByIDs returns the "liked_by" edge IDs in the mutation.
+func (m *TweetMutation) LikedByIDs() (ids []int) {
+	for id := range m.liked_by {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetHas resets all changes to the "has" edge.
-func (m *TweetMutation) ResetHas() {
-	m.has = nil
-	m.clearedhas = false
-	m.removedhas = nil
+// ResetLikedBy resets all changes to the "liked_by" edge.
+func (m *TweetMutation) ResetLikedBy() {
+	m.liked_by = nil
+	m.clearedliked_by = false
+	m.removedliked_by = nil
 }
 
 // Where appends a list predicates to the TweetMutation builder.
@@ -1166,15 +1020,9 @@ func (m *TweetMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TweetMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 2)
 	if m.text != nil {
 		fields = append(fields, tweet.FieldText)
-	}
-	if m.parent_id != nil {
-		fields = append(fields, tweet.FieldParentID)
-	}
-	if m.user_id != nil {
-		fields = append(fields, tweet.FieldUserID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, tweet.FieldCreatedAt)
@@ -1189,10 +1037,6 @@ func (m *TweetMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case tweet.FieldText:
 		return m.Text()
-	case tweet.FieldParentID:
-		return m.ParentID()
-	case tweet.FieldUserID:
-		return m.UserID()
 	case tweet.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -1206,10 +1050,6 @@ func (m *TweetMutation) OldField(ctx context.Context, name string) (ent.Value, e
 	switch name {
 	case tweet.FieldText:
 		return m.OldText(ctx)
-	case tweet.FieldParentID:
-		return m.OldParentID(ctx)
-	case tweet.FieldUserID:
-		return m.OldUserID(ctx)
 	case tweet.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -1228,20 +1068,6 @@ func (m *TweetMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetText(v)
 		return nil
-	case tweet.FieldParentID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetParentID(v)
-		return nil
-	case tweet.FieldUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
 	case tweet.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -1256,26 +1082,13 @@ func (m *TweetMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *TweetMutation) AddedFields() []string {
-	var fields []string
-	if m.addparent_id != nil {
-		fields = append(fields, tweet.FieldParentID)
-	}
-	if m.adduser_id != nil {
-		fields = append(fields, tweet.FieldUserID)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *TweetMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case tweet.FieldParentID:
-		return m.AddedParentID()
-	case tweet.FieldUserID:
-		return m.AddedUserID()
-	}
 	return nil, false
 }
 
@@ -1284,20 +1097,6 @@ func (m *TweetMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TweetMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case tweet.FieldParentID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddParentID(v)
-		return nil
-	case tweet.FieldUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUserID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Tweet numeric field %s", name)
 }
@@ -1305,11 +1104,7 @@ func (m *TweetMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *TweetMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(tweet.FieldParentID) {
-		fields = append(fields, tweet.FieldParentID)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1322,11 +1117,6 @@ func (m *TweetMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TweetMutation) ClearField(name string) error {
-	switch name {
-	case tweet.FieldParentID:
-		m.ClearParentID()
-		return nil
-	}
 	return fmt.Errorf("unknown Tweet nullable field %s", name)
 }
 
@@ -1336,12 +1126,6 @@ func (m *TweetMutation) ResetField(name string) error {
 	switch name {
 	case tweet.FieldText:
 		m.ResetText()
-		return nil
-	case tweet.FieldParentID:
-		m.ResetParentID()
-		return nil
-	case tweet.FieldUserID:
-		m.ResetUserID()
 		return nil
 	case tweet.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -1362,8 +1146,8 @@ func (m *TweetMutation) AddedEdges() []string {
 	if m.parent != nil {
 		edges = append(edges, tweet.EdgeParent)
 	}
-	if m.has != nil {
-		edges = append(edges, tweet.EdgeHas)
+	if m.liked_by != nil {
+		edges = append(edges, tweet.EdgeLikedBy)
 	}
 	return edges
 }
@@ -1383,14 +1167,12 @@ func (m *TweetMutation) AddedIDs(name string) []ent.Value {
 		}
 		return ids
 	case tweet.EdgeParent:
-		ids := make([]ent.Value, 0, len(m.parent))
-		for id := range m.parent {
-			ids = append(ids, id)
+		if id := m.parent; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
-	case tweet.EdgeHas:
-		ids := make([]ent.Value, 0, len(m.has))
-		for id := range m.has {
+	case tweet.EdgeLikedBy:
+		ids := make([]ent.Value, 0, len(m.liked_by))
+		for id := range m.liked_by {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1404,11 +1186,8 @@ func (m *TweetMutation) RemovedEdges() []string {
 	if m.removedchild != nil {
 		edges = append(edges, tweet.EdgeChild)
 	}
-	if m.removedparent != nil {
-		edges = append(edges, tweet.EdgeParent)
-	}
-	if m.removedhas != nil {
-		edges = append(edges, tweet.EdgeHas)
+	if m.removedliked_by != nil {
+		edges = append(edges, tweet.EdgeLikedBy)
 	}
 	return edges
 }
@@ -1423,15 +1202,9 @@ func (m *TweetMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case tweet.EdgeParent:
-		ids := make([]ent.Value, 0, len(m.removedparent))
-		for id := range m.removedparent {
-			ids = append(ids, id)
-		}
-		return ids
-	case tweet.EdgeHas:
-		ids := make([]ent.Value, 0, len(m.removedhas))
-		for id := range m.removedhas {
+	case tweet.EdgeLikedBy:
+		ids := make([]ent.Value, 0, len(m.removedliked_by))
+		for id := range m.removedliked_by {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1451,8 +1224,8 @@ func (m *TweetMutation) ClearedEdges() []string {
 	if m.clearedparent {
 		edges = append(edges, tweet.EdgeParent)
 	}
-	if m.clearedhas {
-		edges = append(edges, tweet.EdgeHas)
+	if m.clearedliked_by {
+		edges = append(edges, tweet.EdgeLikedBy)
 	}
 	return edges
 }
@@ -1467,8 +1240,8 @@ func (m *TweetMutation) EdgeCleared(name string) bool {
 		return m.clearedchild
 	case tweet.EdgeParent:
 		return m.clearedparent
-	case tweet.EdgeHas:
-		return m.clearedhas
+	case tweet.EdgeLikedBy:
+		return m.clearedliked_by
 	}
 	return false
 }
@@ -1479,6 +1252,9 @@ func (m *TweetMutation) ClearEdge(name string) error {
 	switch name {
 	case tweet.EdgePostedBy:
 		m.ClearPostedBy()
+		return nil
+	case tweet.EdgeParent:
+		m.ClearParent()
 		return nil
 	}
 	return fmt.Errorf("unknown Tweet unique edge %s", name)
@@ -1497,8 +1273,8 @@ func (m *TweetMutation) ResetEdge(name string) error {
 	case tweet.EdgeParent:
 		m.ResetParent()
 		return nil
-	case tweet.EdgeHas:
-		m.ResetHas()
+	case tweet.EdgeLikedBy:
+		m.ResetLikedBy()
 		return nil
 	}
 	return fmt.Errorf("unknown Tweet edge %s", name)

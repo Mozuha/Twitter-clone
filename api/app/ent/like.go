@@ -24,10 +24,10 @@ type Like struct {
 	TweetID int `json:"tweet_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LikeQuery when eager-loading is set.
-	Edges        LikeEdges `json:"edges"`
-	tweet_has    *int
-	user_likes   *int
-	selectValues sql.SelectValues
+	Edges          LikeEdges `json:"edges"`
+	tweet_liked_by *int
+	user_likes     *int
+	selectValues   sql.SelectValues
 }
 
 // LikeEdges holds the relations/edges for other nodes in the graph.
@@ -76,7 +76,7 @@ func (*Like) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case like.FieldID, like.FieldUserID, like.FieldTweetID:
 			values[i] = new(sql.NullInt64)
-		case like.ForeignKeys[0]: // tweet_has
+		case like.ForeignKeys[0]: // tweet_liked_by
 			values[i] = new(sql.NullInt64)
 		case like.ForeignKeys[1]: // user_likes
 			values[i] = new(sql.NullInt64)
@@ -115,10 +115,10 @@ func (l *Like) assignValues(columns []string, values []any) error {
 			}
 		case like.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field tweet_has", value)
+				return fmt.Errorf("unexpected type %T for edge-field tweet_liked_by", value)
 			} else if value.Valid {
-				l.tweet_has = new(int)
-				*l.tweet_has = int(value.Int64)
+				l.tweet_liked_by = new(int)
+				*l.tweet_liked_by = int(value.Int64)
 			}
 		case like.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {

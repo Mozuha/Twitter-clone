@@ -28,7 +28,7 @@ func (r *queryResolver) Likes(ctx context.Context) ([]*ent.Like, error) {
 
 // Tweets is the resolver for the tweets field.
 func (r *queryResolver) Tweets(ctx context.Context) ([]*ent.Tweet, error) {
-	panic(fmt.Errorf("not implemented: Tweets - tweets"))
+	return r.client.Tweet.Query().All(ctx)
 }
 
 // Users is the resolver for the users field.

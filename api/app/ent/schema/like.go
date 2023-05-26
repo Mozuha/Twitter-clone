@@ -25,7 +25,7 @@ func (Like) Fields() []ent.Field {
 func (Like) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("put_by", User.Type).Unique().Required().Ref("likes"),
-		edge.From("belong_to", Tweet.Type).Unique().Required().Ref("has"),
+		edge.From("belong_to", Tweet.Type).Unique().Required().Ref("liked_by"),
 	}
 }
 

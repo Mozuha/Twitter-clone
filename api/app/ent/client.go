@@ -478,7 +478,7 @@ func (c *TweetClient) QueryChild(t *Tweet) *TweetQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(tweet.Table, tweet.FieldID, id),
 			sqlgraph.To(tweet.Table, tweet.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, tweet.ChildTable, tweet.ChildPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, true, tweet.ChildTable, tweet.ChildColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
@@ -494,7 +494,7 @@ func (c *TweetClient) QueryParent(t *Tweet) *TweetQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(tweet.Table, tweet.FieldID, id),
 			sqlgraph.To(tweet.Table, tweet.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, tweet.ParentTable, tweet.ParentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, false, tweet.ParentTable, tweet.ParentColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
@@ -502,15 +502,15 @@ func (c *TweetClient) QueryParent(t *Tweet) *TweetQuery {
 	return query
 }
 
-// QueryHas queries the has edge of a Tweet.
-func (c *TweetClient) QueryHas(t *Tweet) *LikeQuery {
+// QueryLikedBy queries the liked_by edge of a Tweet.
+func (c *TweetClient) QueryLikedBy(t *Tweet) *LikeQuery {
 	query := (&LikeClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(tweet.Table, tweet.FieldID, id),
 			sqlgraph.To(like.Table, like.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, tweet.HasTable, tweet.HasColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, tweet.LikedByTable, tweet.LikedByColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

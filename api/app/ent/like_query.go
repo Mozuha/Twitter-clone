@@ -497,10 +497,10 @@ func (lq *LikeQuery) loadBelongTo(ctx context.Context, query *TweetQuery, nodes 
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Like)
 	for i := range nodes {
-		if nodes[i].tweet_has == nil {
+		if nodes[i].tweet_liked_by == nil {
 			continue
 		}
-		fk := *nodes[i].tweet_has
+		fk := *nodes[i].tweet_liked_by
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -517,7 +517,7 @@ func (lq *LikeQuery) loadBelongTo(ctx context.Context, query *TweetQuery, nodes 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "tweet_has" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "tweet_liked_by" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

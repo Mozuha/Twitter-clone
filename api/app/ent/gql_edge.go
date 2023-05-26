@@ -44,26 +44,22 @@ func (t *Tweet) Child(ctx context.Context) (result []*Tweet, err error) {
 	return result, err
 }
 
-func (t *Tweet) Parent(ctx context.Context) (result []*Tweet, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedParent(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = t.Edges.ParentOrErr()
-	}
+func (t *Tweet) Parent(ctx context.Context) (*Tweet, error) {
+	result, err := t.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryParent().All(ctx)
+		result, err = t.QueryParent().Only(ctx)
 	}
-	return result, err
+	return result, MaskNotFound(err)
 }
 
-func (t *Tweet) Has(ctx context.Context) (result []*Like, err error) {
+func (t *Tweet) LikedBy(ctx context.Context) (result []*Like, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedHas(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = t.NamedLikedBy(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = t.Edges.HasOrErr()
+		result, err = t.Edges.LikedByOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = t.QueryHas().All(ctx)
+		result, err = t.QueryLikedBy().All(ctx)
 	}
 	return result, err
 }

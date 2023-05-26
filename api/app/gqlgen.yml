@@ -1,7 +1,7 @@
 # schema tells gqlgen where the GraphQL schema is located.
 schema:
-  - ent/ent.graphql
-  - ent/user.graphql
+  - gql/schema/ent.graphql
+  - gql/schema/mutation.graphql
 
 # exec reports where the generated server code go.
 exec:

@@ -20,7 +20,7 @@ func init() {
 	// tweet.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	tweet.TextValidator = tweetDescText.Validators[0].(func(string) error)
 	// tweetDescCreatedAt is the schema descriptor for created_at field.
-	tweetDescCreatedAt := tweetFields[3].Descriptor()
+	tweetDescCreatedAt := tweetFields[1].Descriptor()
 	// tweet.DefaultCreatedAt holds the default value on creation for the created_at field.
 	tweet.DefaultCreatedAt = tweetDescCreatedAt.Default.(time.Time)
 	userFields := schema.User{}.Fields()

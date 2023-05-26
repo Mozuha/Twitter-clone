@@ -35,7 +35,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "tweet" package.
 	BelongToInverseTable = "tweets"
 	// BelongToColumn is the table column denoting the belong_to relation/edge.
-	BelongToColumn = "tweet_has"
+	BelongToColumn = "tweet_liked_by"
 )
 
 // Columns holds all SQL columns for like fields.
@@ -48,7 +48,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "likes"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"tweet_has",
+	"tweet_liked_by",
 	"user_likes",
 }
 

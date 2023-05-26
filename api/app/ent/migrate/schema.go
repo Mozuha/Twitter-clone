@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "tweet_id", Type: field.TypeInt},
-		{Name: "tweet_has", Type: field.TypeInt},
+		{Name: "tweet_liked_by", Type: field.TypeInt},
 		{Name: "user_likes", Type: field.TypeInt},
 	}
 	// LikesTable holds the schema information for the "likes" table.
@@ -23,7 +23,7 @@ var (
 		PrimaryKey: []*schema.Column{LikesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "likes_tweets_has",
+				Symbol:     "likes_tweets_liked_by",
 				Columns:    []*schema.Column{LikesColumns[3]},
 				RefColumns: []*schema.Column{TweetsColumns[0]},
 				OnDelete:   schema.NoAction,
@@ -39,10 +39,9 @@ var (
 	// TweetsColumns holds the columns for the "tweets" table.
 	TweetsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "text", Type: field.TypeString},
-		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
-		{Name: "user_id", Type: field.TypeInt},
+		{Name: "text", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(50)"}},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "tweet_parent", Type: field.TypeInt, Nullable: true},
 		{Name: "user_tweets", Type: field.TypeInt},
 	}
 	// TweetsTable holds the schema information for the "tweets" table.
@@ -52,8 +51,14 @@ var (
 		PrimaryKey: []*schema.Column{TweetsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "tweets_tweets_parent",
+				Columns:    []*schema.Column{TweetsColumns[3]},
+				RefColumns: []*schema.Column{TweetsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "tweets_users_tweets",
-				Columns:    []*schema.Column{TweetsColumns[5]},
+				Columns:    []*schema.Column{TweetsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -75,31 +80,6 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
-	}
-	// TweetParentColumns holds the columns for the "tweet_parent" table.
-	TweetParentColumns = []*schema.Column{
-		{Name: "tweet_id", Type: field.TypeInt},
-		{Name: "child_id", Type: field.TypeInt},
-	}
-	// TweetParentTable holds the schema information for the "tweet_parent" table.
-	TweetParentTable = &schema.Table{
-		Name:       "tweet_parent",
-		Columns:    TweetParentColumns,
-		PrimaryKey: []*schema.Column{TweetParentColumns[0], TweetParentColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "tweet_parent_tweet_id",
-				Columns:    []*schema.Column{TweetParentColumns[0]},
-				RefColumns: []*schema.Column{TweetsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "tweet_parent_child_id",
-				Columns:    []*schema.Column{TweetParentColumns[1]},
-				RefColumns: []*schema.Column{TweetsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
 	}
 	// UserFollowingColumns holds the columns for the "user_following" table.
 	UserFollowingColumns = []*schema.Column{
@@ -131,7 +111,6 @@ var (
 		LikesTable,
 		TweetsTable,
 		UsersTable,
-		TweetParentTable,
 		UserFollowingTable,
 	}
 )
@@ -139,9 +118,8 @@ var (
 func init() {
 	LikesTable.ForeignKeys[0].RefTable = TweetsTable
 	LikesTable.ForeignKeys[1].RefTable = UsersTable
-	TweetsTable.ForeignKeys[0].RefTable = UsersTable
-	TweetParentTable.ForeignKeys[0].RefTable = TweetsTable
-	TweetParentTable.ForeignKeys[1].RefTable = TweetsTable
+	TweetsTable.ForeignKeys[0].RefTable = TweetsTable
+	TweetsTable.ForeignKeys[1].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
 }

@@ -551,6 +551,53 @@ func (t *TweetQuery) Paginate(
 	return conn, nil
 }
 
+var (
+	// TweetOrderFieldCreatedAt orders Tweet by created_at.
+	TweetOrderFieldCreatedAt = &TweetOrderField{
+		Value: func(t *Tweet) (ent.Value, error) {
+			return t.CreatedAt, nil
+		},
+		column: tweet.FieldCreatedAt,
+		toTerm: tweet.ByCreatedAt,
+		toCursor: func(t *Tweet) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.CreatedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f TweetOrderField) String() string {
+	var str string
+	switch f.column {
+	case TweetOrderFieldCreatedAt.column:
+		str = "CREATED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f TweetOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *TweetOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("TweetOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *TweetOrderFieldCreatedAt
+	default:
+		return fmt.Errorf("%s is not a valid TweetOrderField", str)
+	}
+	return nil
+}
+
 // TweetOrderField defines the ordering field of Tweet.
 type TweetOrderField struct {
 	// Value extracts the ordering value from the given Tweet.

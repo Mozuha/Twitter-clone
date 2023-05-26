@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -19,19 +20,30 @@ type Tweet struct {
 func (Tweet) Fields() []ent.Field {
 	return []ent.Field{
 		// field.String("id_str"),
-		field.String("text").NotEmpty(),
-		field.Int("parent_id").Nillable().Optional(),
-		field.Int("user_id"),
-		field.Time("created_at").Default(time.Now()),
+		field.String("text").
+			SchemaType(map[string]string{
+				dialect.Postgres: "varchar(50)",
+			}).
+			NotEmpty(),
+		field.Time("created_at").
+			Default(time.Now()).
+			Immutable().
+			Annotations(entgql.OrderField("CREATED_AT")),
 	}
 }
 
 // Edges of the Tweet.
 func (Tweet) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("posted_by", User.Type).Unique().Required().Ref("tweets"),
-		edge.To("parent", Tweet.Type).From("child"),
-		edge.To("has", Like.Type),
+		edge.From("posted_by", User.Type).
+			Unique().
+			Required().
+			Ref("tweets"),
+		// one parent many child, one child one parent
+		edge.To("parent", Tweet.Type).
+			Unique().
+			From("child"),
+		edge.To("liked_by", Like.Type),
 	}
 }
 
