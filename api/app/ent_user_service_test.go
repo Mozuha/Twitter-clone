@@ -26,14 +26,17 @@ func (s *EntUserServiceTestSuite) SetupTest() {
 		os.Exit(2)
 	}
 
-	entClient, err := db.ConnectTestDB(runningEnv)
+	s.db, err = db.ConnectTestDB(runningEnv)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
 	}
 
-	s.db = entClient
 	s.ctx = context.Background()
+}
+
+func (s *EntUserServiceTestSuite) TearDownTest() {
+	s.db.Close()
 }
 
 func TestEntUserServiceTestSuite(t *testing.T) {
@@ -77,9 +80,9 @@ func (s *EntUserServiceTestSuite) TestGetUserByID() {
 
 func (s *EntUserServiceTestSuite) TestCreateUser() {
 	expectedUser := &ent.User{
-		Name:       "test 4",
-		ScreenName: "test4",
-		Email:      "test4@ymail.ne.jp",
+		Name:       "test 5",
+		ScreenName: "test5",
+		Email:      "test5@ymail.ne.jp",
 		Password:   "12345",
 	}
 
@@ -123,6 +126,8 @@ func (s *EntUserServiceTestSuite) TestCreateUser() {
 
 		s.Equal(true, s.Error(err))
 	})
+
+	// TODO: Name, ScreenName length check
 }
 
 func (s *EntUserServiceTestSuite) TestUpdateUserByID() {
@@ -197,7 +202,7 @@ func (s *EntUserServiceTestSuite) TestUpdateUserByID() {
 }
 
 func (s *EntUserServiceTestSuite) TestDeleteUserByID() {
-	targetUser, err := s.db.User.Query().Where(user.Email("test3@gmail.com")).Only(s.ctx)
+	targetUser, err := s.db.User.Query().Where(user.Email("test4@ymail.ne.jp")).Only(s.ctx)
 	if err != nil {
 		s.Fail("unexpected error occurred: ", err)
 	}
@@ -205,7 +210,7 @@ func (s *EntUserServiceTestSuite) TestDeleteUserByID() {
 	s.Run("success", func() {
 		err := s.db.User.DeleteOneID(targetUser.ID).Exec(s.ctx)
 		s.NoError(err)
-		_, err = s.db.User.Query().Where(user.Email("test3@gmail.com")).Only(s.ctx)
+		_, err = s.db.User.Query().Where(user.Email("test4@ymail.ne.jp")).Only(s.ctx)
 		s.Equal(true, ent.IsNotFound(err))
 	})
 
