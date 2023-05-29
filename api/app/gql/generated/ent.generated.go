@@ -23,7 +23,6 @@ import (
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []int) ([]ent.Noder, error)
-	Likes(ctx context.Context) ([]*ent.Like, error)
 	Tweets(ctx context.Context) ([]*ent.Tweet, error)
 	Users(ctx context.Context) ([]*ent.User, error)
 }
@@ -84,266 +83,6 @@ func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs 
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
-
-func (ec *executionContext) _Like_id(ctx context.Context, field graphql.CollectedField, obj *ent.Like) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Like_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Like_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Like",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Like_userID(ctx context.Context, field graphql.CollectedField, obj *ent.Like) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Like_userID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Like_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Like",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Like_tweetID(ctx context.Context, field graphql.CollectedField, obj *ent.Like) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Like_tweetID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TweetID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Like_tweetID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Like",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Like_putBy(ctx context.Context, field graphql.CollectedField, obj *ent.Like) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Like_putBy(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PutBy(ctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖappᚋentᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Like_putBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Like",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "screenName":
-				return ec.fieldContext_User_screenName(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "profileImage":
-				return ec.fieldContext_User_profileImage(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
-			case "followers":
-				return ec.fieldContext_User_followers(ctx, field)
-			case "following":
-				return ec.fieldContext_User_following(ctx, field)
-			case "likes":
-				return ec.fieldContext_User_likes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Like_belongTo(ctx context.Context, field graphql.CollectedField, obj *ent.Like) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Like_belongTo(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.BelongTo(ctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Tweet)
-	fc.Result = res
-	return ec.marshalNTweet2ᚖappᚋentᚐTweet(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Like_belongTo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Like",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tweet_id(ctx, field)
-			case "text":
-				return ec.fieldContext_Tweet_text(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Tweet_createdAt(ctx, field)
-			case "postedBy":
-				return ec.fieldContext_Tweet_postedBy(ctx, field)
-			case "child":
-				return ec.fieldContext_Tweet_child(ctx, field)
-			case "parent":
-				return ec.fieldContext_Tweet_parent(ctx, field)
-			case "likedBy":
-				return ec.fieldContext_Tweet_likedBy(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tweet", field.Name)
-		},
-	}
-	return fc, nil
-}
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *entgql.PageInfo[int]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
@@ -622,62 +361,6 @@ func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_likes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_likes(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Likes(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.Like)
-	fc.Result = res
-	return ec.marshalNLike2ᚕᚖappᚋentᚐLikeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_likes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Like_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_Like_userID(ctx, field)
-			case "tweetID":
-				return ec.fieldContext_Like_tweetID(ctx, field)
-			case "putBy":
-				return ec.fieldContext_Like_putBy(ctx, field)
-			case "belongTo":
-				return ec.fieldContext_Like_belongTo(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Like", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_tweets(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_tweets(ctx, field)
 	if err != nil {
@@ -725,8 +408,8 @@ func (ec *executionContext) fieldContext_Query_tweets(ctx context.Context, field
 				return ec.fieldContext_Tweet_createdAt(ctx, field)
 			case "postedBy":
 				return ec.fieldContext_Tweet_postedBy(ctx, field)
-			case "child":
-				return ec.fieldContext_Tweet_child(ctx, field)
+			case "children":
+				return ec.fieldContext_Tweet_children(ctx, field)
 			case "parent":
 				return ec.fieldContext_Tweet_parent(ctx, field)
 			case "likedBy":
@@ -791,8 +474,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
 			case "followers":
 				return ec.fieldContext_User_followers(ctx, field)
 			case "following":
@@ -1120,8 +803,8 @@ func (ec *executionContext) fieldContext_Tweet_postedBy(ctx context.Context, fie
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
 			case "followers":
 				return ec.fieldContext_User_followers(ctx, field)
 			case "following":
@@ -1135,8 +818,8 @@ func (ec *executionContext) fieldContext_Tweet_postedBy(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Tweet_child(ctx context.Context, field graphql.CollectedField, obj *ent.Tweet) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Tweet_child(ctx, field)
+func (ec *executionContext) _Tweet_children(ctx context.Context, field graphql.CollectedField, obj *ent.Tweet) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Tweet_children(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1149,7 +832,7 @@ func (ec *executionContext) _Tweet_child(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Child(ctx)
+		return obj.Children(ctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1163,7 +846,7 @@ func (ec *executionContext) _Tweet_child(ctx context.Context, field graphql.Coll
 	return ec.marshalOTweet2ᚕᚖappᚋentᚐTweetᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Tweet_child(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Tweet_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Tweet",
 		Field:      field,
@@ -1179,8 +862,8 @@ func (ec *executionContext) fieldContext_Tweet_child(ctx context.Context, field 
 				return ec.fieldContext_Tweet_createdAt(ctx, field)
 			case "postedBy":
 				return ec.fieldContext_Tweet_postedBy(ctx, field)
-			case "child":
-				return ec.fieldContext_Tweet_child(ctx, field)
+			case "children":
+				return ec.fieldContext_Tweet_children(ctx, field)
 			case "parent":
 				return ec.fieldContext_Tweet_parent(ctx, field)
 			case "likedBy":
@@ -1236,8 +919,8 @@ func (ec *executionContext) fieldContext_Tweet_parent(ctx context.Context, field
 				return ec.fieldContext_Tweet_createdAt(ctx, field)
 			case "postedBy":
 				return ec.fieldContext_Tweet_postedBy(ctx, field)
-			case "child":
-				return ec.fieldContext_Tweet_child(ctx, field)
+			case "children":
+				return ec.fieldContext_Tweet_children(ctx, field)
 			case "parent":
 				return ec.fieldContext_Tweet_parent(ctx, field)
 			case "likedBy":
@@ -1272,9 +955,9 @@ func (ec *executionContext) _Tweet_likedBy(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.Like)
+	res := resTmp.([]*ent.User)
 	fc.Result = res
-	return ec.marshalOLike2ᚕᚖappᚋentᚐLikeᚄ(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚕᚖappᚋentᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tweet_likedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1286,17 +969,29 @@ func (ec *executionContext) fieldContext_Tweet_likedBy(ctx context.Context, fiel
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Like_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_Like_userID(ctx, field)
-			case "tweetID":
-				return ec.fieldContext_Like_tweetID(ctx, field)
-			case "putBy":
-				return ec.fieldContext_Like_putBy(ctx, field)
-			case "belongTo":
-				return ec.fieldContext_Like_belongTo(ctx, field)
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "screenName":
+				return ec.fieldContext_User_screenName(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "profileImage":
+				return ec.fieldContext_User_profileImage(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
+			case "followers":
+				return ec.fieldContext_User_followers(ctx, field)
+			case "following":
+				return ec.fieldContext_User_following(ctx, field)
+			case "likes":
+				return ec.fieldContext_User_likes(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Like", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -1610,8 +1305,8 @@ func (ec *executionContext) fieldContext_User_updatedAt(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _User_tweets(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_tweets(ctx, field)
+func (ec *executionContext) _User_posts(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_posts(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1624,7 +1319,7 @@ func (ec *executionContext) _User_tweets(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Tweets(ctx)
+		return obj.Posts(ctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1638,7 +1333,7 @@ func (ec *executionContext) _User_tweets(ctx context.Context, field graphql.Coll
 	return ec.marshalOTweet2ᚕᚖappᚋentᚐTweetᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_tweets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_posts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -1654,8 +1349,8 @@ func (ec *executionContext) fieldContext_User_tweets(ctx context.Context, field 
 				return ec.fieldContext_Tweet_createdAt(ctx, field)
 			case "postedBy":
 				return ec.fieldContext_Tweet_postedBy(ctx, field)
-			case "child":
-				return ec.fieldContext_Tweet_child(ctx, field)
+			case "children":
+				return ec.fieldContext_Tweet_children(ctx, field)
 			case "parent":
 				return ec.fieldContext_Tweet_parent(ctx, field)
 			case "likedBy":
@@ -1717,8 +1412,8 @@ func (ec *executionContext) fieldContext_User_followers(ctx context.Context, fie
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
 			case "followers":
 				return ec.fieldContext_User_followers(ctx, field)
 			case "following":
@@ -1782,8 +1477,8 @@ func (ec *executionContext) fieldContext_User_following(ctx context.Context, fie
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
 			case "followers":
 				return ec.fieldContext_User_followers(ctx, field)
 			case "following":
@@ -1820,9 +1515,9 @@ func (ec *executionContext) _User_likes(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.Like)
+	res := resTmp.([]*ent.Tweet)
 	fc.Result = res
-	return ec.marshalOLike2ᚕᚖappᚋentᚐLikeᚄ(ctx, field.Selections, res)
+	return ec.marshalOTweet2ᚕᚖappᚋentᚐTweetᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_likes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1834,17 +1529,21 @@ func (ec *executionContext) fieldContext_User_likes(ctx context.Context, field g
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Like_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_Like_userID(ctx, field)
-			case "tweetID":
-				return ec.fieldContext_Like_tweetID(ctx, field)
-			case "putBy":
-				return ec.fieldContext_Like_putBy(ctx, field)
-			case "belongTo":
-				return ec.fieldContext_Like_belongTo(ctx, field)
+				return ec.fieldContext_Tweet_id(ctx, field)
+			case "text":
+				return ec.fieldContext_Tweet_text(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Tweet_createdAt(ctx, field)
+			case "postedBy":
+				return ec.fieldContext_Tweet_postedBy(ctx, field)
+			case "children":
+				return ec.fieldContext_Tweet_children(ctx, field)
+			case "parent":
+				return ec.fieldContext_Tweet_parent(ctx, field)
+			case "likedBy":
+				return ec.fieldContext_Tweet_likedBy(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Like", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Tweet", field.Name)
 		},
 	}
 	return fc, nil
@@ -1853,62 +1552,6 @@ func (ec *executionContext) fieldContext_User_likes(ctx context.Context, field g
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
-
-func (ec *executionContext) unmarshalInputCreateLikeInput(ctx context.Context, obj interface{}) (ent.CreateLikeInput, error) {
-	var it ent.CreateLikeInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"userID", "tweetID", "putByID", "belongToID"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "userID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.UserID = data
-		case "tweetID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tweetID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.TweetID = data
-		case "putByID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("putByID"))
-			data, err := ec.unmarshalNID2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PutByID = data
-		case "belongToID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("belongToID"))
-			data, err := ec.unmarshalNID2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BelongToID = data
-		}
-	}
-
-	return it, nil
-}
 
 func (ec *executionContext) unmarshalInputCreateTweetInput(ctx context.Context, obj interface{}) (ent.CreateTweetInput, error) {
 	var it ent.CreateTweetInput
@@ -1991,7 +1634,7 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "screenName", "email", "password", "profileImage", "createdAt", "updatedAt", "tweetIDs", "followerIDs", "followingIDs", "likeIDs"}
+	fieldsInOrder := [...]string{"name", "screenName", "email", "password", "profileImage", "createdAt", "updatedAt", "postIDs", "followerIDs", "followingIDs", "likeIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -2061,15 +1704,15 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.UpdatedAt = data
-		case "tweetIDs":
+		case "postIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tweetIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.TweetIDs = data
+			it.PostIDs = data
 		case "followerIDs":
 			var err error
 
@@ -2152,7 +1795,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "screenName", "email", "password", "profileImage", "updatedAt", "addTweetIDs", "removeTweetIDs", "clearTweets", "addFollowerIDs", "removeFollowerIDs", "clearFollowers", "addFollowingIDs", "removeFollowingIDs", "clearFollowing", "addLikeIDs", "removeLikeIDs", "clearLikes"}
+	fieldsInOrder := [...]string{"name", "screenName", "email", "password", "profileImage", "updatedAt", "addPostIDs", "removePostIDs", "clearPosts", "addFollowerIDs", "removeFollowerIDs", "clearFollowers", "addFollowingIDs", "removeFollowingIDs", "clearFollowing", "addLikeIDs", "removeLikeIDs", "clearLikes"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -2213,33 +1856,33 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.UpdatedAt = data
-		case "addTweetIDs":
+		case "addPostIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addTweetIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addPostIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.AddTweetIDs = data
-		case "removeTweetIDs":
+			it.AddPostIDs = data
+		case "removePostIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeTweetIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removePostIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RemoveTweetIDs = data
-		case "clearTweets":
+			it.RemovePostIDs = data
+		case "clearPosts":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearTweets"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearPosts"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ClearTweets = data
+			it.ClearPosts = data
 		case "addFollowerIDs":
 			var err error
 
@@ -2377,11 +2020,6 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case *ent.Like:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Like(ctx, sel, obj)
 	case *ent.Tweet:
 		if obj == nil {
 			return graphql.Null
@@ -2400,88 +2038,6 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
-
-var likeImplementors = []string{"Like", "Node"}
-
-func (ec *executionContext) _Like(ctx context.Context, sel ast.SelectionSet, obj *ent.Like) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, likeImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Like")
-		case "id":
-
-			out.Values[i] = ec._Like_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "userID":
-
-			out.Values[i] = ec._Like_userID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "tweetID":
-
-			out.Values[i] = ec._Like_tweetID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "putBy":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Like_putBy(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "belongTo":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Like_belongTo(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
 
 var pageInfoImplementors = []string{"PageInfo"}
 
@@ -2575,29 +2131,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_nodes(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "likes":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_likes(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -2731,7 +2264,7 @@ func (ec *executionContext) _Tweet(ctx context.Context, sel ast.SelectionSet, ob
 				return innerFunc(ctx)
 
 			})
-		case "child":
+		case "children":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -2740,7 +2273,7 @@ func (ec *executionContext) _Tweet(ctx context.Context, sel ast.SelectionSet, ob
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Tweet_child(ctx, field, obj)
+				res = ec._Tweet_children(ctx, field, obj)
 				return res
 			}
 
@@ -2852,7 +2385,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "tweets":
+		case "posts":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -2861,7 +2394,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._User_tweets(ctx, field, obj)
+				res = ec._User_posts(ctx, field, obj)
 				return res
 			}
 
@@ -2943,60 +2476,6 @@ func (ec *executionContext) unmarshalNCreateTweetInput2appᚋentᚐCreateTweetIn
 func (ec *executionContext) unmarshalNCreateUserInput2appᚋentᚐCreateUserInput(ctx context.Context, v interface{}) (ent.CreateUserInput, error) {
 	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNLike2ᚕᚖappᚋentᚐLikeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Like) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNLike2ᚖappᚋentᚐLike(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNLike2ᚖappᚋentᚐLike(ctx context.Context, sel ast.SelectionSet, v *ent.Like) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Like(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNNode2ᚕappᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v []ent.Noder) graphql.Marshaler {
@@ -3229,53 +2708,6 @@ func (ec *executionContext) marshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCu
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) marshalOLike2ᚕᚖappᚋentᚐLikeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Like) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNLike2ᚖappᚋentᚐLike(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalONode2appᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {

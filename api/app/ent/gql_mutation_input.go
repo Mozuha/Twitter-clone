@@ -6,28 +6,6 @@ import (
 	"time"
 )
 
-// CreateLikeInput represents a mutation input for creating likes.
-type CreateLikeInput struct {
-	UserID     int
-	TweetID    int
-	PutByID    int
-	BelongToID int
-}
-
-// Mutate applies the CreateLikeInput on the LikeMutation builder.
-func (i *CreateLikeInput) Mutate(m *LikeMutation) {
-	m.SetUserID(i.UserID)
-	m.SetTweetID(i.TweetID)
-	m.SetPutByID(i.PutByID)
-	m.SetBelongToID(i.BelongToID)
-}
-
-// SetInput applies the change-set in the CreateLikeInput on the LikeCreate builder.
-func (c *LikeCreate) SetInput(i CreateLikeInput) *LikeCreate {
-	i.Mutate(c.Mutation())
-	return c
-}
-
 // CreateTweetInput represents a mutation input for creating tweets.
 type CreateTweetInput struct {
 	Text       string
@@ -71,7 +49,7 @@ type CreateUserInput struct {
 	ProfileImage *string
 	CreatedAt    *time.Time
 	UpdatedAt    *time.Time
-	TweetIDs     []int
+	PostIDs      []int
 	FollowerIDs  []int
 	FollowingIDs []int
 	LikeIDs      []int
@@ -92,8 +70,8 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
-	if v := i.TweetIDs; len(v) > 0 {
-		m.AddTweetIDs(v...)
+	if v := i.PostIDs; len(v) > 0 {
+		m.AddPostIDs(v...)
 	}
 	if v := i.FollowerIDs; len(v) > 0 {
 		m.AddFollowerIDs(v...)
@@ -120,9 +98,9 @@ type UpdateUserInput struct {
 	Password           *string
 	ProfileImage       *string
 	UpdatedAt          *time.Time
-	ClearTweets        bool
-	AddTweetIDs        []int
-	RemoveTweetIDs     []int
+	ClearPosts         bool
+	AddPostIDs         []int
+	RemovePostIDs      []int
 	ClearFollowers     bool
 	AddFollowerIDs     []int
 	RemoveFollowerIDs  []int
@@ -154,14 +132,14 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
-	if i.ClearTweets {
-		m.ClearTweets()
+	if i.ClearPosts {
+		m.ClearPosts()
 	}
-	if v := i.AddTweetIDs; len(v) > 0 {
-		m.AddTweetIDs(v...)
+	if v := i.AddPostIDs; len(v) > 0 {
+		m.AddPostIDs(v...)
 	}
-	if v := i.RemoveTweetIDs; len(v) > 0 {
-		m.RemoveTweetIDs(v...)
+	if v := i.RemovePostIDs; len(v) > 0 {
+		m.RemovePostIDs(v...)
 	}
 	if i.ClearFollowers {
 		m.ClearFollowers()

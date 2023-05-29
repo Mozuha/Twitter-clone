@@ -137,3 +137,8 @@ func (s *EntTweetServiceTestSuite) TestDeleteTweetByID() {
 		s.Equal(true, ent.IsNotFound(err))
 	})
 }
+
+// TODO: fetch tweet's likes
+// TODO: fetch tweet's replies
+// TODO: fetch tweet's parent
+// TODO: fetch tweet's owner

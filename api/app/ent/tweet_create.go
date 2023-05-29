@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
@@ -53,14 +52,14 @@ func (tc *TweetCreate) SetPostedBy(u *User) *TweetCreate {
 	return tc.SetPostedByID(u.ID)
 }
 
-// AddChildIDs adds the "child" edge to the Tweet entity by IDs.
+// AddChildIDs adds the "children" edge to the Tweet entity by IDs.
 func (tc *TweetCreate) AddChildIDs(ids ...int) *TweetCreate {
 	tc.mutation.AddChildIDs(ids...)
 	return tc
 }
 
-// AddChild adds the "child" edges to the Tweet entity.
-func (tc *TweetCreate) AddChild(t ...*Tweet) *TweetCreate {
+// AddChildren adds the "children" edges to the Tweet entity.
+func (tc *TweetCreate) AddChildren(t ...*Tweet) *TweetCreate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -87,17 +86,17 @@ func (tc *TweetCreate) SetParent(t *Tweet) *TweetCreate {
 	return tc.SetParentID(t.ID)
 }
 
-// AddLikedByIDs adds the "liked_by" edge to the Like entity by IDs.
+// AddLikedByIDs adds the "liked_by" edge to the User entity by IDs.
 func (tc *TweetCreate) AddLikedByIDs(ids ...int) *TweetCreate {
 	tc.mutation.AddLikedByIDs(ids...)
 	return tc
 }
 
-// AddLikedBy adds the "liked_by" edges to the Like entity.
-func (tc *TweetCreate) AddLikedBy(l ...*Like) *TweetCreate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddLikedBy adds the "liked_by" edges to the User entity.
+func (tc *TweetCreate) AddLikedBy(u ...*User) *TweetCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
 	return tc.AddLikedByIDs(ids...)
 }
@@ -207,15 +206,15 @@ func (tc *TweetCreate) createSpec() (*Tweet, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_tweets = &nodes[0]
+		_node.user_posts = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := tc.mutation.ChildIDs(); len(nodes) > 0 {
+	if nodes := tc.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: []string{tweet.ChildColumn},
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -245,13 +244,13 @@ func (tc *TweetCreate) createSpec() (*Tweet, *sqlgraph.CreateSpec) {
 	}
 	if nodes := tc.mutation.LikedByIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   tweet.LikedByTable,
-			Columns: []string{tweet.LikedByColumn},
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

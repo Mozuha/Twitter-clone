@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/predicate"
 	"app/ent/tweet"
 	"app/ent/user"
@@ -74,19 +73,19 @@ func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	return uu
 }
 
-// AddTweetIDs adds the "tweets" edge to the Tweet entity by IDs.
-func (uu *UserUpdate) AddTweetIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddTweetIDs(ids...)
+// AddPostIDs adds the "posts" edge to the Tweet entity by IDs.
+func (uu *UserUpdate) AddPostIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddPostIDs(ids...)
 	return uu
 }
 
-// AddTweets adds the "tweets" edges to the Tweet entity.
-func (uu *UserUpdate) AddTweets(t ...*Tweet) *UserUpdate {
+// AddPosts adds the "posts" edges to the Tweet entity.
+func (uu *UserUpdate) AddPosts(t ...*Tweet) *UserUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
-	return uu.AddTweetIDs(ids...)
+	return uu.AddPostIDs(ids...)
 }
 
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
@@ -119,17 +118,17 @@ func (uu *UserUpdate) AddFollowing(u ...*User) *UserUpdate {
 	return uu.AddFollowingIDs(ids...)
 }
 
-// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+// AddLikeIDs adds the "likes" edge to the Tweet entity by IDs.
 func (uu *UserUpdate) AddLikeIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddLikeIDs(ids...)
 	return uu
 }
 
-// AddLikes adds the "likes" edges to the Like entity.
-func (uu *UserUpdate) AddLikes(l ...*Like) *UserUpdate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddLikes adds the "likes" edges to the Tweet entity.
+func (uu *UserUpdate) AddLikes(t ...*Tweet) *UserUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
 	return uu.AddLikeIDs(ids...)
 }
@@ -139,25 +138,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearTweets clears all "tweets" edges to the Tweet entity.
-func (uu *UserUpdate) ClearTweets() *UserUpdate {
-	uu.mutation.ClearTweets()
+// ClearPosts clears all "posts" edges to the Tweet entity.
+func (uu *UserUpdate) ClearPosts() *UserUpdate {
+	uu.mutation.ClearPosts()
 	return uu
 }
 
-// RemoveTweetIDs removes the "tweets" edge to Tweet entities by IDs.
-func (uu *UserUpdate) RemoveTweetIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveTweetIDs(ids...)
+// RemovePostIDs removes the "posts" edge to Tweet entities by IDs.
+func (uu *UserUpdate) RemovePostIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemovePostIDs(ids...)
 	return uu
 }
 
-// RemoveTweets removes "tweets" edges to Tweet entities.
-func (uu *UserUpdate) RemoveTweets(t ...*Tweet) *UserUpdate {
+// RemovePosts removes "posts" edges to Tweet entities.
+func (uu *UserUpdate) RemovePosts(t ...*Tweet) *UserUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
-	return uu.RemoveTweetIDs(ids...)
+	return uu.RemovePostIDs(ids...)
 }
 
 // ClearFollowers clears all "followers" edges to the User entity.
@@ -202,23 +201,23 @@ func (uu *UserUpdate) RemoveFollowing(u ...*User) *UserUpdate {
 	return uu.RemoveFollowingIDs(ids...)
 }
 
-// ClearLikes clears all "likes" edges to the Like entity.
+// ClearLikes clears all "likes" edges to the Tweet entity.
 func (uu *UserUpdate) ClearLikes() *UserUpdate {
 	uu.mutation.ClearLikes()
 	return uu
 }
 
-// RemoveLikeIDs removes the "likes" edge to Like entities by IDs.
+// RemoveLikeIDs removes the "likes" edge to Tweet entities by IDs.
 func (uu *UserUpdate) RemoveLikeIDs(ids ...int) *UserUpdate {
 	uu.mutation.RemoveLikeIDs(ids...)
 	return uu
 }
 
-// RemoveLikes removes "likes" edges to Like entities.
-func (uu *UserUpdate) RemoveLikes(l ...*Like) *UserUpdate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// RemoveLikes removes "likes" edges to Tweet entities.
+func (uu *UserUpdate) RemoveLikes(t ...*Tweet) *UserUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
 	return uu.RemoveLikeIDs(ids...)
 }
@@ -314,12 +313,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if uu.mutation.TweetsCleared() {
+	if uu.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -327,12 +326,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedTweetsIDs(); len(nodes) > 0 && !uu.mutation.TweetsCleared() {
+	if nodes := uu.mutation.RemovedPostsIDs(); len(nodes) > 0 && !uu.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -343,12 +342,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.TweetsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -451,26 +450,26 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.LikesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := uu.mutation.RemovedLikesIDs(); len(nodes) > 0 && !uu.mutation.LikesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -480,13 +479,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := uu.mutation.LikesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -558,19 +557,19 @@ func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	return uuo
 }
 
-// AddTweetIDs adds the "tweets" edge to the Tweet entity by IDs.
-func (uuo *UserUpdateOne) AddTweetIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddTweetIDs(ids...)
+// AddPostIDs adds the "posts" edge to the Tweet entity by IDs.
+func (uuo *UserUpdateOne) AddPostIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddPostIDs(ids...)
 	return uuo
 }
 
-// AddTweets adds the "tweets" edges to the Tweet entity.
-func (uuo *UserUpdateOne) AddTweets(t ...*Tweet) *UserUpdateOne {
+// AddPosts adds the "posts" edges to the Tweet entity.
+func (uuo *UserUpdateOne) AddPosts(t ...*Tweet) *UserUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
-	return uuo.AddTweetIDs(ids...)
+	return uuo.AddPostIDs(ids...)
 }
 
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
@@ -603,17 +602,17 @@ func (uuo *UserUpdateOne) AddFollowing(u ...*User) *UserUpdateOne {
 	return uuo.AddFollowingIDs(ids...)
 }
 
-// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+// AddLikeIDs adds the "likes" edge to the Tweet entity by IDs.
 func (uuo *UserUpdateOne) AddLikeIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.AddLikeIDs(ids...)
 	return uuo
 }
 
-// AddLikes adds the "likes" edges to the Like entity.
-func (uuo *UserUpdateOne) AddLikes(l ...*Like) *UserUpdateOne {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddLikes adds the "likes" edges to the Tweet entity.
+func (uuo *UserUpdateOne) AddLikes(t ...*Tweet) *UserUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
 	return uuo.AddLikeIDs(ids...)
 }
@@ -623,25 +622,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearTweets clears all "tweets" edges to the Tweet entity.
-func (uuo *UserUpdateOne) ClearTweets() *UserUpdateOne {
-	uuo.mutation.ClearTweets()
+// ClearPosts clears all "posts" edges to the Tweet entity.
+func (uuo *UserUpdateOne) ClearPosts() *UserUpdateOne {
+	uuo.mutation.ClearPosts()
 	return uuo
 }
 
-// RemoveTweetIDs removes the "tweets" edge to Tweet entities by IDs.
-func (uuo *UserUpdateOne) RemoveTweetIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveTweetIDs(ids...)
+// RemovePostIDs removes the "posts" edge to Tweet entities by IDs.
+func (uuo *UserUpdateOne) RemovePostIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemovePostIDs(ids...)
 	return uuo
 }
 
-// RemoveTweets removes "tweets" edges to Tweet entities.
-func (uuo *UserUpdateOne) RemoveTweets(t ...*Tweet) *UserUpdateOne {
+// RemovePosts removes "posts" edges to Tweet entities.
+func (uuo *UserUpdateOne) RemovePosts(t ...*Tweet) *UserUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
-	return uuo.RemoveTweetIDs(ids...)
+	return uuo.RemovePostIDs(ids...)
 }
 
 // ClearFollowers clears all "followers" edges to the User entity.
@@ -686,23 +685,23 @@ func (uuo *UserUpdateOne) RemoveFollowing(u ...*User) *UserUpdateOne {
 	return uuo.RemoveFollowingIDs(ids...)
 }
 
-// ClearLikes clears all "likes" edges to the Like entity.
+// ClearLikes clears all "likes" edges to the Tweet entity.
 func (uuo *UserUpdateOne) ClearLikes() *UserUpdateOne {
 	uuo.mutation.ClearLikes()
 	return uuo
 }
 
-// RemoveLikeIDs removes the "likes" edge to Like entities by IDs.
+// RemoveLikeIDs removes the "likes" edge to Tweet entities by IDs.
 func (uuo *UserUpdateOne) RemoveLikeIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.RemoveLikeIDs(ids...)
 	return uuo
 }
 
-// RemoveLikes removes "likes" edges to Like entities.
-func (uuo *UserUpdateOne) RemoveLikes(l ...*Like) *UserUpdateOne {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// RemoveLikes removes "likes" edges to Tweet entities.
+func (uuo *UserUpdateOne) RemoveLikes(t ...*Tweet) *UserUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
 	return uuo.RemoveLikeIDs(ids...)
 }
@@ -828,12 +827,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if uuo.mutation.TweetsCleared() {
+	if uuo.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -841,12 +840,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedTweetsIDs(); len(nodes) > 0 && !uuo.mutation.TweetsCleared() {
+	if nodes := uuo.mutation.RemovedPostsIDs(); len(nodes) > 0 && !uuo.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -857,12 +856,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.TweetsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -965,26 +964,26 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.LikesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := uuo.mutation.RemovedLikesIDs(); len(nodes) > 0 && !uuo.mutation.LikesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -994,13 +993,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if nodes := uuo.mutation.LikesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

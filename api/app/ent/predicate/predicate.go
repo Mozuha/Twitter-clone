@@ -6,9 +6,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Like is the predicate function for like builders.
-type Like func(*sql.Selector)
-
 // Tweet is the predicate function for tweet builders.
 type Tweet func(*sql.Selector)
 

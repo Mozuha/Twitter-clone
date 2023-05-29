@@ -193,21 +193,21 @@ func HasPostedByWith(preds ...predicate.User) predicate.Tweet {
 	})
 }
 
-// HasChild applies the HasEdge predicate on the "child" edge.
-func HasChild() predicate.Tweet {
+// HasChildren applies the HasEdge predicate on the "children" edge.
+func HasChildren() predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, ChildTable, ChildColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, ChildrenTable, ChildrenColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasChildWith applies the HasEdge predicate on the "child" edge with a given conditions (other predicates).
-func HasChildWith(preds ...predicate.Tweet) predicate.Tweet {
+// HasChildrenWith applies the HasEdge predicate on the "children" edge with a given conditions (other predicates).
+func HasChildrenWith(preds ...predicate.Tweet) predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
-		step := newChildStep()
+		step := newChildrenStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -244,14 +244,14 @@ func HasLikedBy() predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, LikedByTable, LikedByColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, LikedByTable, LikedByPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
 // HasLikedByWith applies the HasEdge predicate on the "liked_by" edge with a given conditions (other predicates).
-func HasLikedByWith(preds ...predicate.Like) predicate.Tweet {
+func HasLikedByWith(preds ...predicate.User) predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
 		step := newLikedByStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

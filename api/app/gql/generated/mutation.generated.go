@@ -172,8 +172,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
 			case "followers":
 				return ec.fieldContext_User_followers(ctx, field)
 			case "following":
@@ -251,8 +251,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context
 				return ec.fieldContext_User_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "tweets":
-				return ec.fieldContext_User_tweets(ctx, field)
+			case "posts":
+				return ec.fieldContext_User_posts(ctx, field)
 			case "followers":
 				return ec.fieldContext_User_followers(ctx, field)
 			case "following":
@@ -376,8 +376,8 @@ func (ec *executionContext) fieldContext_Mutation_createTweet(ctx context.Contex
 				return ec.fieldContext_Tweet_createdAt(ctx, field)
 			case "postedBy":
 				return ec.fieldContext_Tweet_postedBy(ctx, field)
-			case "child":
-				return ec.fieldContext_Tweet_child(ctx, field)
+			case "children":
+				return ec.fieldContext_Tweet_children(ctx, field)
 			case "parent":
 				return ec.fieldContext_Tweet_parent(ctx, field)
 			case "likedBy":

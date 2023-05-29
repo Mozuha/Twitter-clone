@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/predicate"
 	"app/ent/tweet"
 	"app/ent/user"
@@ -26,585 +25,9 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeLike  = "Like"
 	TypeTweet = "Tweet"
 	TypeUser  = "User"
 )
-
-// LikeMutation represents an operation that mutates the Like nodes in the graph.
-type LikeMutation struct {
-	config
-	op               Op
-	typ              string
-	id               *int
-	user_id          *int
-	adduser_id       *int
-	tweet_id         *int
-	addtweet_id      *int
-	clearedFields    map[string]struct{}
-	put_by           *int
-	clearedput_by    bool
-	belong_to        *int
-	clearedbelong_to bool
-	done             bool
-	oldValue         func(context.Context) (*Like, error)
-	predicates       []predicate.Like
-}
-
-var _ ent.Mutation = (*LikeMutation)(nil)
-
-// likeOption allows management of the mutation configuration using functional options.
-type likeOption func(*LikeMutation)
-
-// newLikeMutation creates new mutation for the Like entity.
-func newLikeMutation(c config, op Op, opts ...likeOption) *LikeMutation {
-	m := &LikeMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeLike,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withLikeID sets the ID field of the mutation.
-func withLikeID(id int) likeOption {
-	return func(m *LikeMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Like
-		)
-		m.oldValue = func(ctx context.Context) (*Like, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Like.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withLike sets the old Like of the mutation.
-func withLike(node *Like) likeOption {
-	return func(m *LikeMutation) {
-		m.oldValue = func(context.Context) (*Like, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m LikeMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m LikeMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *LikeMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *LikeMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Like.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetUserID sets the "user_id" field.
-func (m *LikeMutation) SetUserID(i int) {
-	m.user_id = &i
-	m.adduser_id = nil
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *LikeMutation) UserID() (r int, exists bool) {
-	v := m.user_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the Like entity.
-// If the Like object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LikeMutation) OldUserID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// AddUserID adds i to the "user_id" field.
-func (m *LikeMutation) AddUserID(i int) {
-	if m.adduser_id != nil {
-		*m.adduser_id += i
-	} else {
-		m.adduser_id = &i
-	}
-}
-
-// AddedUserID returns the value that was added to the "user_id" field in this mutation.
-func (m *LikeMutation) AddedUserID() (r int, exists bool) {
-	v := m.adduser_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *LikeMutation) ResetUserID() {
-	m.user_id = nil
-	m.adduser_id = nil
-}
-
-// SetTweetID sets the "tweet_id" field.
-func (m *LikeMutation) SetTweetID(i int) {
-	m.tweet_id = &i
-	m.addtweet_id = nil
-}
-
-// TweetID returns the value of the "tweet_id" field in the mutation.
-func (m *LikeMutation) TweetID() (r int, exists bool) {
-	v := m.tweet_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTweetID returns the old "tweet_id" field's value of the Like entity.
-// If the Like object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LikeMutation) OldTweetID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTweetID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTweetID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTweetID: %w", err)
-	}
-	return oldValue.TweetID, nil
-}
-
-// AddTweetID adds i to the "tweet_id" field.
-func (m *LikeMutation) AddTweetID(i int) {
-	if m.addtweet_id != nil {
-		*m.addtweet_id += i
-	} else {
-		m.addtweet_id = &i
-	}
-}
-
-// AddedTweetID returns the value that was added to the "tweet_id" field in this mutation.
-func (m *LikeMutation) AddedTweetID() (r int, exists bool) {
-	v := m.addtweet_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetTweetID resets all changes to the "tweet_id" field.
-func (m *LikeMutation) ResetTweetID() {
-	m.tweet_id = nil
-	m.addtweet_id = nil
-}
-
-// SetPutByID sets the "put_by" edge to the User entity by id.
-func (m *LikeMutation) SetPutByID(id int) {
-	m.put_by = &id
-}
-
-// ClearPutBy clears the "put_by" edge to the User entity.
-func (m *LikeMutation) ClearPutBy() {
-	m.clearedput_by = true
-}
-
-// PutByCleared reports if the "put_by" edge to the User entity was cleared.
-func (m *LikeMutation) PutByCleared() bool {
-	return m.clearedput_by
-}
-
-// PutByID returns the "put_by" edge ID in the mutation.
-func (m *LikeMutation) PutByID() (id int, exists bool) {
-	if m.put_by != nil {
-		return *m.put_by, true
-	}
-	return
-}
-
-// PutByIDs returns the "put_by" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// PutByID instead. It exists only for internal usage by the builders.
-func (m *LikeMutation) PutByIDs() (ids []int) {
-	if id := m.put_by; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetPutBy resets all changes to the "put_by" edge.
-func (m *LikeMutation) ResetPutBy() {
-	m.put_by = nil
-	m.clearedput_by = false
-}
-
-// SetBelongToID sets the "belong_to" edge to the Tweet entity by id.
-func (m *LikeMutation) SetBelongToID(id int) {
-	m.belong_to = &id
-}
-
-// ClearBelongTo clears the "belong_to" edge to the Tweet entity.
-func (m *LikeMutation) ClearBelongTo() {
-	m.clearedbelong_to = true
-}
-
-// BelongToCleared reports if the "belong_to" edge to the Tweet entity was cleared.
-func (m *LikeMutation) BelongToCleared() bool {
-	return m.clearedbelong_to
-}
-
-// BelongToID returns the "belong_to" edge ID in the mutation.
-func (m *LikeMutation) BelongToID() (id int, exists bool) {
-	if m.belong_to != nil {
-		return *m.belong_to, true
-	}
-	return
-}
-
-// BelongToIDs returns the "belong_to" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// BelongToID instead. It exists only for internal usage by the builders.
-func (m *LikeMutation) BelongToIDs() (ids []int) {
-	if id := m.belong_to; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetBelongTo resets all changes to the "belong_to" edge.
-func (m *LikeMutation) ResetBelongTo() {
-	m.belong_to = nil
-	m.clearedbelong_to = false
-}
-
-// Where appends a list predicates to the LikeMutation builder.
-func (m *LikeMutation) Where(ps ...predicate.Like) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the LikeMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *LikeMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Like, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *LikeMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *LikeMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Like).
-func (m *LikeMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *LikeMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.user_id != nil {
-		fields = append(fields, like.FieldUserID)
-	}
-	if m.tweet_id != nil {
-		fields = append(fields, like.FieldTweetID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *LikeMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case like.FieldUserID:
-		return m.UserID()
-	case like.FieldTweetID:
-		return m.TweetID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *LikeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case like.FieldUserID:
-		return m.OldUserID(ctx)
-	case like.FieldTweetID:
-		return m.OldTweetID(ctx)
-	}
-	return nil, fmt.Errorf("unknown Like field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *LikeMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case like.FieldUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case like.FieldTweetID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTweetID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Like field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *LikeMutation) AddedFields() []string {
-	var fields []string
-	if m.adduser_id != nil {
-		fields = append(fields, like.FieldUserID)
-	}
-	if m.addtweet_id != nil {
-		fields = append(fields, like.FieldTweetID)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *LikeMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case like.FieldUserID:
-		return m.AddedUserID()
-	case like.FieldTweetID:
-		return m.AddedTweetID()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *LikeMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case like.FieldUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUserID(v)
-		return nil
-	case like.FieldTweetID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddTweetID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Like numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *LikeMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *LikeMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *LikeMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Like nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *LikeMutation) ResetField(name string) error {
-	switch name {
-	case like.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case like.FieldTweetID:
-		m.ResetTweetID()
-		return nil
-	}
-	return fmt.Errorf("unknown Like field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *LikeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.put_by != nil {
-		edges = append(edges, like.EdgePutBy)
-	}
-	if m.belong_to != nil {
-		edges = append(edges, like.EdgeBelongTo)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *LikeMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case like.EdgePutBy:
-		if id := m.put_by; id != nil {
-			return []ent.Value{*id}
-		}
-	case like.EdgeBelongTo:
-		if id := m.belong_to; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *LikeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *LikeMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *LikeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedput_by {
-		edges = append(edges, like.EdgePutBy)
-	}
-	if m.clearedbelong_to {
-		edges = append(edges, like.EdgeBelongTo)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *LikeMutation) EdgeCleared(name string) bool {
-	switch name {
-	case like.EdgePutBy:
-		return m.clearedput_by
-	case like.EdgeBelongTo:
-		return m.clearedbelong_to
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *LikeMutation) ClearEdge(name string) error {
-	switch name {
-	case like.EdgePutBy:
-		m.ClearPutBy()
-		return nil
-	case like.EdgeBelongTo:
-		m.ClearBelongTo()
-		return nil
-	}
-	return fmt.Errorf("unknown Like unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *LikeMutation) ResetEdge(name string) error {
-	switch name {
-	case like.EdgePutBy:
-		m.ResetPutBy()
-		return nil
-	case like.EdgeBelongTo:
-		m.ResetBelongTo()
-		return nil
-	}
-	return fmt.Errorf("unknown Like edge %s", name)
-}
 
 // TweetMutation represents an operation that mutates the Tweet nodes in the graph.
 type TweetMutation struct {
@@ -617,9 +40,9 @@ type TweetMutation struct {
 	clearedFields    map[string]struct{}
 	posted_by        *int
 	clearedposted_by bool
-	child            map[int]struct{}
-	removedchild     map[int]struct{}
-	clearedchild     bool
+	children         map[int]struct{}
+	removedchildren  map[int]struct{}
+	clearedchildren  bool
 	parent           *int
 	clearedparent    bool
 	liked_by         map[int]struct{}
@@ -839,58 +262,58 @@ func (m *TweetMutation) ResetPostedBy() {
 	m.clearedposted_by = false
 }
 
-// AddChildIDs adds the "child" edge to the Tweet entity by ids.
+// AddChildIDs adds the "children" edge to the Tweet entity by ids.
 func (m *TweetMutation) AddChildIDs(ids ...int) {
-	if m.child == nil {
-		m.child = make(map[int]struct{})
+	if m.children == nil {
+		m.children = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.child[ids[i]] = struct{}{}
+		m.children[ids[i]] = struct{}{}
 	}
 }
 
-// ClearChild clears the "child" edge to the Tweet entity.
-func (m *TweetMutation) ClearChild() {
-	m.clearedchild = true
+// ClearChildren clears the "children" edge to the Tweet entity.
+func (m *TweetMutation) ClearChildren() {
+	m.clearedchildren = true
 }
 
-// ChildCleared reports if the "child" edge to the Tweet entity was cleared.
-func (m *TweetMutation) ChildCleared() bool {
-	return m.clearedchild
+// ChildrenCleared reports if the "children" edge to the Tweet entity was cleared.
+func (m *TweetMutation) ChildrenCleared() bool {
+	return m.clearedchildren
 }
 
-// RemoveChildIDs removes the "child" edge to the Tweet entity by IDs.
+// RemoveChildIDs removes the "children" edge to the Tweet entity by IDs.
 func (m *TweetMutation) RemoveChildIDs(ids ...int) {
-	if m.removedchild == nil {
-		m.removedchild = make(map[int]struct{})
+	if m.removedchildren == nil {
+		m.removedchildren = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.child, ids[i])
-		m.removedchild[ids[i]] = struct{}{}
+		delete(m.children, ids[i])
+		m.removedchildren[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedChild returns the removed IDs of the "child" edge to the Tweet entity.
-func (m *TweetMutation) RemovedChildIDs() (ids []int) {
-	for id := range m.removedchild {
+// RemovedChildren returns the removed IDs of the "children" edge to the Tweet entity.
+func (m *TweetMutation) RemovedChildrenIDs() (ids []int) {
+	for id := range m.removedchildren {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ChildIDs returns the "child" edge IDs in the mutation.
-func (m *TweetMutation) ChildIDs() (ids []int) {
-	for id := range m.child {
+// ChildrenIDs returns the "children" edge IDs in the mutation.
+func (m *TweetMutation) ChildrenIDs() (ids []int) {
+	for id := range m.children {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetChild resets all changes to the "child" edge.
-func (m *TweetMutation) ResetChild() {
-	m.child = nil
-	m.clearedchild = false
-	m.removedchild = nil
+// ResetChildren resets all changes to the "children" edge.
+func (m *TweetMutation) ResetChildren() {
+	m.children = nil
+	m.clearedchildren = false
+	m.removedchildren = nil
 }
 
 // SetParentID sets the "parent" edge to the Tweet entity by id.
@@ -932,7 +355,7 @@ func (m *TweetMutation) ResetParent() {
 	m.clearedparent = false
 }
 
-// AddLikedByIDs adds the "liked_by" edge to the Like entity by ids.
+// AddLikedByIDs adds the "liked_by" edge to the User entity by ids.
 func (m *TweetMutation) AddLikedByIDs(ids ...int) {
 	if m.liked_by == nil {
 		m.liked_by = make(map[int]struct{})
@@ -942,17 +365,17 @@ func (m *TweetMutation) AddLikedByIDs(ids ...int) {
 	}
 }
 
-// ClearLikedBy clears the "liked_by" edge to the Like entity.
+// ClearLikedBy clears the "liked_by" edge to the User entity.
 func (m *TweetMutation) ClearLikedBy() {
 	m.clearedliked_by = true
 }
 
-// LikedByCleared reports if the "liked_by" edge to the Like entity was cleared.
+// LikedByCleared reports if the "liked_by" edge to the User entity was cleared.
 func (m *TweetMutation) LikedByCleared() bool {
 	return m.clearedliked_by
 }
 
-// RemoveLikedByIDs removes the "liked_by" edge to the Like entity by IDs.
+// RemoveLikedByIDs removes the "liked_by" edge to the User entity by IDs.
 func (m *TweetMutation) RemoveLikedByIDs(ids ...int) {
 	if m.removedliked_by == nil {
 		m.removedliked_by = make(map[int]struct{})
@@ -963,7 +386,7 @@ func (m *TweetMutation) RemoveLikedByIDs(ids ...int) {
 	}
 }
 
-// RemovedLikedBy returns the removed IDs of the "liked_by" edge to the Like entity.
+// RemovedLikedBy returns the removed IDs of the "liked_by" edge to the User entity.
 func (m *TweetMutation) RemovedLikedByIDs() (ids []int) {
 	for id := range m.removedliked_by {
 		ids = append(ids, id)
@@ -1140,8 +563,8 @@ func (m *TweetMutation) AddedEdges() []string {
 	if m.posted_by != nil {
 		edges = append(edges, tweet.EdgePostedBy)
 	}
-	if m.child != nil {
-		edges = append(edges, tweet.EdgeChild)
+	if m.children != nil {
+		edges = append(edges, tweet.EdgeChildren)
 	}
 	if m.parent != nil {
 		edges = append(edges, tweet.EdgeParent)
@@ -1160,9 +583,9 @@ func (m *TweetMutation) AddedIDs(name string) []ent.Value {
 		if id := m.posted_by; id != nil {
 			return []ent.Value{*id}
 		}
-	case tweet.EdgeChild:
-		ids := make([]ent.Value, 0, len(m.child))
-		for id := range m.child {
+	case tweet.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.children))
+		for id := range m.children {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1183,8 +606,8 @@ func (m *TweetMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TweetMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.removedchild != nil {
-		edges = append(edges, tweet.EdgeChild)
+	if m.removedchildren != nil {
+		edges = append(edges, tweet.EdgeChildren)
 	}
 	if m.removedliked_by != nil {
 		edges = append(edges, tweet.EdgeLikedBy)
@@ -1196,9 +619,9 @@ func (m *TweetMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *TweetMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case tweet.EdgeChild:
-		ids := make([]ent.Value, 0, len(m.removedchild))
-		for id := range m.removedchild {
+	case tweet.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.removedchildren))
+		for id := range m.removedchildren {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1218,8 +641,8 @@ func (m *TweetMutation) ClearedEdges() []string {
 	if m.clearedposted_by {
 		edges = append(edges, tweet.EdgePostedBy)
 	}
-	if m.clearedchild {
-		edges = append(edges, tweet.EdgeChild)
+	if m.clearedchildren {
+		edges = append(edges, tweet.EdgeChildren)
 	}
 	if m.clearedparent {
 		edges = append(edges, tweet.EdgeParent)
@@ -1236,8 +659,8 @@ func (m *TweetMutation) EdgeCleared(name string) bool {
 	switch name {
 	case tweet.EdgePostedBy:
 		return m.clearedposted_by
-	case tweet.EdgeChild:
-		return m.clearedchild
+	case tweet.EdgeChildren:
+		return m.clearedchildren
 	case tweet.EdgeParent:
 		return m.clearedparent
 	case tweet.EdgeLikedBy:
@@ -1267,8 +690,8 @@ func (m *TweetMutation) ResetEdge(name string) error {
 	case tweet.EdgePostedBy:
 		m.ResetPostedBy()
 		return nil
-	case tweet.EdgeChild:
-		m.ResetChild()
+	case tweet.EdgeChildren:
+		m.ResetChildren()
 		return nil
 	case tweet.EdgeParent:
 		m.ResetParent()
@@ -1294,9 +717,9 @@ type UserMutation struct {
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
-	tweets           map[int]struct{}
-	removedtweets    map[int]struct{}
-	clearedtweets    bool
+	posts            map[int]struct{}
+	removedposts     map[int]struct{}
+	clearedposts     bool
 	followers        map[int]struct{}
 	removedfollowers map[int]struct{}
 	clearedfollowers bool
@@ -1661,58 +1084,58 @@ func (m *UserMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// AddTweetIDs adds the "tweets" edge to the Tweet entity by ids.
-func (m *UserMutation) AddTweetIDs(ids ...int) {
-	if m.tweets == nil {
-		m.tweets = make(map[int]struct{})
+// AddPostIDs adds the "posts" edge to the Tweet entity by ids.
+func (m *UserMutation) AddPostIDs(ids ...int) {
+	if m.posts == nil {
+		m.posts = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.tweets[ids[i]] = struct{}{}
+		m.posts[ids[i]] = struct{}{}
 	}
 }
 
-// ClearTweets clears the "tweets" edge to the Tweet entity.
-func (m *UserMutation) ClearTweets() {
-	m.clearedtweets = true
+// ClearPosts clears the "posts" edge to the Tweet entity.
+func (m *UserMutation) ClearPosts() {
+	m.clearedposts = true
 }
 
-// TweetsCleared reports if the "tweets" edge to the Tweet entity was cleared.
-func (m *UserMutation) TweetsCleared() bool {
-	return m.clearedtweets
+// PostsCleared reports if the "posts" edge to the Tweet entity was cleared.
+func (m *UserMutation) PostsCleared() bool {
+	return m.clearedposts
 }
 
-// RemoveTweetIDs removes the "tweets" edge to the Tweet entity by IDs.
-func (m *UserMutation) RemoveTweetIDs(ids ...int) {
-	if m.removedtweets == nil {
-		m.removedtweets = make(map[int]struct{})
+// RemovePostIDs removes the "posts" edge to the Tweet entity by IDs.
+func (m *UserMutation) RemovePostIDs(ids ...int) {
+	if m.removedposts == nil {
+		m.removedposts = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.tweets, ids[i])
-		m.removedtweets[ids[i]] = struct{}{}
+		delete(m.posts, ids[i])
+		m.removedposts[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedTweets returns the removed IDs of the "tweets" edge to the Tweet entity.
-func (m *UserMutation) RemovedTweetsIDs() (ids []int) {
-	for id := range m.removedtweets {
+// RemovedPosts returns the removed IDs of the "posts" edge to the Tweet entity.
+func (m *UserMutation) RemovedPostsIDs() (ids []int) {
+	for id := range m.removedposts {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// TweetsIDs returns the "tweets" edge IDs in the mutation.
-func (m *UserMutation) TweetsIDs() (ids []int) {
-	for id := range m.tweets {
+// PostsIDs returns the "posts" edge IDs in the mutation.
+func (m *UserMutation) PostsIDs() (ids []int) {
+	for id := range m.posts {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetTweets resets all changes to the "tweets" edge.
-func (m *UserMutation) ResetTweets() {
-	m.tweets = nil
-	m.clearedtweets = false
-	m.removedtweets = nil
+// ResetPosts resets all changes to the "posts" edge.
+func (m *UserMutation) ResetPosts() {
+	m.posts = nil
+	m.clearedposts = false
+	m.removedposts = nil
 }
 
 // AddFollowerIDs adds the "followers" edge to the User entity by ids.
@@ -1823,7 +1246,7 @@ func (m *UserMutation) ResetFollowing() {
 	m.removedfollowing = nil
 }
 
-// AddLikeIDs adds the "likes" edge to the Like entity by ids.
+// AddLikeIDs adds the "likes" edge to the Tweet entity by ids.
 func (m *UserMutation) AddLikeIDs(ids ...int) {
 	if m.likes == nil {
 		m.likes = make(map[int]struct{})
@@ -1833,17 +1256,17 @@ func (m *UserMutation) AddLikeIDs(ids ...int) {
 	}
 }
 
-// ClearLikes clears the "likes" edge to the Like entity.
+// ClearLikes clears the "likes" edge to the Tweet entity.
 func (m *UserMutation) ClearLikes() {
 	m.clearedlikes = true
 }
 
-// LikesCleared reports if the "likes" edge to the Like entity was cleared.
+// LikesCleared reports if the "likes" edge to the Tweet entity was cleared.
 func (m *UserMutation) LikesCleared() bool {
 	return m.clearedlikes
 }
 
-// RemoveLikeIDs removes the "likes" edge to the Like entity by IDs.
+// RemoveLikeIDs removes the "likes" edge to the Tweet entity by IDs.
 func (m *UserMutation) RemoveLikeIDs(ids ...int) {
 	if m.removedlikes == nil {
 		m.removedlikes = make(map[int]struct{})
@@ -1854,7 +1277,7 @@ func (m *UserMutation) RemoveLikeIDs(ids ...int) {
 	}
 }
 
-// RemovedLikes returns the removed IDs of the "likes" edge to the Like entity.
+// RemovedLikes returns the removed IDs of the "likes" edge to the Tweet entity.
 func (m *UserMutation) RemovedLikesIDs() (ids []int) {
 	for id := range m.removedlikes {
 		ids = append(ids, id)
@@ -2113,8 +1536,8 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.tweets != nil {
-		edges = append(edges, user.EdgeTweets)
+	if m.posts != nil {
+		edges = append(edges, user.EdgePosts)
 	}
 	if m.followers != nil {
 		edges = append(edges, user.EdgeFollowers)
@@ -2132,9 +1555,9 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeTweets:
-		ids := make([]ent.Value, 0, len(m.tweets))
-		for id := range m.tweets {
+	case user.EdgePosts:
+		ids := make([]ent.Value, 0, len(m.posts))
+		for id := range m.posts {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2163,8 +1586,8 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.removedtweets != nil {
-		edges = append(edges, user.EdgeTweets)
+	if m.removedposts != nil {
+		edges = append(edges, user.EdgePosts)
 	}
 	if m.removedfollowers != nil {
 		edges = append(edges, user.EdgeFollowers)
@@ -2182,9 +1605,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeTweets:
-		ids := make([]ent.Value, 0, len(m.removedtweets))
-		for id := range m.removedtweets {
+	case user.EdgePosts:
+		ids := make([]ent.Value, 0, len(m.removedposts))
+		for id := range m.removedposts {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2213,8 +1636,8 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.clearedtweets {
-		edges = append(edges, user.EdgeTweets)
+	if m.clearedposts {
+		edges = append(edges, user.EdgePosts)
 	}
 	if m.clearedfollowers {
 		edges = append(edges, user.EdgeFollowers)
@@ -2232,8 +1655,8 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
-	case user.EdgeTweets:
-		return m.clearedtweets
+	case user.EdgePosts:
+		return m.clearedposts
 	case user.EdgeFollowers:
 		return m.clearedfollowers
 	case user.EdgeFollowing:
@@ -2256,8 +1679,8 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeTweets:
-		m.ResetTweets()
+	case user.EdgePosts:
+		m.ResetPosts()
 		return nil
 	case user.EdgeFollowers:
 		m.ResetFollowers()

@@ -8,22 +8,6 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func (l *Like) PutBy(ctx context.Context) (*User, error) {
-	result, err := l.Edges.PutByOrErr()
-	if IsNotLoaded(err) {
-		result, err = l.QueryPutBy().Only(ctx)
-	}
-	return result, err
-}
-
-func (l *Like) BelongTo(ctx context.Context) (*Tweet, error) {
-	result, err := l.Edges.BelongToOrErr()
-	if IsNotLoaded(err) {
-		result, err = l.QueryBelongTo().Only(ctx)
-	}
-	return result, err
-}
-
 func (t *Tweet) PostedBy(ctx context.Context) (*User, error) {
 	result, err := t.Edges.PostedByOrErr()
 	if IsNotLoaded(err) {
@@ -32,14 +16,14 @@ func (t *Tweet) PostedBy(ctx context.Context) (*User, error) {
 	return result, err
 }
 
-func (t *Tweet) Child(ctx context.Context) (result []*Tweet, err error) {
+func (t *Tweet) Children(ctx context.Context) (result []*Tweet, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = t.NamedChild(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = t.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = t.Edges.ChildOrErr()
+		result, err = t.Edges.ChildrenOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = t.QueryChild().All(ctx)
+		result, err = t.QueryChildren().All(ctx)
 	}
 	return result, err
 }
@@ -52,7 +36,7 @@ func (t *Tweet) Parent(ctx context.Context) (*Tweet, error) {
 	return result, MaskNotFound(err)
 }
 
-func (t *Tweet) LikedBy(ctx context.Context) (result []*Like, err error) {
+func (t *Tweet) LikedBy(ctx context.Context) (result []*User, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = t.NamedLikedBy(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
@@ -64,14 +48,14 @@ func (t *Tweet) LikedBy(ctx context.Context) (result []*Like, err error) {
 	return result, err
 }
 
-func (u *User) Tweets(ctx context.Context) (result []*Tweet, err error) {
+func (u *User) Posts(ctx context.Context) (result []*Tweet, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedTweets(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = u.NamedPosts(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = u.Edges.TweetsOrErr()
+		result, err = u.Edges.PostsOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = u.QueryTweets().All(ctx)
+		result, err = u.QueryPosts().All(ctx)
 	}
 	return result, err
 }
@@ -100,7 +84,7 @@ func (u *User) Following(ctx context.Context) (result []*User, err error) {
 	return result, err
 }
 
-func (u *User) Likes(ctx context.Context) (result []*Like, err error) {
+func (u *User) Likes(ctx context.Context) (result []*Tweet, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = u.NamedLikes(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {

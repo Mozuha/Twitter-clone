@@ -24,7 +24,6 @@ autobind:
   - app/ent
   - app/ent/user
   - app/ent/tweet
-  - app/ent/like
 
 # This section declares type mapping between the GraphQL and Go type systems.
 models:

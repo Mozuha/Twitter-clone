@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
@@ -88,19 +87,19 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
-// AddTweetIDs adds the "tweets" edge to the Tweet entity by IDs.
-func (uc *UserCreate) AddTweetIDs(ids ...int) *UserCreate {
-	uc.mutation.AddTweetIDs(ids...)
+// AddPostIDs adds the "posts" edge to the Tweet entity by IDs.
+func (uc *UserCreate) AddPostIDs(ids ...int) *UserCreate {
+	uc.mutation.AddPostIDs(ids...)
 	return uc
 }
 
-// AddTweets adds the "tweets" edges to the Tweet entity.
-func (uc *UserCreate) AddTweets(t ...*Tweet) *UserCreate {
+// AddPosts adds the "posts" edges to the Tweet entity.
+func (uc *UserCreate) AddPosts(t ...*Tweet) *UserCreate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
-	return uc.AddTweetIDs(ids...)
+	return uc.AddPostIDs(ids...)
 }
 
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
@@ -133,17 +132,17 @@ func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
 	return uc.AddFollowingIDs(ids...)
 }
 
-// AddLikeIDs adds the "likes" edge to the Like entity by IDs.
+// AddLikeIDs adds the "likes" edge to the Tweet entity by IDs.
 func (uc *UserCreate) AddLikeIDs(ids ...int) *UserCreate {
 	uc.mutation.AddLikeIDs(ids...)
 	return uc
 }
 
-// AddLikes adds the "likes" edges to the Like entity.
-func (uc *UserCreate) AddLikes(l ...*Like) *UserCreate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddLikes adds the "likes" edges to the Tweet entity.
+func (uc *UserCreate) AddLikes(t ...*Tweet) *UserCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
 	return uc.AddLikeIDs(ids...)
 }
@@ -294,12 +293,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := uc.mutation.TweetsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TweetsTable,
-			Columns: []string{user.TweetsColumn},
+			Table:   user.PostsTable,
+			Columns: []string{user.PostsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -344,13 +343,13 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if nodes := uc.mutation.LikesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   user.LikesTable,
-			Columns: []string{user.LikesColumn},
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

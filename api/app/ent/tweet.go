@@ -26,7 +26,7 @@ type Tweet struct {
 	// The values are being populated by the TweetQuery when eager-loading is set.
 	Edges        TweetEdges `json:"edges"`
 	tweet_parent *int
-	user_tweets  *int
+	user_posts   *int
 	selectValues sql.SelectValues
 }
 
@@ -34,20 +34,20 @@ type Tweet struct {
 type TweetEdges struct {
 	// PostedBy holds the value of the posted_by edge.
 	PostedBy *User `json:"posted_by,omitempty"`
-	// Child holds the value of the child edge.
-	Child []*Tweet `json:"child,omitempty"`
+	// Children holds the value of the children edge.
+	Children []*Tweet `json:"children,omitempty"`
 	// Parent holds the value of the parent edge.
 	Parent *Tweet `json:"parent,omitempty"`
 	// LikedBy holds the value of the liked_by edge.
-	LikedBy []*Like `json:"liked_by,omitempty"`
+	LikedBy []*User `json:"liked_by,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
 	totalCount [4]map[string]int
 
-	namedChild   map[string][]*Tweet
-	namedLikedBy map[string][]*Like
+	namedChildren map[string][]*Tweet
+	namedLikedBy  map[string][]*User
 }
 
 // PostedByOrErr returns the PostedBy value or an error if the edge
@@ -63,13 +63,13 @@ func (e TweetEdges) PostedByOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "posted_by"}
 }
 
-// ChildOrErr returns the Child value or an error if the edge
+// ChildrenOrErr returns the Children value or an error if the edge
 // was not loaded in eager-loading.
-func (e TweetEdges) ChildOrErr() ([]*Tweet, error) {
+func (e TweetEdges) ChildrenOrErr() ([]*Tweet, error) {
 	if e.loadedTypes[1] {
-		return e.Child, nil
+		return e.Children, nil
 	}
-	return nil, &NotLoadedError{edge: "child"}
+	return nil, &NotLoadedError{edge: "children"}
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -87,7 +87,7 @@ func (e TweetEdges) ParentOrErr() (*Tweet, error) {
 
 // LikedByOrErr returns the LikedBy value or an error if the edge
 // was not loaded in eager-loading.
-func (e TweetEdges) LikedByOrErr() ([]*Like, error) {
+func (e TweetEdges) LikedByOrErr() ([]*User, error) {
 	if e.loadedTypes[3] {
 		return e.LikedBy, nil
 	}
@@ -107,7 +107,7 @@ func (*Tweet) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case tweet.ForeignKeys[0]: // tweet_parent
 			values[i] = new(sql.NullInt64)
-		case tweet.ForeignKeys[1]: // user_tweets
+		case tweet.ForeignKeys[1]: // user_posts
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -151,10 +151,10 @@ func (t *Tweet) assignValues(columns []string, values []any) error {
 			}
 		case tweet.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_tweets", value)
+				return fmt.Errorf("unexpected type %T for edge-field user_posts", value)
 			} else if value.Valid {
-				t.user_tweets = new(int)
-				*t.user_tweets = int(value.Int64)
+				t.user_posts = new(int)
+				*t.user_posts = int(value.Int64)
 			}
 		default:
 			t.selectValues.Set(columns[i], values[i])
@@ -174,9 +174,9 @@ func (t *Tweet) QueryPostedBy() *UserQuery {
 	return NewTweetClient(t.config).QueryPostedBy(t)
 }
 
-// QueryChild queries the "child" edge of the Tweet entity.
-func (t *Tweet) QueryChild() *TweetQuery {
-	return NewTweetClient(t.config).QueryChild(t)
+// QueryChildren queries the "children" edge of the Tweet entity.
+func (t *Tweet) QueryChildren() *TweetQuery {
+	return NewTweetClient(t.config).QueryChildren(t)
 }
 
 // QueryParent queries the "parent" edge of the Tweet entity.
@@ -185,7 +185,7 @@ func (t *Tweet) QueryParent() *TweetQuery {
 }
 
 // QueryLikedBy queries the "liked_by" edge of the Tweet entity.
-func (t *Tweet) QueryLikedBy() *LikeQuery {
+func (t *Tweet) QueryLikedBy() *UserQuery {
 	return NewTweetClient(t.config).QueryLikedBy(t)
 }
 
@@ -221,33 +221,33 @@ func (t *Tweet) String() string {
 	return builder.String()
 }
 
-// NamedChild returns the Child named value or an error if the edge was not
+// NamedChildren returns the Children named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (t *Tweet) NamedChild(name string) ([]*Tweet, error) {
-	if t.Edges.namedChild == nil {
+func (t *Tweet) NamedChildren(name string) ([]*Tweet, error) {
+	if t.Edges.namedChildren == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := t.Edges.namedChild[name]
+	nodes, ok := t.Edges.namedChildren[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (t *Tweet) appendNamedChild(name string, edges ...*Tweet) {
-	if t.Edges.namedChild == nil {
-		t.Edges.namedChild = make(map[string][]*Tweet)
+func (t *Tweet) appendNamedChildren(name string, edges ...*Tweet) {
+	if t.Edges.namedChildren == nil {
+		t.Edges.namedChildren = make(map[string][]*Tweet)
 	}
 	if len(edges) == 0 {
-		t.Edges.namedChild[name] = []*Tweet{}
+		t.Edges.namedChildren[name] = []*Tweet{}
 	} else {
-		t.Edges.namedChild[name] = append(t.Edges.namedChild[name], edges...)
+		t.Edges.namedChildren[name] = append(t.Edges.namedChildren[name], edges...)
 	}
 }
 
 // NamedLikedBy returns the LikedBy named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (t *Tweet) NamedLikedBy(name string) ([]*Like, error) {
+func (t *Tweet) NamedLikedBy(name string) ([]*User, error) {
 	if t.Edges.namedLikedBy == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
@@ -258,12 +258,12 @@ func (t *Tweet) NamedLikedBy(name string) ([]*Like, error) {
 	return nodes, nil
 }
 
-func (t *Tweet) appendNamedLikedBy(name string, edges ...*Like) {
+func (t *Tweet) appendNamedLikedBy(name string, edges ...*User) {
 	if t.Edges.namedLikedBy == nil {
-		t.Edges.namedLikedBy = make(map[string][]*Like)
+		t.Edges.namedLikedBy = make(map[string][]*User)
 	}
 	if len(edges) == 0 {
-		t.Edges.namedLikedBy[name] = []*Like{}
+		t.Edges.namedLikedBy[name] = []*User{}
 	} else {
 		t.Edges.namedLikedBy[name] = append(t.Edges.namedLikedBy[name], edges...)
 	}

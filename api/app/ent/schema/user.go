@@ -60,9 +60,9 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("tweets", Tweet.Type),
+		edge.To("posts", Tweet.Type),
 		edge.To("following", User.Type).From("followers"),
-		edge.To("likes", Like.Type),
+		edge.To("likes", Tweet.Type),
 	}
 }
 

@@ -38,12 +38,13 @@ func (Tweet) Edges() []ent.Edge {
 		edge.From("posted_by", User.Type).
 			Unique().
 			Required().
-			Ref("tweets"),
+			Ref("posts"),
 		// one parent many child, one child one parent
 		edge.To("parent", Tweet.Type).
 			Unique().
-			From("child"),
-		edge.To("liked_by", Like.Type),
+			From("children"),
+		edge.From("liked_by", User.Type).
+			Ref("likes"),
 	}
 }
 

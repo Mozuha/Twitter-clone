@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/predicate"
 	"app/ent/tweet"
 	"app/ent/user"
@@ -24,16 +23,16 @@ type UserQuery struct {
 	order              []user.OrderOption
 	inters             []Interceptor
 	predicates         []predicate.User
-	withTweets         *TweetQuery
+	withPosts          *TweetQuery
 	withFollowers      *UserQuery
 	withFollowing      *UserQuery
-	withLikes          *LikeQuery
+	withLikes          *TweetQuery
 	modifiers          []func(*sql.Selector)
 	loadTotal          []func(context.Context, []*User) error
-	withNamedTweets    map[string]*TweetQuery
+	withNamedPosts     map[string]*TweetQuery
 	withNamedFollowers map[string]*UserQuery
 	withNamedFollowing map[string]*UserQuery
-	withNamedLikes     map[string]*LikeQuery
+	withNamedLikes     map[string]*TweetQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -70,8 +69,8 @@ func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return uq
 }
 
-// QueryTweets chains the current query on the "tweets" edge.
-func (uq *UserQuery) QueryTweets() *TweetQuery {
+// QueryPosts chains the current query on the "posts" edge.
+func (uq *UserQuery) QueryPosts() *TweetQuery {
 	query := (&TweetClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -84,7 +83,7 @@ func (uq *UserQuery) QueryTweets() *TweetQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(tweet.Table, tweet.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.TweetsTable, user.TweetsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PostsTable, user.PostsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -137,8 +136,8 @@ func (uq *UserQuery) QueryFollowing() *UserQuery {
 }
 
 // QueryLikes chains the current query on the "likes" edge.
-func (uq *UserQuery) QueryLikes() *LikeQuery {
-	query := (&LikeClient{config: uq.config}).Query()
+func (uq *UserQuery) QueryLikes() *TweetQuery {
+	query := (&TweetClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -149,8 +148,8 @@ func (uq *UserQuery) QueryLikes() *LikeQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(like.Table, like.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.LikesTable, user.LikesColumn),
+			sqlgraph.To(tweet.Table, tweet.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.LikesTable, user.LikesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -350,7 +349,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		order:         append([]user.OrderOption{}, uq.order...),
 		inters:        append([]Interceptor{}, uq.inters...),
 		predicates:    append([]predicate.User{}, uq.predicates...),
-		withTweets:    uq.withTweets.Clone(),
+		withPosts:     uq.withPosts.Clone(),
 		withFollowers: uq.withFollowers.Clone(),
 		withFollowing: uq.withFollowing.Clone(),
 		withLikes:     uq.withLikes.Clone(),
@@ -360,14 +359,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
-// WithTweets tells the query-builder to eager-load the nodes that are connected to
-// the "tweets" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithTweets(opts ...func(*TweetQuery)) *UserQuery {
+// WithPosts tells the query-builder to eager-load the nodes that are connected to
+// the "posts" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithPosts(opts ...func(*TweetQuery)) *UserQuery {
 	query := (&TweetClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withTweets = query
+	uq.withPosts = query
 	return uq
 }
 
@@ -395,8 +394,8 @@ func (uq *UserQuery) WithFollowing(opts ...func(*UserQuery)) *UserQuery {
 
 // WithLikes tells the query-builder to eager-load the nodes that are connected to
 // the "likes" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithLikes(opts ...func(*LikeQuery)) *UserQuery {
-	query := (&LikeClient{config: uq.config}).Query()
+func (uq *UserQuery) WithLikes(opts ...func(*TweetQuery)) *UserQuery {
+	query := (&TweetClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -483,7 +482,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [4]bool{
-			uq.withTweets != nil,
+			uq.withPosts != nil,
 			uq.withFollowers != nil,
 			uq.withFollowing != nil,
 			uq.withLikes != nil,
@@ -510,10 +509,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withTweets; query != nil {
-		if err := uq.loadTweets(ctx, query, nodes,
-			func(n *User) { n.Edges.Tweets = []*Tweet{} },
-			func(n *User, e *Tweet) { n.Edges.Tweets = append(n.Edges.Tweets, e) }); err != nil {
+	if query := uq.withPosts; query != nil {
+		if err := uq.loadPosts(ctx, query, nodes,
+			func(n *User) { n.Edges.Posts = []*Tweet{} },
+			func(n *User, e *Tweet) { n.Edges.Posts = append(n.Edges.Posts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -533,15 +532,15 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	}
 	if query := uq.withLikes; query != nil {
 		if err := uq.loadLikes(ctx, query, nodes,
-			func(n *User) { n.Edges.Likes = []*Like{} },
-			func(n *User, e *Like) { n.Edges.Likes = append(n.Edges.Likes, e) }); err != nil {
+			func(n *User) { n.Edges.Likes = []*Tweet{} },
+			func(n *User, e *Tweet) { n.Edges.Likes = append(n.Edges.Likes, e) }); err != nil {
 			return nil, err
 		}
 	}
-	for name, query := range uq.withNamedTweets {
-		if err := uq.loadTweets(ctx, query, nodes,
-			func(n *User) { n.appendNamedTweets(name) },
-			func(n *User, e *Tweet) { n.appendNamedTweets(name, e) }); err != nil {
+	for name, query := range uq.withNamedPosts {
+		if err := uq.loadPosts(ctx, query, nodes,
+			func(n *User) { n.appendNamedPosts(name) },
+			func(n *User, e *Tweet) { n.appendNamedPosts(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -562,7 +561,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	for name, query := range uq.withNamedLikes {
 		if err := uq.loadLikes(ctx, query, nodes,
 			func(n *User) { n.appendNamedLikes(name) },
-			func(n *User, e *Like) { n.appendNamedLikes(name, e) }); err != nil {
+			func(n *User, e *Tweet) { n.appendNamedLikes(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -574,7 +573,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadTweets(ctx context.Context, query *TweetQuery, nodes []*User, init func(*User), assign func(*User, *Tweet)) error {
+func (uq *UserQuery) loadPosts(ctx context.Context, query *TweetQuery, nodes []*User, init func(*User), assign func(*User, *Tweet)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -586,20 +585,20 @@ func (uq *UserQuery) loadTweets(ctx context.Context, query *TweetQuery, nodes []
 	}
 	query.withFKs = true
 	query.Where(predicate.Tweet(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.TweetsColumn), fks...))
+		s.Where(sql.InValues(s.C(user.PostsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_tweets
+		fk := n.user_posts
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_tweets" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_posts" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_tweets" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_posts" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -727,34 +726,64 @@ func (uq *UserQuery) loadFollowing(ctx context.Context, query *UserQuery, nodes 
 	}
 	return nil
 }
-func (uq *UserQuery) loadLikes(ctx context.Context, query *LikeQuery, nodes []*User, init func(*User), assign func(*User, *Like)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+func (uq *UserQuery) loadLikes(ctx context.Context, query *TweetQuery, nodes []*User, init func(*User), assign func(*User, *Tweet)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*User)
+	nids := make(map[int]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
 		if init != nil {
-			init(nodes[i])
+			init(node)
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.Like(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.LikesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.LikesTable)
+		s.Join(joinT).On(s.C(tweet.FieldID), joinT.C(user.LikesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.LikesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.LikesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Tweet](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_likes
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_likes" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_likes" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected "likes" node returned %v`, n.ID)
 		}
-		assign(node, n)
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
@@ -843,17 +872,17 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// WithNamedTweets tells the query-builder to eager-load the nodes that are connected to the "tweets"
+// WithNamedPosts tells the query-builder to eager-load the nodes that are connected to the "posts"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithNamedTweets(name string, opts ...func(*TweetQuery)) *UserQuery {
+func (uq *UserQuery) WithNamedPosts(name string, opts ...func(*TweetQuery)) *UserQuery {
 	query := (&TweetClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if uq.withNamedTweets == nil {
-		uq.withNamedTweets = make(map[string]*TweetQuery)
+	if uq.withNamedPosts == nil {
+		uq.withNamedPosts = make(map[string]*TweetQuery)
 	}
-	uq.withNamedTweets[name] = query
+	uq.withNamedPosts[name] = query
 	return uq
 }
 
@@ -887,13 +916,13 @@ func (uq *UserQuery) WithNamedFollowing(name string, opts ...func(*UserQuery)) *
 
 // WithNamedLikes tells the query-builder to eager-load the nodes that are connected to the "likes"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithNamedLikes(name string, opts ...func(*LikeQuery)) *UserQuery {
-	query := (&LikeClient{config: uq.config}).Query()
+func (uq *UserQuery) WithNamedLikes(name string, opts ...func(*TweetQuery)) *UserQuery {
+	query := (&TweetClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
 	if uq.withNamedLikes == nil {
-		uq.withNamedLikes = make(map[string]*LikeQuery)
+		uq.withNamedLikes = make(map[string]*TweetQuery)
 	}
 	uq.withNamedLikes[name] = query
 	return uq

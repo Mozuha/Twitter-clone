@@ -28,8 +28,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeTweets holds the string denoting the tweets edge name in mutations.
-	EdgeTweets = "tweets"
+	// EdgePosts holds the string denoting the posts edge name in mutations.
+	EdgePosts = "posts"
 	// EdgeFollowers holds the string denoting the followers edge name in mutations.
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
@@ -38,24 +38,22 @@ const (
 	EdgeLikes = "likes"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// TweetsTable is the table that holds the tweets relation/edge.
-	TweetsTable = "tweets"
-	// TweetsInverseTable is the table name for the Tweet entity.
+	// PostsTable is the table that holds the posts relation/edge.
+	PostsTable = "tweets"
+	// PostsInverseTable is the table name for the Tweet entity.
 	// It exists in this package in order to avoid circular dependency with the "tweet" package.
-	TweetsInverseTable = "tweets"
-	// TweetsColumn is the table column denoting the tweets relation/edge.
-	TweetsColumn = "user_tweets"
+	PostsInverseTable = "tweets"
+	// PostsColumn is the table column denoting the posts relation/edge.
+	PostsColumn = "user_posts"
 	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
 	FollowersTable = "user_following"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
 	FollowingTable = "user_following"
-	// LikesTable is the table that holds the likes relation/edge.
-	LikesTable = "likes"
-	// LikesInverseTable is the table name for the Like entity.
-	// It exists in this package in order to avoid circular dependency with the "like" package.
-	LikesInverseTable = "likes"
-	// LikesColumn is the table column denoting the likes relation/edge.
-	LikesColumn = "user_likes"
+	// LikesTable is the table that holds the likes relation/edge. The primary key declared below.
+	LikesTable = "user_likes"
+	// LikesInverseTable is the table name for the Tweet entity.
+	// It exists in this package in order to avoid circular dependency with the "tweet" package.
+	LikesInverseTable = "tweets"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -77,6 +75,9 @@ var (
 	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
 	// primary key for the following relation (M2M).
 	FollowingPrimaryKey = []string{"user_id", "follower_id"}
+	// LikesPrimaryKey and LikesColumn2 are the table columns denoting the
+	// primary key for the likes relation (M2M).
+	LikesPrimaryKey = []string{"user_id", "tweet_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -151,17 +152,17 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByTweetsCount orders the results by tweets count.
-func ByTweetsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByPostsCount orders the results by posts count.
+func ByPostsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTweetsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newPostsStep(), opts...)
 	}
 }
 
-// ByTweets orders the results by tweets terms.
-func ByTweets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByPosts orders the results by posts terms.
+func ByPosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTweetsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPostsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -206,11 +207,11 @@ func ByLikes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLikesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newTweetsStep() *sqlgraph.Step {
+func newPostsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TweetsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TweetsTable, TweetsColumn),
+		sqlgraph.To(PostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PostsTable, PostsColumn),
 	)
 }
 func newFollowersStep() *sqlgraph.Step {
@@ -231,6 +232,6 @@ func newLikesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LikesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, LikesTable, LikesColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, LikesTable, LikesPrimaryKey...),
 	)
 }

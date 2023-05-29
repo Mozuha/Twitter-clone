@@ -495,21 +495,21 @@ func UpdatedAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// HasTweets applies the HasEdge predicate on the "tweets" edge.
-func HasTweets() predicate.User {
+// HasPosts applies the HasEdge predicate on the "posts" edge.
+func HasPosts() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TweetsTable, TweetsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, PostsTable, PostsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTweetsWith applies the HasEdge predicate on the "tweets" edge with a given conditions (other predicates).
-func HasTweetsWith(preds ...predicate.Tweet) predicate.User {
+// HasPostsWith applies the HasEdge predicate on the "posts" edge with a given conditions (other predicates).
+func HasPostsWith(preds ...predicate.Tweet) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newTweetsStep()
+		step := newPostsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -569,14 +569,14 @@ func HasLikes() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, LikesTable, LikesColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, LikesTable, LikesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
 // HasLikesWith applies the HasEdge predicate on the "likes" edge with a given conditions (other predicates).
-func HasLikesWith(preds ...predicate.Like) predicate.User {
+func HasLikesWith(preds ...predicate.Tweet) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newLikesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

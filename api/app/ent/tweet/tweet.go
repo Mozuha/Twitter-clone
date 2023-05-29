@@ -20,8 +20,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// EdgePostedBy holds the string denoting the posted_by edge name in mutations.
 	EdgePostedBy = "posted_by"
-	// EdgeChild holds the string denoting the child edge name in mutations.
-	EdgeChild = "child"
+	// EdgeChildren holds the string denoting the children edge name in mutations.
+	EdgeChildren = "children"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeLikedBy holds the string denoting the liked_by edge name in mutations.
@@ -34,22 +34,20 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	PostedByInverseTable = "users"
 	// PostedByColumn is the table column denoting the posted_by relation/edge.
-	PostedByColumn = "user_tweets"
-	// ChildTable is the table that holds the child relation/edge.
-	ChildTable = "tweets"
-	// ChildColumn is the table column denoting the child relation/edge.
-	ChildColumn = "tweet_parent"
+	PostedByColumn = "user_posts"
+	// ChildrenTable is the table that holds the children relation/edge.
+	ChildrenTable = "tweets"
+	// ChildrenColumn is the table column denoting the children relation/edge.
+	ChildrenColumn = "tweet_parent"
 	// ParentTable is the table that holds the parent relation/edge.
 	ParentTable = "tweets"
 	// ParentColumn is the table column denoting the parent relation/edge.
 	ParentColumn = "tweet_parent"
-	// LikedByTable is the table that holds the liked_by relation/edge.
-	LikedByTable = "likes"
-	// LikedByInverseTable is the table name for the Like entity.
-	// It exists in this package in order to avoid circular dependency with the "like" package.
-	LikedByInverseTable = "likes"
-	// LikedByColumn is the table column denoting the liked_by relation/edge.
-	LikedByColumn = "tweet_liked_by"
+	// LikedByTable is the table that holds the liked_by relation/edge. The primary key declared below.
+	LikedByTable = "user_likes"
+	// LikedByInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	LikedByInverseTable = "users"
 )
 
 // Columns holds all SQL columns for tweet fields.
@@ -63,8 +61,14 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"tweet_parent",
-	"user_tweets",
+	"user_posts",
 }
+
+var (
+	// LikedByPrimaryKey and LikedByColumn2 are the table columns denoting the
+	// primary key for the liked_by relation (M2M).
+	LikedByPrimaryKey = []string{"user_id", "tweet_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -113,17 +117,17 @@ func ByPostedByField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByChildCount orders the results by child count.
-func ByChildCount(opts ...sql.OrderTermOption) OrderOption {
+// ByChildrenCount orders the results by children count.
+func ByChildrenCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newChildStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newChildrenStep(), opts...)
 	}
 }
 
-// ByChild orders the results by child terms.
-func ByChild(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByChildren orders the results by children terms.
+func ByChildren(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newChildStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newChildrenStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -154,11 +158,11 @@ func newPostedByStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, PostedByTable, PostedByColumn),
 	)
 }
-func newChildStep() *sqlgraph.Step {
+func newChildrenStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, ChildTable, ChildColumn),
+		sqlgraph.Edge(sqlgraph.O2M, true, ChildrenTable, ChildrenColumn),
 	)
 }
 func newParentStep() *sqlgraph.Step {
@@ -172,6 +176,6 @@ func newLikedByStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LikedByInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, LikedByTable, LikedByColumn),
+		sqlgraph.Edge(sqlgraph.M2M, true, LikedByTable, LikedByPrimaryKey...),
 	)
 }

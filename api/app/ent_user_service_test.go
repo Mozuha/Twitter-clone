@@ -219,3 +219,10 @@ func (s *EntUserServiceTestSuite) TestDeleteUserByID() {
 		s.Equal(true, ent.IsNotFound(err))
 	})
 }
+
+// TODO: user posts tweet? <- create tweet func is tested in tweet service test
+// TODO: fetch user's tweets? <- get all tweets regardless of user func is tested  in tweet service test
+// TODO: user likes tweet
+// TODO: fetch user's likes
+// TODO: user follows user
+// TODO: fetch user's followings/followers
