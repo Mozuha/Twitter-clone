@@ -1,7 +1,7 @@
 # schema tells gqlgen where the GraphQL schema is located.
 schema:
-  - ent/ent.graphql
-  - ent/user.graphql
+  - gql/schema/ent.graphql
+  - gql/schema/mutation.graphql
 
 # exec reports where the generated server code go.
 exec:
@@ -24,7 +24,6 @@ autobind:
   - app/ent
   - app/ent/user
   - app/ent/tweet
-  - app/ent/like
 
 # This section declares type mapping between the GraphQL and Go type systems.
 models:

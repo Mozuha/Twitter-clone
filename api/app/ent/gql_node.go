@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
@@ -24,11 +23,6 @@ import (
 type Noder interface {
 	IsNode()
 }
-
-var likeImplementors = []string{"Like", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Like) IsNode() {}
 
 var tweetImplementors = []string{"Tweet", "Node"}
 
@@ -98,18 +92,6 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
-	case like.Table:
-		query := c.Like.Query().
-			Where(like.ID(id))
-		query, err := query.CollectFields(ctx, likeImplementors...)
-		if err != nil {
-			return nil, err
-		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
 	case tweet.Table:
 		query := c.Tweet.Query().
 			Where(tweet.ID(id))
@@ -207,22 +189,6 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
-	case like.Table:
-		query := c.Like.Query().
-			Where(like.IDIn(ids...))
-		query, err := query.CollectFields(ctx, likeImplementors...)
-		if err != nil {
-			return nil, err
-		}
-		nodes, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
-				*noder = node
-			}
-		}
 	case tweet.Table:
 		query := c.Tweet.Query().
 			Where(tweet.IDIn(ids...))

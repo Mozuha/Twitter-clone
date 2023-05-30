@@ -564,21 +564,21 @@ func HasFollowingWith(preds ...predicate.User) predicate.User {
 	})
 }
 
-// HasPuts applies the HasEdge predicate on the "puts" edge.
-func HasPuts() predicate.User {
+// HasLikes applies the HasEdge predicate on the "likes" edge.
+func HasLikes() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PutsTable, PutsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, LikesTable, LikesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPutsWith applies the HasEdge predicate on the "puts" edge with a given conditions (other predicates).
-func HasPutsWith(preds ...predicate.Like) predicate.User {
+// HasLikesWith applies the HasEdge predicate on the "likes" edge with a given conditions (other predicates).
+func HasLikesWith(preds ...predicate.Tweet) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newPutsStep()
+		step := newLikesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

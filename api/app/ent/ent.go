@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
@@ -75,7 +74,6 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			like.Table:  like.ValidColumn,
 			tweet.Table: tweet.ValidColumn,
 			user.Table:  user.ValidColumn,
 		})

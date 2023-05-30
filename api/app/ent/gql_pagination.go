@@ -3,11 +3,13 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
 	"errors"
+	"fmt"
+	"io"
+	"strconv"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -95,252 +97,6 @@ func paginateLimit(first, last *int) int {
 		limit = *last + 1
 	}
 	return limit
-}
-
-// LikeEdge is the edge representation of Like.
-type LikeEdge struct {
-	Node   *Like  `json:"node"`
-	Cursor Cursor `json:"cursor"`
-}
-
-// LikeConnection is the connection containing edges to Like.
-type LikeConnection struct {
-	Edges      []*LikeEdge `json:"edges"`
-	PageInfo   PageInfo    `json:"pageInfo"`
-	TotalCount int         `json:"totalCount"`
-}
-
-func (c *LikeConnection) build(nodes []*Like, pager *likePager, after *Cursor, first *int, before *Cursor, last *int) {
-	c.PageInfo.HasNextPage = before != nil
-	c.PageInfo.HasPreviousPage = after != nil
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *Like
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *Like {
-			return nodes[n-i]
-		}
-	} else {
-		nodeAt = func(i int) *Like {
-			return nodes[i]
-		}
-	}
-	c.Edges = make([]*LikeEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &LikeEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	if l := len(c.Edges); l > 0 {
-		c.PageInfo.StartCursor = &c.Edges[0].Cursor
-		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
-	}
-	if c.TotalCount == 0 {
-		c.TotalCount = len(nodes)
-	}
-}
-
-// LikePaginateOption enables pagination customization.
-type LikePaginateOption func(*likePager) error
-
-// WithLikeOrder configures pagination ordering.
-func WithLikeOrder(order *LikeOrder) LikePaginateOption {
-	if order == nil {
-		order = DefaultLikeOrder
-	}
-	o := *order
-	return func(pager *likePager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
-		}
-		if o.Field == nil {
-			o.Field = DefaultLikeOrder.Field
-		}
-		pager.order = &o
-		return nil
-	}
-}
-
-// WithLikeFilter configures pagination filter.
-func WithLikeFilter(filter func(*LikeQuery) (*LikeQuery, error)) LikePaginateOption {
-	return func(pager *likePager) error {
-		if filter == nil {
-			return errors.New("LikeQuery filter cannot be nil")
-		}
-		pager.filter = filter
-		return nil
-	}
-}
-
-type likePager struct {
-	reverse bool
-	order   *LikeOrder
-	filter  func(*LikeQuery) (*LikeQuery, error)
-}
-
-func newLikePager(opts []LikePaginateOption, reverse bool) (*likePager, error) {
-	pager := &likePager{reverse: reverse}
-	for _, opt := range opts {
-		if err := opt(pager); err != nil {
-			return nil, err
-		}
-	}
-	if pager.order == nil {
-		pager.order = DefaultLikeOrder
-	}
-	return pager, nil
-}
-
-func (p *likePager) applyFilter(query *LikeQuery) (*LikeQuery, error) {
-	if p.filter != nil {
-		return p.filter(query)
-	}
-	return query, nil
-}
-
-func (p *likePager) toCursor(l *Like) Cursor {
-	return p.order.Field.toCursor(l)
-}
-
-func (p *likePager) applyCursors(query *LikeQuery, after, before *Cursor) (*LikeQuery, error) {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
-	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultLikeOrder.Field.column, p.order.Field.column, direction) {
-		query = query.Where(predicate)
-	}
-	return query, nil
-}
-
-func (p *likePager) applyOrder(query *LikeQuery) *LikeQuery {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
-	if p.order.Field != DefaultLikeOrder.Field {
-		query = query.Order(DefaultLikeOrder.Field.toTerm(direction.OrderTermOption()))
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
-	}
-	return query
-}
-
-func (p *likePager) orderExpr(query *LikeQuery) sql.Querier {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
-	}
-	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultLikeOrder.Field {
-			b.Comma().Ident(DefaultLikeOrder.Field.column).Pad().WriteString(string(direction))
-		}
-	})
-}
-
-// Paginate executes the query and returns a relay based cursor connection to Like.
-func (l *LikeQuery) Paginate(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...LikePaginateOption,
-) (*LikeConnection, error) {
-	if err := validateFirstLast(first, last); err != nil {
-		return nil, err
-	}
-	pager, err := newLikePager(opts, last != nil)
-	if err != nil {
-		return nil, err
-	}
-	if l, err = pager.applyFilter(l); err != nil {
-		return nil, err
-	}
-	conn := &LikeConnection{Edges: []*LikeEdge{}}
-	ignoredEdges := !hasCollectedField(ctx, edgesField)
-	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-		hasPagination := after != nil || first != nil || before != nil || last != nil
-		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = l.Clone().Count(ctx); err != nil {
-				return nil, err
-			}
-			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
-			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
-		}
-	}
-	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
-		return conn, nil
-	}
-	if l, err = pager.applyCursors(l, after, before); err != nil {
-		return nil, err
-	}
-	if limit := paginateLimit(first, last); limit != 0 {
-		l.Limit(limit)
-	}
-	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := l.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
-			return nil, err
-		}
-	}
-	l = pager.applyOrder(l)
-	nodes, err := l.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	conn.build(nodes, pager, after, first, before, last)
-	return conn, nil
-}
-
-// LikeOrderField defines the ordering field of Like.
-type LikeOrderField struct {
-	// Value extracts the ordering value from the given Like.
-	Value    func(*Like) (ent.Value, error)
-	column   string // field or computed.
-	toTerm   func(...sql.OrderTermOption) like.OrderOption
-	toCursor func(*Like) Cursor
-}
-
-// LikeOrder defines the ordering of Like.
-type LikeOrder struct {
-	Direction OrderDirection  `json:"direction"`
-	Field     *LikeOrderField `json:"field"`
-}
-
-// DefaultLikeOrder is the default ordering of Like.
-var DefaultLikeOrder = &LikeOrder{
-	Direction: entgql.OrderDirectionAsc,
-	Field: &LikeOrderField{
-		Value: func(l *Like) (ent.Value, error) {
-			return l.ID, nil
-		},
-		column: like.FieldID,
-		toTerm: like.ByID,
-		toCursor: func(l *Like) Cursor {
-			return Cursor{ID: l.ID}
-		},
-	},
-}
-
-// ToEdge converts Like into LikeEdge.
-func (l *Like) ToEdge(order *LikeOrder) *LikeEdge {
-	if order == nil {
-		order = DefaultLikeOrder
-	}
-	return &LikeEdge{
-		Node:   l,
-		Cursor: order.Field.toCursor(l),
-	}
 }
 
 // TweetEdge is the edge representation of Tweet.
@@ -546,6 +302,53 @@ func (t *TweetQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// TweetOrderFieldCreatedAt orders Tweet by created_at.
+	TweetOrderFieldCreatedAt = &TweetOrderField{
+		Value: func(t *Tweet) (ent.Value, error) {
+			return t.CreatedAt, nil
+		},
+		column: tweet.FieldCreatedAt,
+		toTerm: tweet.ByCreatedAt,
+		toCursor: func(t *Tweet) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.CreatedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f TweetOrderField) String() string {
+	var str string
+	switch f.column {
+	case TweetOrderFieldCreatedAt.column:
+		str = "CREATED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f TweetOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *TweetOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("TweetOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *TweetOrderFieldCreatedAt
+	default:
+		return fmt.Errorf("%s is not a valid TweetOrderField", str)
+	}
+	return nil
 }
 
 // TweetOrderField defines the ordering field of Tweet.
@@ -792,6 +595,107 @@ func (u *UserQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// UserOrderFieldName orders User by name.
+	UserOrderFieldName = &UserOrderField{
+		Value: func(u *User) (ent.Value, error) {
+			return u.Name, nil
+		},
+		column: user.FieldName,
+		toTerm: user.ByName,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.Name,
+			}
+		},
+	}
+	// UserOrderFieldScreenName orders User by screen_name.
+	UserOrderFieldScreenName = &UserOrderField{
+		Value: func(u *User) (ent.Value, error) {
+			return u.ScreenName, nil
+		},
+		column: user.FieldScreenName,
+		toTerm: user.ByScreenName,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.ScreenName,
+			}
+		},
+	}
+	// UserOrderFieldCreatedAt orders User by created_at.
+	UserOrderFieldCreatedAt = &UserOrderField{
+		Value: func(u *User) (ent.Value, error) {
+			return u.CreatedAt, nil
+		},
+		column: user.FieldCreatedAt,
+		toTerm: user.ByCreatedAt,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.CreatedAt,
+			}
+		},
+	}
+	// UserOrderFieldUpdatedAt orders User by updated_at.
+	UserOrderFieldUpdatedAt = &UserOrderField{
+		Value: func(u *User) (ent.Value, error) {
+			return u.UpdatedAt, nil
+		},
+		column: user.FieldUpdatedAt,
+		toTerm: user.ByUpdatedAt,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.UpdatedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f UserOrderField) String() string {
+	var str string
+	switch f.column {
+	case UserOrderFieldName.column:
+		str = "NAME"
+	case UserOrderFieldScreenName.column:
+		str = "SCREEN_NAME"
+	case UserOrderFieldCreatedAt.column:
+		str = "CREATED_AT"
+	case UserOrderFieldUpdatedAt.column:
+		str = "UPDATED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f UserOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *UserOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("UserOrderField %T must be a string", v)
+	}
+	switch str {
+	case "NAME":
+		*f = *UserOrderFieldName
+	case "SCREEN_NAME":
+		*f = *UserOrderFieldScreenName
+	case "CREATED_AT":
+		*f = *UserOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *UserOrderFieldUpdatedAt
+	default:
+		return fmt.Errorf("%s is not a valid UserOrderField", str)
+	}
+	return nil
 }
 
 // UserOrderField defines the ordering field of User.

@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -18,18 +19,41 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("name").
+			SchemaType(map[string]string{
+				dialect.Postgres: "varchar(50)",
+			}).
+			NotEmpty().
+			Annotations(entgql.OrderField("NAME")),
+		field.String("screen_name").
+			SchemaType(map[string]string{
+				dialect.Postgres: "varchar(15)",
+			}).
+			NotEmpty().
+			Annotations(entgql.OrderField("SCREEN_NAME")),
+		field.String("email").
+			NotEmpty().
+			Unique(),
+		field.String("password").
+			NotEmpty().
+			Sensitive(),
+		field.String("profile_image").
+			Default("images/default.jpg"),
+		field.Time("created_at").
+			Default(time.Now).
+			Immutable().
+			Annotations(entgql.OrderField("CREATED_AT")),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now).
+			Annotations(entgql.OrderField("UPDATED_AT")),
+
+		// potential fields referring to https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/user
 		// field.String("id_str"),
-		field.String("name").NotEmpty(),
-		field.String("screen_name").NotEmpty(),
-		field.String("email").NotEmpty().Unique(),
-		field.String("password").NotEmpty(),
-		field.String("profile_image"),
 		// field.Int("followers_count"),
 		// field.Int("followings_count"),
 		// field.Int("likes_count"),
 		// field.Int("num_tweets_count"),
-		field.Time("created_at").Default(time.Now),
-		field.Time("updated_at").Default(time.Now),
 	}
 }
 
@@ -38,13 +62,13 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("posts", Tweet.Type),
 		edge.To("following", User.Type).From("followers"),
-		edge.To("puts", Like.Type),
+		edge.To("likes", Tweet.Type),
 	}
 }
 
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.QueryField(),
-		entgql.Mutations(entgql.MutationCreate()),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

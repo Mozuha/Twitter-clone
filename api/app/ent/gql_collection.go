@@ -3,103 +3,14 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
-
-// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (l *LikeQuery) CollectFields(ctx context.Context, satisfies ...string) (*LikeQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
-		return l, nil
-	}
-	if err := l.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
-		return nil, err
-	}
-	return l, nil
-}
-
-func (l *LikeQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
-	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(like.Columns))
-		selectedFields = []string{like.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
-		switch field.Name {
-		case "putBy":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&UserClient{config: l.config}).Query()
-			)
-			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
-				return err
-			}
-			l.withPutBy = query
-		case "belongTo":
-			var (
-				alias = field.Alias
-				path  = append(path, alias)
-				query = (&TweetClient{config: l.config}).Query()
-			)
-			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, tweetImplementors)...); err != nil {
-				return err
-			}
-			l.withBelongTo = query
-		case "userID":
-			if _, ok := fieldSeen[like.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, like.FieldUserID)
-				fieldSeen[like.FieldUserID] = struct{}{}
-			}
-		case "tweetID":
-			if _, ok := fieldSeen[like.FieldTweetID]; !ok {
-				selectedFields = append(selectedFields, like.FieldTweetID)
-				fieldSeen[like.FieldTweetID] = struct{}{}
-			}
-		case "id":
-		case "__typename":
-		default:
-			unknownSeen = true
-		}
-	}
-	if !unknownSeen {
-		l.Select(selectedFields...)
-	}
-	return nil
-}
-
-type likePaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
-	opts          []LikePaginateOption
-}
-
-func newLikePaginateArgs(rv map[string]any) *likePaginateArgs {
-	args := &likePaginateArgs{}
-	if rv == nil {
-		return args
-	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
-	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
-	}
-	return args
-}
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TweetQuery) CollectFields(ctx context.Context, satisfies ...string) (*TweetQuery, error) {
@@ -132,7 +43,7 @@ func (t *TweetQuery) collectField(ctx context.Context, opCtx *graphql.OperationC
 				return err
 			}
 			t.withPostedBy = query
-		case "child":
+		case "children":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -141,7 +52,7 @@ func (t *TweetQuery) collectField(ctx context.Context, opCtx *graphql.OperationC
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, tweetImplementors)...); err != nil {
 				return err
 			}
-			t.WithNamedChild(alias, func(wq *TweetQuery) {
+			t.WithNamedChildren(alias, func(wq *TweetQuery) {
 				*wq = *query
 			})
 		case "parent":
@@ -153,35 +64,23 @@ func (t *TweetQuery) collectField(ctx context.Context, opCtx *graphql.OperationC
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, tweetImplementors)...); err != nil {
 				return err
 			}
-			t.WithNamedParent(alias, func(wq *TweetQuery) {
-				*wq = *query
-			})
-		case "has":
+			t.withParent = query
+		case "likedBy":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&LikeClient{config: t.config}).Query()
+				query = (&UserClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, likeImplementors)...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
 				return err
 			}
-			t.WithNamedHas(alias, func(wq *LikeQuery) {
+			t.WithNamedLikedBy(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
 		case "text":
 			if _, ok := fieldSeen[tweet.FieldText]; !ok {
 				selectedFields = append(selectedFields, tweet.FieldText)
 				fieldSeen[tweet.FieldText] = struct{}{}
-			}
-		case "parentID":
-			if _, ok := fieldSeen[tweet.FieldParentID]; !ok {
-				selectedFields = append(selectedFields, tweet.FieldParentID)
-				fieldSeen[tweet.FieldParentID] = struct{}{}
-			}
-		case "userID":
-			if _, ok := fieldSeen[tweet.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, tweet.FieldUserID)
-				fieldSeen[tweet.FieldUserID] = struct{}{}
 			}
 		case "createdAt":
 			if _, ok := fieldSeen[tweet.FieldCreatedAt]; !ok {
@@ -222,6 +121,28 @@ func newTweetPaginateArgs(rv map[string]any) *tweetPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &TweetOrder{Field: &TweetOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithTweetOrder(order))
+			}
+		case *TweetOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithTweetOrder(v))
+			}
+		}
 	}
 	return args
 }
@@ -283,16 +204,16 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			u.WithNamedFollowing(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
-		case "puts":
+		case "likes":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&LikeClient{config: u.config}).Query()
+				query = (&TweetClient{config: u.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, likeImplementors)...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, tweetImplementors)...); err != nil {
 				return err
 			}
-			u.WithNamedPuts(alias, func(wq *LikeQuery) {
+			u.WithNamedLikes(alias, func(wq *TweetQuery) {
 				*wq = *query
 			})
 		case "name":
@@ -309,11 +230,6 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if _, ok := fieldSeen[user.FieldEmail]; !ok {
 				selectedFields = append(selectedFields, user.FieldEmail)
 				fieldSeen[user.FieldEmail] = struct{}{}
-			}
-		case "password":
-			if _, ok := fieldSeen[user.FieldPassword]; !ok {
-				selectedFields = append(selectedFields, user.FieldPassword)
-				fieldSeen[user.FieldPassword] = struct{}{}
 			}
 		case "profileImage":
 			if _, ok := fieldSeen[user.FieldProfileImage]; !ok {
@@ -364,6 +280,28 @@ func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &UserOrder{Field: &UserOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithUserOrder(order))
+			}
+		case *UserOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithUserOrder(v))
+			}
+		}
 	}
 	return args
 }

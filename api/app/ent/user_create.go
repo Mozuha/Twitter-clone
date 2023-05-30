@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
@@ -49,6 +48,14 @@ func (uc *UserCreate) SetPassword(s string) *UserCreate {
 // SetProfileImage sets the "profile_image" field.
 func (uc *UserCreate) SetProfileImage(s string) *UserCreate {
 	uc.mutation.SetProfileImage(s)
+	return uc
+}
+
+// SetNillableProfileImage sets the "profile_image" field if the given value is not nil.
+func (uc *UserCreate) SetNillableProfileImage(s *string) *UserCreate {
+	if s != nil {
+		uc.SetProfileImage(*s)
+	}
 	return uc
 }
 
@@ -125,19 +132,19 @@ func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
 	return uc.AddFollowingIDs(ids...)
 }
 
-// AddPutIDs adds the "puts" edge to the Like entity by IDs.
-func (uc *UserCreate) AddPutIDs(ids ...int) *UserCreate {
-	uc.mutation.AddPutIDs(ids...)
+// AddLikeIDs adds the "likes" edge to the Tweet entity by IDs.
+func (uc *UserCreate) AddLikeIDs(ids ...int) *UserCreate {
+	uc.mutation.AddLikeIDs(ids...)
 	return uc
 }
 
-// AddPuts adds the "puts" edges to the Like entity.
-func (uc *UserCreate) AddPuts(l ...*Like) *UserCreate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddLikes adds the "likes" edges to the Tweet entity.
+func (uc *UserCreate) AddLikes(t ...*Tweet) *UserCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return uc.AddPutIDs(ids...)
+	return uc.AddLikeIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -175,6 +182,10 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.ProfileImage(); !ok {
+		v := user.DefaultProfileImage
+		uc.mutation.SetProfileImage(v)
+	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := user.DefaultCreatedAt()
 		uc.mutation.SetCreatedAt(v)
@@ -330,15 +341,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.PutsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.LikesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.PutsTable,
-			Columns: []string{user.PutsColumn},
+			Table:   user.LikesTable,
+			Columns: user.LikesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

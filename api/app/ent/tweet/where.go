@@ -60,16 +60,6 @@ func Text(v string) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldText, v))
 }
 
-// ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
-func ParentID(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldEQ(FieldParentID, v))
-}
-
-// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldEQ(FieldUserID, v))
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldCreatedAt, v))
@@ -140,96 +130,6 @@ func TextContainsFold(v string) predicate.Tweet {
 	return predicate.Tweet(sql.FieldContainsFold(FieldText, v))
 }
 
-// ParentIDEQ applies the EQ predicate on the "parent_id" field.
-func ParentIDEQ(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldEQ(FieldParentID, v))
-}
-
-// ParentIDNEQ applies the NEQ predicate on the "parent_id" field.
-func ParentIDNEQ(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldNEQ(FieldParentID, v))
-}
-
-// ParentIDIn applies the In predicate on the "parent_id" field.
-func ParentIDIn(vs ...int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldIn(FieldParentID, vs...))
-}
-
-// ParentIDNotIn applies the NotIn predicate on the "parent_id" field.
-func ParentIDNotIn(vs ...int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldNotIn(FieldParentID, vs...))
-}
-
-// ParentIDGT applies the GT predicate on the "parent_id" field.
-func ParentIDGT(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldGT(FieldParentID, v))
-}
-
-// ParentIDGTE applies the GTE predicate on the "parent_id" field.
-func ParentIDGTE(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldGTE(FieldParentID, v))
-}
-
-// ParentIDLT applies the LT predicate on the "parent_id" field.
-func ParentIDLT(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldLT(FieldParentID, v))
-}
-
-// ParentIDLTE applies the LTE predicate on the "parent_id" field.
-func ParentIDLTE(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldLTE(FieldParentID, v))
-}
-
-// ParentIDIsNil applies the IsNil predicate on the "parent_id" field.
-func ParentIDIsNil() predicate.Tweet {
-	return predicate.Tweet(sql.FieldIsNull(FieldParentID))
-}
-
-// ParentIDNotNil applies the NotNil predicate on the "parent_id" field.
-func ParentIDNotNil() predicate.Tweet {
-	return predicate.Tweet(sql.FieldNotNull(FieldParentID))
-}
-
-// UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldEQ(FieldUserID, v))
-}
-
-// UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldNEQ(FieldUserID, v))
-}
-
-// UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldIn(FieldUserID, vs...))
-}
-
-// UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldNotIn(FieldUserID, vs...))
-}
-
-// UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldGT(FieldUserID, v))
-}
-
-// UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldGTE(FieldUserID, v))
-}
-
-// UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldLT(FieldUserID, v))
-}
-
-// UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v int) predicate.Tweet {
-	return predicate.Tweet(sql.FieldLTE(FieldUserID, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Tweet {
 	return predicate.Tweet(sql.FieldEQ(FieldCreatedAt, v))
@@ -293,21 +193,21 @@ func HasPostedByWith(preds ...predicate.User) predicate.Tweet {
 	})
 }
 
-// HasChild applies the HasEdge predicate on the "child" edge.
-func HasChild() predicate.Tweet {
+// HasChildren applies the HasEdge predicate on the "children" edge.
+func HasChildren() predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ChildTable, ChildPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, true, ChildrenTable, ChildrenColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasChildWith applies the HasEdge predicate on the "child" edge with a given conditions (other predicates).
-func HasChildWith(preds ...predicate.Tweet) predicate.Tweet {
+// HasChildrenWith applies the HasEdge predicate on the "children" edge with a given conditions (other predicates).
+func HasChildrenWith(preds ...predicate.Tweet) predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
-		step := newChildStep()
+		step := newChildrenStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -321,7 +221,7 @@ func HasParent() predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, ParentTable, ParentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, false, ParentTable, ParentColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -339,21 +239,21 @@ func HasParentWith(preds ...predicate.Tweet) predicate.Tweet {
 	})
 }
 
-// HasHas applies the HasEdge predicate on the "has" edge.
-func HasHas() predicate.Tweet {
+// HasLikedBy applies the HasEdge predicate on the "liked_by" edge.
+func HasLikedBy() predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, HasTable, HasColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, LikedByTable, LikedByPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasHasWith applies the HasEdge predicate on the "has" edge with a given conditions (other predicates).
-func HasHasWith(preds ...predicate.Like) predicate.Tweet {
+// HasLikedByWith applies the HasEdge predicate on the "liked_by" edge with a given conditions (other predicates).
+func HasLikedByWith(preds ...predicate.User) predicate.Tweet {
 	return predicate.Tweet(func(s *sql.Selector) {
-		step := newHasStep()
+		step := newLikedByStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

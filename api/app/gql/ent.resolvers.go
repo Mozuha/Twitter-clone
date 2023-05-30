@@ -8,7 +8,6 @@ import (
 	"app/ent"
 	"app/gql/generated"
 	"context"
-	"fmt"
 )
 
 // Node is the resolver for the node field.
@@ -21,14 +20,9 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 	return r.client.Noders(ctx, ids)
 }
 
-// Likes is the resolver for the likes field.
-func (r *queryResolver) Likes(ctx context.Context) ([]*ent.Like, error) {
-	panic(fmt.Errorf("not implemented: Likes - likes"))
-}
-
 // Tweets is the resolver for the tweets field.
 func (r *queryResolver) Tweets(ctx context.Context) ([]*ent.Tweet, error) {
-	panic(fmt.Errorf("not implemented: Tweets - tweets"))
+	return r.client.Tweet.Query().All(ctx)
 }
 
 // Users is the resolver for the users field.

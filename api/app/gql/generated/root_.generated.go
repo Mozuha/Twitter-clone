@@ -38,16 +38,12 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Like struct {
-		BelongTo func(childComplexity int) int
-		ID       func(childComplexity int) int
-		PutBy    func(childComplexity int) int
-		TweetID  func(childComplexity int) int
-		UserID   func(childComplexity int) int
-	}
-
 	Mutation struct {
-		CreateUser func(childComplexity int, input ent.CreateUserInput) int
+		CreateTweet func(childComplexity int, input ent.CreateTweetInput) int
+		CreateUser  func(childComplexity int, input ent.CreateUserInput) int
+		DeleteTweet func(childComplexity int, id int) int
+		DeleteUser  func(childComplexity int, id int) int
+		UpdateUser  func(childComplexity int, id int, input ent.UpdateUserInput) int
 	}
 
 	PageInfo struct {
@@ -58,7 +54,6 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Likes  func(childComplexity int) int
 		Node   func(childComplexity int, id int) int
 		Nodes  func(childComplexity int, ids []int) int
 		Tweets func(childComplexity int) int
@@ -66,15 +61,13 @@ type ComplexityRoot struct {
 	}
 
 	Tweet struct {
-		Child     func(childComplexity int) int
+		Children  func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
-		Has       func(childComplexity int) int
 		ID        func(childComplexity int) int
+		LikedBy   func(childComplexity int) int
 		Parent    func(childComplexity int) int
-		ParentID  func(childComplexity int) int
 		PostedBy  func(childComplexity int) int
 		Text      func(childComplexity int) int
-		UserID    func(childComplexity int) int
 	}
 
 	User struct {
@@ -83,11 +76,10 @@ type ComplexityRoot struct {
 		Followers    func(childComplexity int) int
 		Following    func(childComplexity int) int
 		ID           func(childComplexity int) int
+		Likes        func(childComplexity int) int
 		Name         func(childComplexity int) int
-		Password     func(childComplexity int) int
 		Posts        func(childComplexity int) int
 		ProfileImage func(childComplexity int) int
-		Puts         func(childComplexity int) int
 		ScreenName   func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 	}
@@ -108,40 +100,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Like.belongTo":
-		if e.complexity.Like.BelongTo == nil {
+	case "Mutation.createTweet":
+		if e.complexity.Mutation.CreateTweet == nil {
 			break
 		}
 
-		return e.complexity.Like.BelongTo(childComplexity), true
-
-	case "Like.id":
-		if e.complexity.Like.ID == nil {
-			break
+		args, err := ec.field_Mutation_createTweet_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
 		}
 
-		return e.complexity.Like.ID(childComplexity), true
-
-	case "Like.putBy":
-		if e.complexity.Like.PutBy == nil {
-			break
-		}
-
-		return e.complexity.Like.PutBy(childComplexity), true
-
-	case "Like.tweetID":
-		if e.complexity.Like.TweetID == nil {
-			break
-		}
-
-		return e.complexity.Like.TweetID(childComplexity), true
-
-	case "Like.userID":
-		if e.complexity.Like.UserID == nil {
-			break
-		}
-
-		return e.complexity.Like.UserID(childComplexity), true
+		return e.complexity.Mutation.CreateTweet(childComplexity, args["input"].(ent.CreateTweetInput)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -154,6 +123,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(ent.CreateUserInput)), true
+
+	case "Mutation.deleteTweet":
+		if e.complexity.Mutation.DeleteTweet == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTweet_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTweet(childComplexity, args["id"].(int)), true
+
+	case "Mutation.deleteUser":
+		if e.complexity.Mutation.DeleteUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(int)), true
+
+	case "Mutation.updateUser":
+		if e.complexity.Mutation.UpdateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(int), args["input"].(ent.UpdateUserInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -182,13 +187,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
-
-	case "Query.likes":
-		if e.complexity.Query.Likes == nil {
-			break
-		}
-
-		return e.complexity.Query.Likes(childComplexity), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -228,12 +226,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Users(childComplexity), true
 
-	case "Tweet.child":
-		if e.complexity.Tweet.Child == nil {
+	case "Tweet.children":
+		if e.complexity.Tweet.Children == nil {
 			break
 		}
 
-		return e.complexity.Tweet.Child(childComplexity), true
+		return e.complexity.Tweet.Children(childComplexity), true
 
 	case "Tweet.createdAt":
 		if e.complexity.Tweet.CreatedAt == nil {
@@ -242,13 +240,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tweet.CreatedAt(childComplexity), true
 
-	case "Tweet.has":
-		if e.complexity.Tweet.Has == nil {
-			break
-		}
-
-		return e.complexity.Tweet.Has(childComplexity), true
-
 	case "Tweet.id":
 		if e.complexity.Tweet.ID == nil {
 			break
@@ -256,19 +247,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tweet.ID(childComplexity), true
 
+	case "Tweet.likedBy":
+		if e.complexity.Tweet.LikedBy == nil {
+			break
+		}
+
+		return e.complexity.Tweet.LikedBy(childComplexity), true
+
 	case "Tweet.parent":
 		if e.complexity.Tweet.Parent == nil {
 			break
 		}
 
 		return e.complexity.Tweet.Parent(childComplexity), true
-
-	case "Tweet.parentID":
-		if e.complexity.Tweet.ParentID == nil {
-			break
-		}
-
-		return e.complexity.Tweet.ParentID(childComplexity), true
 
 	case "Tweet.postedBy":
 		if e.complexity.Tweet.PostedBy == nil {
@@ -283,13 +274,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Tweet.Text(childComplexity), true
-
-	case "Tweet.userID":
-		if e.complexity.Tweet.UserID == nil {
-			break
-		}
-
-		return e.complexity.Tweet.UserID(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -326,19 +310,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.likes":
+		if e.complexity.User.Likes == nil {
+			break
+		}
+
+		return e.complexity.User.Likes(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
 		}
 
 		return e.complexity.User.Name(childComplexity), true
-
-	case "User.password":
-		if e.complexity.User.Password == nil {
-			break
-		}
-
-		return e.complexity.User.Password(childComplexity), true
 
 	case "User.posts":
 		if e.complexity.User.Posts == nil {
@@ -353,13 +337,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.ProfileImage(childComplexity), true
-
-	case "User.puts":
-		if e.complexity.User.Puts == nil {
-			break
-		}
-
-		return e.complexity.User.Puts(childComplexity), true
 
 	case "User.screenName":
 		if e.complexity.User.ScreenName == nil {
@@ -383,9 +360,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputCreateLikeInput,
 		ec.unmarshalInputCreateTweetInput,
 		ec.unmarshalInputCreateUserInput,
+		ec.unmarshalInputTweetOrder,
+		ec.unmarshalInputUpdateUserInput,
+		ec.unmarshalInputUserOrder,
 	)
 	first := true
 
@@ -446,31 +425,19 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../../ent/ent.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+	{Name: "../schema/ent.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
-"""
-CreateLikeInput is used for create Like object.
-Input was generated by ent.
-"""
-input CreateLikeInput {
-  userID: Int!
-  tweetID: Int!
-  putByID: ID!
-  belongToID: ID!
-}
 """
 CreateTweetInput is used for create Tweet object.
 Input was generated by ent.
 """
 input CreateTweetInput {
   text: String!
-  parentID: Int
-  userID: Int!
   createdAt: Time
   postedByID: ID!
   childIDs: [ID!]
-  parentIDs: [ID!]
-  haIDs: [ID!]
+  parentID: ID
+  likedByIDs: [ID!]
 }
 """
 CreateUserInput is used for create User object.
@@ -481,26 +448,19 @@ input CreateUserInput {
   screenName: String!
   email: String!
   password: String!
-  profileImage: String!
+  profileImage: String
   createdAt: Time
   updatedAt: Time
   postIDs: [ID!]
   followerIDs: [ID!]
   followingIDs: [ID!]
-  putIDs: [ID!]
+  likeIDs: [ID!]
 }
 """
 Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
-type Like implements Node {
-  id: ID!
-  userID: Int!
-  tweetID: Int!
-  putBy: User!
-  belongTo: Tweet!
-}
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
@@ -541,7 +501,6 @@ type Query {
     """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
-  likes: [Like!]!
   tweets: [Tweet!]!
   users: [User!]!
 }
@@ -550,31 +509,81 @@ scalar Time
 type Tweet implements Node {
   id: ID!
   text: String!
-  parentID: Int
-  userID: Int!
   createdAt: Time!
   postedBy: User!
-  child: [Tweet!]
-  parent: [Tweet!]
-  has: [Like!]
+  children: [Tweet!]
+  parent: Tweet
+  likedBy: [User!]
+}
+"""Ordering options for Tweet connections"""
+input TweetOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Tweets."""
+  field: TweetOrderField!
+}
+"""Properties by which Tweet connections can be ordered."""
+enum TweetOrderField {
+  CREATED_AT
+}
+"""
+UpdateUserInput is used for update User object.
+Input was generated by ent.
+"""
+input UpdateUserInput {
+  name: String
+  screenName: String
+  email: String
+  password: String
+  profileImage: String
+  updatedAt: Time
+  addPostIDs: [ID!]
+  removePostIDs: [ID!]
+  clearPosts: Boolean
+  addFollowerIDs: [ID!]
+  removeFollowerIDs: [ID!]
+  clearFollowers: Boolean
+  addFollowingIDs: [ID!]
+  removeFollowingIDs: [ID!]
+  clearFollowing: Boolean
+  addLikeIDs: [ID!]
+  removeLikeIDs: [ID!]
+  clearLikes: Boolean
 }
 type User implements Node {
   id: ID!
   name: String!
   screenName: String!
   email: String!
-  password: String!
   profileImage: String!
   createdAt: Time!
   updatedAt: Time!
   posts: [Tweet!]
   followers: [User!]
   following: [User!]
-  puts: [Like!]
+  likes: [Tweet!]
+}
+"""Ordering options for User connections"""
+input UserOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Users."""
+  field: UserOrderField!
+}
+"""Properties by which User connections can be ordered."""
+enum UserOrderField {
+  NAME
+  SCREEN_NAME
+  CREATED_AT
+  UPDATED_AT
 }
 `, BuiltIn: false},
-	{Name: "../../ent/user.graphql", Input: `type Mutation {
-  createUser(input: CreateUserInput!): User
+	{Name: "../schema/mutation.graphql", Input: `type Mutation {
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean # Ent delete operation does not return the deleted entity; Use Boolean to mimic the behaviour of returning nothing
+  createTweet(input: CreateTweetInput!): Tweet!
+  deleteTweet(id: ID!): Boolean
 }
 `, BuiltIn: false},
 }

@@ -6,47 +6,19 @@ import (
 	"time"
 )
 
-// CreateLikeInput represents a mutation input for creating likes.
-type CreateLikeInput struct {
-	UserID     int
-	TweetID    int
-	PutByID    int
-	BelongToID int
-}
-
-// Mutate applies the CreateLikeInput on the LikeMutation builder.
-func (i *CreateLikeInput) Mutate(m *LikeMutation) {
-	m.SetUserID(i.UserID)
-	m.SetTweetID(i.TweetID)
-	m.SetPutByID(i.PutByID)
-	m.SetBelongToID(i.BelongToID)
-}
-
-// SetInput applies the change-set in the CreateLikeInput on the LikeCreate builder.
-func (c *LikeCreate) SetInput(i CreateLikeInput) *LikeCreate {
-	i.Mutate(c.Mutation())
-	return c
-}
-
 // CreateTweetInput represents a mutation input for creating tweets.
 type CreateTweetInput struct {
 	Text       string
-	ParentID   *int
-	UserID     int
 	CreatedAt  *time.Time
 	PostedByID int
 	ChildIDs   []int
-	ParentIDs  []int
-	HaIDs      []int
+	ParentID   *int
+	LikedByIDs []int
 }
 
 // Mutate applies the CreateTweetInput on the TweetMutation builder.
 func (i *CreateTweetInput) Mutate(m *TweetMutation) {
 	m.SetText(i.Text)
-	if v := i.ParentID; v != nil {
-		m.SetParentID(*v)
-	}
-	m.SetUserID(i.UserID)
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
@@ -54,11 +26,11 @@ func (i *CreateTweetInput) Mutate(m *TweetMutation) {
 	if v := i.ChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)
 	}
-	if v := i.ParentIDs; len(v) > 0 {
-		m.AddParentIDs(v...)
+	if v := i.ParentID; v != nil {
+		m.SetParentID(*v)
 	}
-	if v := i.HaIDs; len(v) > 0 {
-		m.AddHaIDs(v...)
+	if v := i.LikedByIDs; len(v) > 0 {
+		m.AddLikedByIDs(v...)
 	}
 }
 
@@ -74,13 +46,13 @@ type CreateUserInput struct {
 	ScreenName   string
 	Email        string
 	Password     string
-	ProfileImage string
+	ProfileImage *string
 	CreatedAt    *time.Time
 	UpdatedAt    *time.Time
 	PostIDs      []int
 	FollowerIDs  []int
 	FollowingIDs []int
-	PutIDs       []int
+	LikeIDs      []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -89,7 +61,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	m.SetScreenName(i.ScreenName)
 	m.SetEmail(i.Email)
 	m.SetPassword(i.Password)
-	m.SetProfileImage(i.ProfileImage)
+	if v := i.ProfileImage; v != nil {
+		m.SetProfileImage(*v)
+	}
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
@@ -105,13 +79,105 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.FollowingIDs; len(v) > 0 {
 		m.AddFollowingIDs(v...)
 	}
-	if v := i.PutIDs; len(v) > 0 {
-		m.AddPutIDs(v...)
+	if v := i.LikeIDs; len(v) > 0 {
+		m.AddLikeIDs(v...)
 	}
 }
 
 // SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
 func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateUserInput represents a mutation input for updating users.
+type UpdateUserInput struct {
+	Name               *string
+	ScreenName         *string
+	Email              *string
+	Password           *string
+	ProfileImage       *string
+	UpdatedAt          *time.Time
+	ClearPosts         bool
+	AddPostIDs         []int
+	RemovePostIDs      []int
+	ClearFollowers     bool
+	AddFollowerIDs     []int
+	RemoveFollowerIDs  []int
+	ClearFollowing     bool
+	AddFollowingIDs    []int
+	RemoveFollowingIDs []int
+	ClearLikes         bool
+	AddLikeIDs         []int
+	RemoveLikeIDs      []int
+}
+
+// Mutate applies the UpdateUserInput on the UserMutation builder.
+func (i *UpdateUserInput) Mutate(m *UserMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.ScreenName; v != nil {
+		m.SetScreenName(*v)
+	}
+	if v := i.Email; v != nil {
+		m.SetEmail(*v)
+	}
+	if v := i.Password; v != nil {
+		m.SetPassword(*v)
+	}
+	if v := i.ProfileImage; v != nil {
+		m.SetProfileImage(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if i.ClearPosts {
+		m.ClearPosts()
+	}
+	if v := i.AddPostIDs; len(v) > 0 {
+		m.AddPostIDs(v...)
+	}
+	if v := i.RemovePostIDs; len(v) > 0 {
+		m.RemovePostIDs(v...)
+	}
+	if i.ClearFollowers {
+		m.ClearFollowers()
+	}
+	if v := i.AddFollowerIDs; len(v) > 0 {
+		m.AddFollowerIDs(v...)
+	}
+	if v := i.RemoveFollowerIDs; len(v) > 0 {
+		m.RemoveFollowerIDs(v...)
+	}
+	if i.ClearFollowing {
+		m.ClearFollowing()
+	}
+	if v := i.AddFollowingIDs; len(v) > 0 {
+		m.AddFollowingIDs(v...)
+	}
+	if v := i.RemoveFollowingIDs; len(v) > 0 {
+		m.RemoveFollowingIDs(v...)
+	}
+	if i.ClearLikes {
+		m.ClearLikes()
+	}
+	if v := i.AddLikeIDs; len(v) > 0 {
+		m.AddLikeIDs(v...)
+	}
+	if v := i.RemoveLikeIDs; len(v) > 0 {
+		m.RemoveLikeIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdate builder.
+func (c *UserUpdate) SetInput(i UpdateUserInput) *UserUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdateOne builder.
+func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

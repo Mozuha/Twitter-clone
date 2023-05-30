@@ -3,14 +3,12 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/predicate"
 	"app/ent/tweet"
 	"app/ent/user"
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -36,60 +34,6 @@ func (tu *TweetUpdate) SetText(s string) *TweetUpdate {
 	return tu
 }
 
-// SetParentID sets the "parent_id" field.
-func (tu *TweetUpdate) SetParentID(i int) *TweetUpdate {
-	tu.mutation.ResetParentID()
-	tu.mutation.SetParentID(i)
-	return tu
-}
-
-// SetNillableParentID sets the "parent_id" field if the given value is not nil.
-func (tu *TweetUpdate) SetNillableParentID(i *int) *TweetUpdate {
-	if i != nil {
-		tu.SetParentID(*i)
-	}
-	return tu
-}
-
-// AddParentID adds i to the "parent_id" field.
-func (tu *TweetUpdate) AddParentID(i int) *TweetUpdate {
-	tu.mutation.AddParentID(i)
-	return tu
-}
-
-// ClearParentID clears the value of the "parent_id" field.
-func (tu *TweetUpdate) ClearParentID() *TweetUpdate {
-	tu.mutation.ClearParentID()
-	return tu
-}
-
-// SetUserID sets the "user_id" field.
-func (tu *TweetUpdate) SetUserID(i int) *TweetUpdate {
-	tu.mutation.ResetUserID()
-	tu.mutation.SetUserID(i)
-	return tu
-}
-
-// AddUserID adds i to the "user_id" field.
-func (tu *TweetUpdate) AddUserID(i int) *TweetUpdate {
-	tu.mutation.AddUserID(i)
-	return tu
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (tu *TweetUpdate) SetCreatedAt(t time.Time) *TweetUpdate {
-	tu.mutation.SetCreatedAt(t)
-	return tu
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (tu *TweetUpdate) SetNillableCreatedAt(t *time.Time) *TweetUpdate {
-	if t != nil {
-		tu.SetCreatedAt(*t)
-	}
-	return tu
-}
-
 // SetPostedByID sets the "posted_by" edge to the User entity by ID.
 func (tu *TweetUpdate) SetPostedByID(id int) *TweetUpdate {
 	tu.mutation.SetPostedByID(id)
@@ -101,14 +45,14 @@ func (tu *TweetUpdate) SetPostedBy(u *User) *TweetUpdate {
 	return tu.SetPostedByID(u.ID)
 }
 
-// AddChildIDs adds the "child" edge to the Tweet entity by IDs.
+// AddChildIDs adds the "children" edge to the Tweet entity by IDs.
 func (tu *TweetUpdate) AddChildIDs(ids ...int) *TweetUpdate {
 	tu.mutation.AddChildIDs(ids...)
 	return tu
 }
 
-// AddChild adds the "child" edges to the Tweet entity.
-func (tu *TweetUpdate) AddChild(t ...*Tweet) *TweetUpdate {
+// AddChildren adds the "children" edges to the Tweet entity.
+func (tu *TweetUpdate) AddChildren(t ...*Tweet) *TweetUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -116,34 +60,38 @@ func (tu *TweetUpdate) AddChild(t ...*Tweet) *TweetUpdate {
 	return tu.AddChildIDs(ids...)
 }
 
-// AddParentIDs adds the "parent" edge to the Tweet entity by IDs.
-func (tu *TweetUpdate) AddParentIDs(ids ...int) *TweetUpdate {
-	tu.mutation.AddParentIDs(ids...)
+// SetParentID sets the "parent" edge to the Tweet entity by ID.
+func (tu *TweetUpdate) SetParentID(id int) *TweetUpdate {
+	tu.mutation.SetParentID(id)
 	return tu
 }
 
-// AddParent adds the "parent" edges to the Tweet entity.
-func (tu *TweetUpdate) AddParent(t ...*Tweet) *TweetUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableParentID sets the "parent" edge to the Tweet entity by ID if the given value is not nil.
+func (tu *TweetUpdate) SetNillableParentID(id *int) *TweetUpdate {
+	if id != nil {
+		tu = tu.SetParentID(*id)
 	}
-	return tu.AddParentIDs(ids...)
-}
-
-// AddHaIDs adds the "has" edge to the Like entity by IDs.
-func (tu *TweetUpdate) AddHaIDs(ids ...int) *TweetUpdate {
-	tu.mutation.AddHaIDs(ids...)
 	return tu
 }
 
-// AddHas adds the "has" edges to the Like entity.
-func (tu *TweetUpdate) AddHas(l ...*Like) *TweetUpdate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// SetParent sets the "parent" edge to the Tweet entity.
+func (tu *TweetUpdate) SetParent(t *Tweet) *TweetUpdate {
+	return tu.SetParentID(t.ID)
+}
+
+// AddLikedByIDs adds the "liked_by" edge to the User entity by IDs.
+func (tu *TweetUpdate) AddLikedByIDs(ids ...int) *TweetUpdate {
+	tu.mutation.AddLikedByIDs(ids...)
+	return tu
+}
+
+// AddLikedBy adds the "liked_by" edges to the User entity.
+func (tu *TweetUpdate) AddLikedBy(u ...*User) *TweetUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return tu.AddHaIDs(ids...)
+	return tu.AddLikedByIDs(ids...)
 }
 
 // Mutation returns the TweetMutation object of the builder.
@@ -157,20 +105,20 @@ func (tu *TweetUpdate) ClearPostedBy() *TweetUpdate {
 	return tu
 }
 
-// ClearChild clears all "child" edges to the Tweet entity.
-func (tu *TweetUpdate) ClearChild() *TweetUpdate {
-	tu.mutation.ClearChild()
+// ClearChildren clears all "children" edges to the Tweet entity.
+func (tu *TweetUpdate) ClearChildren() *TweetUpdate {
+	tu.mutation.ClearChildren()
 	return tu
 }
 
-// RemoveChildIDs removes the "child" edge to Tweet entities by IDs.
+// RemoveChildIDs removes the "children" edge to Tweet entities by IDs.
 func (tu *TweetUpdate) RemoveChildIDs(ids ...int) *TweetUpdate {
 	tu.mutation.RemoveChildIDs(ids...)
 	return tu
 }
 
-// RemoveChild removes "child" edges to Tweet entities.
-func (tu *TweetUpdate) RemoveChild(t ...*Tweet) *TweetUpdate {
+// RemoveChildren removes "children" edges to Tweet entities.
+func (tu *TweetUpdate) RemoveChildren(t ...*Tweet) *TweetUpdate {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -178,46 +126,31 @@ func (tu *TweetUpdate) RemoveChild(t ...*Tweet) *TweetUpdate {
 	return tu.RemoveChildIDs(ids...)
 }
 
-// ClearParent clears all "parent" edges to the Tweet entity.
+// ClearParent clears the "parent" edge to the Tweet entity.
 func (tu *TweetUpdate) ClearParent() *TweetUpdate {
 	tu.mutation.ClearParent()
 	return tu
 }
 
-// RemoveParentIDs removes the "parent" edge to Tweet entities by IDs.
-func (tu *TweetUpdate) RemoveParentIDs(ids ...int) *TweetUpdate {
-	tu.mutation.RemoveParentIDs(ids...)
+// ClearLikedBy clears all "liked_by" edges to the User entity.
+func (tu *TweetUpdate) ClearLikedBy() *TweetUpdate {
+	tu.mutation.ClearLikedBy()
 	return tu
 }
 
-// RemoveParent removes "parent" edges to Tweet entities.
-func (tu *TweetUpdate) RemoveParent(t ...*Tweet) *TweetUpdate {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveLikedByIDs removes the "liked_by" edge to User entities by IDs.
+func (tu *TweetUpdate) RemoveLikedByIDs(ids ...int) *TweetUpdate {
+	tu.mutation.RemoveLikedByIDs(ids...)
+	return tu
+}
+
+// RemoveLikedBy removes "liked_by" edges to User entities.
+func (tu *TweetUpdate) RemoveLikedBy(u ...*User) *TweetUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return tu.RemoveParentIDs(ids...)
-}
-
-// ClearHas clears all "has" edges to the Like entity.
-func (tu *TweetUpdate) ClearHas() *TweetUpdate {
-	tu.mutation.ClearHas()
-	return tu
-}
-
-// RemoveHaIDs removes the "has" edge to Like entities by IDs.
-func (tu *TweetUpdate) RemoveHaIDs(ids ...int) *TweetUpdate {
-	tu.mutation.RemoveHaIDs(ids...)
-	return tu
-}
-
-// RemoveHas removes "has" edges to Like entities.
-func (tu *TweetUpdate) RemoveHas(l ...*Like) *TweetUpdate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
-	}
-	return tu.RemoveHaIDs(ids...)
+	return tu.RemoveLikedByIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -275,24 +208,6 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.Text(); ok {
 		_spec.SetField(tweet.FieldText, field.TypeString, value)
 	}
-	if value, ok := tu.mutation.ParentID(); ok {
-		_spec.SetField(tweet.FieldParentID, field.TypeInt, value)
-	}
-	if value, ok := tu.mutation.AddedParentID(); ok {
-		_spec.AddField(tweet.FieldParentID, field.TypeInt, value)
-	}
-	if tu.mutation.ParentIDCleared() {
-		_spec.ClearField(tweet.FieldParentID, field.TypeInt)
-	}
-	if value, ok := tu.mutation.UserID(); ok {
-		_spec.SetField(tweet.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := tu.mutation.AddedUserID(); ok {
-		_spec.AddField(tweet.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := tu.mutation.CreatedAt(); ok {
-		_spec.SetField(tweet.FieldCreatedAt, field.TypeTime, value)
-	}
 	if tu.mutation.PostedByCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -322,12 +237,12 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tu.mutation.ChildCleared() {
+	if tu.mutation.ChildrenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: tweet.ChildPrimaryKey,
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -335,12 +250,12 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.RemovedChildIDs(); len(nodes) > 0 && !tu.mutation.ChildCleared() {
+	if nodes := tu.mutation.RemovedChildrenIDs(); len(nodes) > 0 && !tu.mutation.ChildrenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: tweet.ChildPrimaryKey,
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -351,12 +266,12 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.ChildIDs(); len(nodes) > 0 {
+	if nodes := tu.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: tweet.ChildPrimaryKey,
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -369,39 +284,23 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
 			Table:   tweet.ParentTable,
-			Columns: tweet.ParentPrimaryKey,
+			Columns: []string{tweet.ParentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tu.mutation.RemovedParentIDs(); len(nodes) > 0 && !tu.mutation.ParentCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   tweet.ParentTable,
-			Columns: tweet.ParentPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := tu.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
 			Table:   tweet.ParentTable,
-			Columns: tweet.ParentPrimaryKey,
+			Columns: []string{tweet.ParentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -412,28 +311,28 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tu.mutation.HasCleared() {
+	if tu.mutation.LikedByCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   tweet.HasTable,
-			Columns: []string{tweet.HasColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tweet.LikedByTable,
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.RemovedHasIDs(); len(nodes) > 0 && !tu.mutation.HasCleared() {
+	if nodes := tu.mutation.RemovedLikedByIDs(); len(nodes) > 0 && !tu.mutation.LikedByCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   tweet.HasTable,
-			Columns: []string{tweet.HasColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tweet.LikedByTable,
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -441,15 +340,15 @@ func (tu *TweetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.HasIDs(); len(nodes) > 0 {
+	if nodes := tu.mutation.LikedByIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   tweet.HasTable,
-			Columns: []string{tweet.HasColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tweet.LikedByTable,
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -483,60 +382,6 @@ func (tuo *TweetUpdateOne) SetText(s string) *TweetUpdateOne {
 	return tuo
 }
 
-// SetParentID sets the "parent_id" field.
-func (tuo *TweetUpdateOne) SetParentID(i int) *TweetUpdateOne {
-	tuo.mutation.ResetParentID()
-	tuo.mutation.SetParentID(i)
-	return tuo
-}
-
-// SetNillableParentID sets the "parent_id" field if the given value is not nil.
-func (tuo *TweetUpdateOne) SetNillableParentID(i *int) *TweetUpdateOne {
-	if i != nil {
-		tuo.SetParentID(*i)
-	}
-	return tuo
-}
-
-// AddParentID adds i to the "parent_id" field.
-func (tuo *TweetUpdateOne) AddParentID(i int) *TweetUpdateOne {
-	tuo.mutation.AddParentID(i)
-	return tuo
-}
-
-// ClearParentID clears the value of the "parent_id" field.
-func (tuo *TweetUpdateOne) ClearParentID() *TweetUpdateOne {
-	tuo.mutation.ClearParentID()
-	return tuo
-}
-
-// SetUserID sets the "user_id" field.
-func (tuo *TweetUpdateOne) SetUserID(i int) *TweetUpdateOne {
-	tuo.mutation.ResetUserID()
-	tuo.mutation.SetUserID(i)
-	return tuo
-}
-
-// AddUserID adds i to the "user_id" field.
-func (tuo *TweetUpdateOne) AddUserID(i int) *TweetUpdateOne {
-	tuo.mutation.AddUserID(i)
-	return tuo
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (tuo *TweetUpdateOne) SetCreatedAt(t time.Time) *TweetUpdateOne {
-	tuo.mutation.SetCreatedAt(t)
-	return tuo
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (tuo *TweetUpdateOne) SetNillableCreatedAt(t *time.Time) *TweetUpdateOne {
-	if t != nil {
-		tuo.SetCreatedAt(*t)
-	}
-	return tuo
-}
-
 // SetPostedByID sets the "posted_by" edge to the User entity by ID.
 func (tuo *TweetUpdateOne) SetPostedByID(id int) *TweetUpdateOne {
 	tuo.mutation.SetPostedByID(id)
@@ -548,14 +393,14 @@ func (tuo *TweetUpdateOne) SetPostedBy(u *User) *TweetUpdateOne {
 	return tuo.SetPostedByID(u.ID)
 }
 
-// AddChildIDs adds the "child" edge to the Tweet entity by IDs.
+// AddChildIDs adds the "children" edge to the Tweet entity by IDs.
 func (tuo *TweetUpdateOne) AddChildIDs(ids ...int) *TweetUpdateOne {
 	tuo.mutation.AddChildIDs(ids...)
 	return tuo
 }
 
-// AddChild adds the "child" edges to the Tweet entity.
-func (tuo *TweetUpdateOne) AddChild(t ...*Tweet) *TweetUpdateOne {
+// AddChildren adds the "children" edges to the Tweet entity.
+func (tuo *TweetUpdateOne) AddChildren(t ...*Tweet) *TweetUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -563,34 +408,38 @@ func (tuo *TweetUpdateOne) AddChild(t ...*Tweet) *TweetUpdateOne {
 	return tuo.AddChildIDs(ids...)
 }
 
-// AddParentIDs adds the "parent" edge to the Tweet entity by IDs.
-func (tuo *TweetUpdateOne) AddParentIDs(ids ...int) *TweetUpdateOne {
-	tuo.mutation.AddParentIDs(ids...)
+// SetParentID sets the "parent" edge to the Tweet entity by ID.
+func (tuo *TweetUpdateOne) SetParentID(id int) *TweetUpdateOne {
+	tuo.mutation.SetParentID(id)
 	return tuo
 }
 
-// AddParent adds the "parent" edges to the Tweet entity.
-func (tuo *TweetUpdateOne) AddParent(t ...*Tweet) *TweetUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableParentID sets the "parent" edge to the Tweet entity by ID if the given value is not nil.
+func (tuo *TweetUpdateOne) SetNillableParentID(id *int) *TweetUpdateOne {
+	if id != nil {
+		tuo = tuo.SetParentID(*id)
 	}
-	return tuo.AddParentIDs(ids...)
-}
-
-// AddHaIDs adds the "has" edge to the Like entity by IDs.
-func (tuo *TweetUpdateOne) AddHaIDs(ids ...int) *TweetUpdateOne {
-	tuo.mutation.AddHaIDs(ids...)
 	return tuo
 }
 
-// AddHas adds the "has" edges to the Like entity.
-func (tuo *TweetUpdateOne) AddHas(l ...*Like) *TweetUpdateOne {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// SetParent sets the "parent" edge to the Tweet entity.
+func (tuo *TweetUpdateOne) SetParent(t *Tweet) *TweetUpdateOne {
+	return tuo.SetParentID(t.ID)
+}
+
+// AddLikedByIDs adds the "liked_by" edge to the User entity by IDs.
+func (tuo *TweetUpdateOne) AddLikedByIDs(ids ...int) *TweetUpdateOne {
+	tuo.mutation.AddLikedByIDs(ids...)
+	return tuo
+}
+
+// AddLikedBy adds the "liked_by" edges to the User entity.
+func (tuo *TweetUpdateOne) AddLikedBy(u ...*User) *TweetUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return tuo.AddHaIDs(ids...)
+	return tuo.AddLikedByIDs(ids...)
 }
 
 // Mutation returns the TweetMutation object of the builder.
@@ -604,20 +453,20 @@ func (tuo *TweetUpdateOne) ClearPostedBy() *TweetUpdateOne {
 	return tuo
 }
 
-// ClearChild clears all "child" edges to the Tweet entity.
-func (tuo *TweetUpdateOne) ClearChild() *TweetUpdateOne {
-	tuo.mutation.ClearChild()
+// ClearChildren clears all "children" edges to the Tweet entity.
+func (tuo *TweetUpdateOne) ClearChildren() *TweetUpdateOne {
+	tuo.mutation.ClearChildren()
 	return tuo
 }
 
-// RemoveChildIDs removes the "child" edge to Tweet entities by IDs.
+// RemoveChildIDs removes the "children" edge to Tweet entities by IDs.
 func (tuo *TweetUpdateOne) RemoveChildIDs(ids ...int) *TweetUpdateOne {
 	tuo.mutation.RemoveChildIDs(ids...)
 	return tuo
 }
 
-// RemoveChild removes "child" edges to Tweet entities.
-func (tuo *TweetUpdateOne) RemoveChild(t ...*Tweet) *TweetUpdateOne {
+// RemoveChildren removes "children" edges to Tweet entities.
+func (tuo *TweetUpdateOne) RemoveChildren(t ...*Tweet) *TweetUpdateOne {
 	ids := make([]int, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
@@ -625,46 +474,31 @@ func (tuo *TweetUpdateOne) RemoveChild(t ...*Tweet) *TweetUpdateOne {
 	return tuo.RemoveChildIDs(ids...)
 }
 
-// ClearParent clears all "parent" edges to the Tweet entity.
+// ClearParent clears the "parent" edge to the Tweet entity.
 func (tuo *TweetUpdateOne) ClearParent() *TweetUpdateOne {
 	tuo.mutation.ClearParent()
 	return tuo
 }
 
-// RemoveParentIDs removes the "parent" edge to Tweet entities by IDs.
-func (tuo *TweetUpdateOne) RemoveParentIDs(ids ...int) *TweetUpdateOne {
-	tuo.mutation.RemoveParentIDs(ids...)
+// ClearLikedBy clears all "liked_by" edges to the User entity.
+func (tuo *TweetUpdateOne) ClearLikedBy() *TweetUpdateOne {
+	tuo.mutation.ClearLikedBy()
 	return tuo
 }
 
-// RemoveParent removes "parent" edges to Tweet entities.
-func (tuo *TweetUpdateOne) RemoveParent(t ...*Tweet) *TweetUpdateOne {
-	ids := make([]int, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveLikedByIDs removes the "liked_by" edge to User entities by IDs.
+func (tuo *TweetUpdateOne) RemoveLikedByIDs(ids ...int) *TweetUpdateOne {
+	tuo.mutation.RemoveLikedByIDs(ids...)
+	return tuo
+}
+
+// RemoveLikedBy removes "liked_by" edges to User entities.
+func (tuo *TweetUpdateOne) RemoveLikedBy(u ...*User) *TweetUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
 	}
-	return tuo.RemoveParentIDs(ids...)
-}
-
-// ClearHas clears all "has" edges to the Like entity.
-func (tuo *TweetUpdateOne) ClearHas() *TweetUpdateOne {
-	tuo.mutation.ClearHas()
-	return tuo
-}
-
-// RemoveHaIDs removes the "has" edge to Like entities by IDs.
-func (tuo *TweetUpdateOne) RemoveHaIDs(ids ...int) *TweetUpdateOne {
-	tuo.mutation.RemoveHaIDs(ids...)
-	return tuo
-}
-
-// RemoveHas removes "has" edges to Like entities.
-func (tuo *TweetUpdateOne) RemoveHas(l ...*Like) *TweetUpdateOne {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
-	}
-	return tuo.RemoveHaIDs(ids...)
+	return tuo.RemoveLikedByIDs(ids...)
 }
 
 // Where appends a list predicates to the TweetUpdate builder.
@@ -752,24 +586,6 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 	if value, ok := tuo.mutation.Text(); ok {
 		_spec.SetField(tweet.FieldText, field.TypeString, value)
 	}
-	if value, ok := tuo.mutation.ParentID(); ok {
-		_spec.SetField(tweet.FieldParentID, field.TypeInt, value)
-	}
-	if value, ok := tuo.mutation.AddedParentID(); ok {
-		_spec.AddField(tweet.FieldParentID, field.TypeInt, value)
-	}
-	if tuo.mutation.ParentIDCleared() {
-		_spec.ClearField(tweet.FieldParentID, field.TypeInt)
-	}
-	if value, ok := tuo.mutation.UserID(); ok {
-		_spec.SetField(tweet.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := tuo.mutation.AddedUserID(); ok {
-		_spec.AddField(tweet.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := tuo.mutation.CreatedAt(); ok {
-		_spec.SetField(tweet.FieldCreatedAt, field.TypeTime, value)
-	}
 	if tuo.mutation.PostedByCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -799,12 +615,12 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tuo.mutation.ChildCleared() {
+	if tuo.mutation.ChildrenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: tweet.ChildPrimaryKey,
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -812,12 +628,12 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.RemovedChildIDs(); len(nodes) > 0 && !tuo.mutation.ChildCleared() {
+	if nodes := tuo.mutation.RemovedChildrenIDs(); len(nodes) > 0 && !tuo.mutation.ChildrenCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: tweet.ChildPrimaryKey,
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -828,12 +644,12 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.ChildIDs(); len(nodes) > 0 {
+	if nodes := tuo.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   tweet.ChildTable,
-			Columns: tweet.ChildPrimaryKey,
+			Table:   tweet.ChildrenTable,
+			Columns: []string{tweet.ChildrenColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -846,39 +662,23 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 	}
 	if tuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
 			Table:   tweet.ParentTable,
-			Columns: tweet.ParentPrimaryKey,
+			Columns: []string{tweet.ParentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tuo.mutation.RemovedParentIDs(); len(nodes) > 0 && !tuo.mutation.ParentCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   tweet.ParentTable,
-			Columns: tweet.ParentPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := tuo.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: false,
 			Table:   tweet.ParentTable,
-			Columns: tweet.ParentPrimaryKey,
+			Columns: []string{tweet.ParentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tweet.FieldID, field.TypeInt),
@@ -889,28 +689,28 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tuo.mutation.HasCleared() {
+	if tuo.mutation.LikedByCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   tweet.HasTable,
-			Columns: []string{tweet.HasColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tweet.LikedByTable,
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.RemovedHasIDs(); len(nodes) > 0 && !tuo.mutation.HasCleared() {
+	if nodes := tuo.mutation.RemovedLikedByIDs(); len(nodes) > 0 && !tuo.mutation.LikedByCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   tweet.HasTable,
-			Columns: []string{tweet.HasColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tweet.LikedByTable,
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -918,15 +718,15 @@ func (tuo *TweetUpdateOne) sqlSave(ctx context.Context) (_node *Tweet, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.HasIDs(); len(nodes) > 0 {
+	if nodes := tuo.mutation.LikedByIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   tweet.HasTable,
-			Columns: []string{tweet.HasColumn},
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   tweet.LikedByTable,
+			Columns: tweet.LikedByPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(like.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

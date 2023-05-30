@@ -16,20 +16,16 @@ const (
 	FieldID = "id"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
-	// FieldParentID holds the string denoting the parent_id field in the database.
-	FieldParentID = "parent_id"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// EdgePostedBy holds the string denoting the posted_by edge name in mutations.
 	EdgePostedBy = "posted_by"
-	// EdgeChild holds the string denoting the child edge name in mutations.
-	EdgeChild = "child"
+	// EdgeChildren holds the string denoting the children edge name in mutations.
+	EdgeChildren = "children"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
-	// EdgeHas holds the string denoting the has edge name in mutations.
-	EdgeHas = "has"
+	// EdgeLikedBy holds the string denoting the liked_by edge name in mutations.
+	EdgeLikedBy = "liked_by"
 	// Table holds the table name of the tweet in the database.
 	Table = "tweets"
 	// PostedByTable is the table that holds the posted_by relation/edge.
@@ -39,41 +35,39 @@ const (
 	PostedByInverseTable = "users"
 	// PostedByColumn is the table column denoting the posted_by relation/edge.
 	PostedByColumn = "user_posts"
-	// ChildTable is the table that holds the child relation/edge. The primary key declared below.
-	ChildTable = "tweet_parent"
-	// ParentTable is the table that holds the parent relation/edge. The primary key declared below.
-	ParentTable = "tweet_parent"
-	// HasTable is the table that holds the has relation/edge.
-	HasTable = "likes"
-	// HasInverseTable is the table name for the Like entity.
-	// It exists in this package in order to avoid circular dependency with the "like" package.
-	HasInverseTable = "likes"
-	// HasColumn is the table column denoting the has relation/edge.
-	HasColumn = "tweet_has"
+	// ChildrenTable is the table that holds the children relation/edge.
+	ChildrenTable = "tweets"
+	// ChildrenColumn is the table column denoting the children relation/edge.
+	ChildrenColumn = "tweet_parent"
+	// ParentTable is the table that holds the parent relation/edge.
+	ParentTable = "tweets"
+	// ParentColumn is the table column denoting the parent relation/edge.
+	ParentColumn = "tweet_parent"
+	// LikedByTable is the table that holds the liked_by relation/edge. The primary key declared below.
+	LikedByTable = "user_likes"
+	// LikedByInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	LikedByInverseTable = "users"
 )
 
 // Columns holds all SQL columns for tweet fields.
 var Columns = []string{
 	FieldID,
 	FieldText,
-	FieldParentID,
-	FieldUserID,
 	FieldCreatedAt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "tweets"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"tweet_parent",
 	"user_posts",
 }
 
 var (
-	// ChildPrimaryKey and ChildColumn2 are the table columns denoting the
-	// primary key for the child relation (M2M).
-	ChildPrimaryKey = []string{"tweet_id", "child_id"}
-	// ParentPrimaryKey and ParentColumn2 are the table columns denoting the
-	// primary key for the parent relation (M2M).
-	ParentPrimaryKey = []string{"tweet_id", "child_id"}
+	// LikedByPrimaryKey and LikedByColumn2 are the table columns denoting the
+	// primary key for the liked_by relation (M2M).
+	LikedByPrimaryKey = []string{"user_id", "tweet_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -111,16 +105,6 @@ func ByText(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldText, opts...).ToFunc()
 }
 
-// ByParentID orders the results by the parent_id field.
-func ByParentID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldParentID, opts...).ToFunc()
-}
-
-// ByUserID orders the results by the user_id field.
-func ByUserID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUserID, opts...).ToFunc()
-}
-
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -133,45 +117,38 @@ func ByPostedByField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByChildCount orders the results by child count.
-func ByChildCount(opts ...sql.OrderTermOption) OrderOption {
+// ByChildrenCount orders the results by children count.
+func ByChildrenCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newChildStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newChildrenStep(), opts...)
 	}
 }
 
-// ByChild orders the results by child terms.
-func ByChild(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByChildren orders the results by children terms.
+func ByChildren(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newChildStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newChildrenStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
-// ByParentCount orders the results by parent count.
-func ByParentCount(opts ...sql.OrderTermOption) OrderOption {
+// ByParentField orders the results by parent field.
+func ByParentField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newParentStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newParentStep(), sql.OrderByField(field, opts...))
 	}
 }
 
-// ByParent orders the results by parent terms.
-func ByParent(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByLikedByCount orders the results by liked_by count.
+func ByLikedByCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newParentStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborsCount(s, newLikedByStep(), opts...)
 	}
 }
 
-// ByHasCount orders the results by has count.
-func ByHasCount(opts ...sql.OrderTermOption) OrderOption {
+// ByLikedBy orders the results by liked_by terms.
+func ByLikedBy(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newHasStep(), opts...)
-	}
-}
-
-// ByHas orders the results by has terms.
-func ByHas(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newHasStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newLikedByStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newPostedByStep() *sqlgraph.Step {
@@ -181,24 +158,24 @@ func newPostedByStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, PostedByTable, PostedByColumn),
 	)
 }
-func newChildStep() *sqlgraph.Step {
+func newChildrenStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, ChildTable, ChildPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, true, ChildrenTable, ChildrenColumn),
 	)
 }
 func newParentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, ParentTable, ParentPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2O, false, ParentTable, ParentColumn),
 	)
 }
-func newHasStep() *sqlgraph.Step {
+func newLikedByStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(HasInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, HasTable, HasColumn),
+		sqlgraph.To(LikedByInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, LikedByTable, LikedByPrimaryKey...),
 	)
 }

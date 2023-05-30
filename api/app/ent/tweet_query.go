@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"app/ent/like"
 	"app/ent/predicate"
 	"app/ent/tweet"
 	"app/ent/user"
@@ -20,20 +19,19 @@ import (
 // TweetQuery is the builder for querying Tweet entities.
 type TweetQuery struct {
 	config
-	ctx             *QueryContext
-	order           []tweet.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Tweet
-	withPostedBy    *UserQuery
-	withChild       *TweetQuery
-	withParent      *TweetQuery
-	withHas         *LikeQuery
-	withFKs         bool
-	modifiers       []func(*sql.Selector)
-	loadTotal       []func(context.Context, []*Tweet) error
-	withNamedChild  map[string]*TweetQuery
-	withNamedParent map[string]*TweetQuery
-	withNamedHas    map[string]*LikeQuery
+	ctx               *QueryContext
+	order             []tweet.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Tweet
+	withPostedBy      *UserQuery
+	withChildren      *TweetQuery
+	withParent        *TweetQuery
+	withLikedBy       *UserQuery
+	withFKs           bool
+	modifiers         []func(*sql.Selector)
+	loadTotal         []func(context.Context, []*Tweet) error
+	withNamedChildren map[string]*TweetQuery
+	withNamedLikedBy  map[string]*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -92,8 +90,8 @@ func (tq *TweetQuery) QueryPostedBy() *UserQuery {
 	return query
 }
 
-// QueryChild chains the current query on the "child" edge.
-func (tq *TweetQuery) QueryChild() *TweetQuery {
+// QueryChildren chains the current query on the "children" edge.
+func (tq *TweetQuery) QueryChildren() *TweetQuery {
 	query := (&TweetClient{config: tq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := tq.prepareQuery(ctx); err != nil {
@@ -106,7 +104,7 @@ func (tq *TweetQuery) QueryChild() *TweetQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(tweet.Table, tweet.FieldID, selector),
 			sqlgraph.To(tweet.Table, tweet.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, tweet.ChildTable, tweet.ChildPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, true, tweet.ChildrenTable, tweet.ChildrenColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -128,7 +126,7 @@ func (tq *TweetQuery) QueryParent() *TweetQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(tweet.Table, tweet.FieldID, selector),
 			sqlgraph.To(tweet.Table, tweet.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, tweet.ParentTable, tweet.ParentPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, false, tweet.ParentTable, tweet.ParentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -136,9 +134,9 @@ func (tq *TweetQuery) QueryParent() *TweetQuery {
 	return query
 }
 
-// QueryHas chains the current query on the "has" edge.
-func (tq *TweetQuery) QueryHas() *LikeQuery {
-	query := (&LikeClient{config: tq.config}).Query()
+// QueryLikedBy chains the current query on the "liked_by" edge.
+func (tq *TweetQuery) QueryLikedBy() *UserQuery {
+	query := (&UserClient{config: tq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := tq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -149,8 +147,8 @@ func (tq *TweetQuery) QueryHas() *LikeQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(tweet.Table, tweet.FieldID, selector),
-			sqlgraph.To(like.Table, like.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, tweet.HasTable, tweet.HasColumn),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, tweet.LikedByTable, tweet.LikedByPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -351,9 +349,9 @@ func (tq *TweetQuery) Clone() *TweetQuery {
 		inters:       append([]Interceptor{}, tq.inters...),
 		predicates:   append([]predicate.Tweet{}, tq.predicates...),
 		withPostedBy: tq.withPostedBy.Clone(),
-		withChild:    tq.withChild.Clone(),
+		withChildren: tq.withChildren.Clone(),
 		withParent:   tq.withParent.Clone(),
-		withHas:      tq.withHas.Clone(),
+		withLikedBy:  tq.withLikedBy.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -371,14 +369,14 @@ func (tq *TweetQuery) WithPostedBy(opts ...func(*UserQuery)) *TweetQuery {
 	return tq
 }
 
-// WithChild tells the query-builder to eager-load the nodes that are connected to
-// the "child" edge. The optional arguments are used to configure the query builder of the edge.
-func (tq *TweetQuery) WithChild(opts ...func(*TweetQuery)) *TweetQuery {
+// WithChildren tells the query-builder to eager-load the nodes that are connected to
+// the "children" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TweetQuery) WithChildren(opts ...func(*TweetQuery)) *TweetQuery {
 	query := (&TweetClient{config: tq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	tq.withChild = query
+	tq.withChildren = query
 	return tq
 }
 
@@ -393,14 +391,14 @@ func (tq *TweetQuery) WithParent(opts ...func(*TweetQuery)) *TweetQuery {
 	return tq
 }
 
-// WithHas tells the query-builder to eager-load the nodes that are connected to
-// the "has" edge. The optional arguments are used to configure the query builder of the edge.
-func (tq *TweetQuery) WithHas(opts ...func(*LikeQuery)) *TweetQuery {
-	query := (&LikeClient{config: tq.config}).Query()
+// WithLikedBy tells the query-builder to eager-load the nodes that are connected to
+// the "liked_by" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TweetQuery) WithLikedBy(opts ...func(*UserQuery)) *TweetQuery {
+	query := (&UserClient{config: tq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	tq.withHas = query
+	tq.withLikedBy = query
 	return tq
 }
 
@@ -485,12 +483,12 @@ func (tq *TweetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tweet,
 		_spec       = tq.querySpec()
 		loadedTypes = [4]bool{
 			tq.withPostedBy != nil,
-			tq.withChild != nil,
+			tq.withChildren != nil,
 			tq.withParent != nil,
-			tq.withHas != nil,
+			tq.withLikedBy != nil,
 		}
 	)
-	if tq.withPostedBy != nil {
+	if tq.withPostedBy != nil || tq.withParent != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -523,45 +521,37 @@ func (tq *TweetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tweet,
 			return nil, err
 		}
 	}
-	if query := tq.withChild; query != nil {
-		if err := tq.loadChild(ctx, query, nodes,
-			func(n *Tweet) { n.Edges.Child = []*Tweet{} },
-			func(n *Tweet, e *Tweet) { n.Edges.Child = append(n.Edges.Child, e) }); err != nil {
+	if query := tq.withChildren; query != nil {
+		if err := tq.loadChildren(ctx, query, nodes,
+			func(n *Tweet) { n.Edges.Children = []*Tweet{} },
+			func(n *Tweet, e *Tweet) { n.Edges.Children = append(n.Edges.Children, e) }); err != nil {
 			return nil, err
 		}
 	}
 	if query := tq.withParent; query != nil {
-		if err := tq.loadParent(ctx, query, nodes,
-			func(n *Tweet) { n.Edges.Parent = []*Tweet{} },
-			func(n *Tweet, e *Tweet) { n.Edges.Parent = append(n.Edges.Parent, e) }); err != nil {
+		if err := tq.loadParent(ctx, query, nodes, nil,
+			func(n *Tweet, e *Tweet) { n.Edges.Parent = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := tq.withHas; query != nil {
-		if err := tq.loadHas(ctx, query, nodes,
-			func(n *Tweet) { n.Edges.Has = []*Like{} },
-			func(n *Tweet, e *Like) { n.Edges.Has = append(n.Edges.Has, e) }); err != nil {
+	if query := tq.withLikedBy; query != nil {
+		if err := tq.loadLikedBy(ctx, query, nodes,
+			func(n *Tweet) { n.Edges.LikedBy = []*User{} },
+			func(n *Tweet, e *User) { n.Edges.LikedBy = append(n.Edges.LikedBy, e) }); err != nil {
 			return nil, err
 		}
 	}
-	for name, query := range tq.withNamedChild {
-		if err := tq.loadChild(ctx, query, nodes,
-			func(n *Tweet) { n.appendNamedChild(name) },
-			func(n *Tweet, e *Tweet) { n.appendNamedChild(name, e) }); err != nil {
+	for name, query := range tq.withNamedChildren {
+		if err := tq.loadChildren(ctx, query, nodes,
+			func(n *Tweet) { n.appendNamedChildren(name) },
+			func(n *Tweet, e *Tweet) { n.appendNamedChildren(name, e) }); err != nil {
 			return nil, err
 		}
 	}
-	for name, query := range tq.withNamedParent {
-		if err := tq.loadParent(ctx, query, nodes,
-			func(n *Tweet) { n.appendNamedParent(name) },
-			func(n *Tweet, e *Tweet) { n.appendNamedParent(name, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range tq.withNamedHas {
-		if err := tq.loadHas(ctx, query, nodes,
-			func(n *Tweet) { n.appendNamedHas(name) },
-			func(n *Tweet, e *Like) { n.appendNamedHas(name, e) }); err != nil {
+	for name, query := range tq.withNamedLikedBy {
+		if err := tq.loadLikedBy(ctx, query, nodes,
+			func(n *Tweet) { n.appendNamedLikedBy(name) },
+			func(n *Tweet, e *User) { n.appendNamedLikedBy(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -605,129 +595,7 @@ func (tq *TweetQuery) loadPostedBy(ctx context.Context, query *UserQuery, nodes 
 	}
 	return nil
 }
-func (tq *TweetQuery) loadChild(ctx context.Context, query *TweetQuery, nodes []*Tweet, init func(*Tweet), assign func(*Tweet, *Tweet)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Tweet)
-	nids := make(map[int]map[*Tweet]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
-		}
-	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(tweet.ChildTable)
-		s.Join(joinT).On(s.C(tweet.FieldID), joinT.C(tweet.ChildPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(tweet.ChildPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(tweet.ChildPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
-	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Tweet]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Tweet](ctx, query, qr, query.inters)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected "child" node returned %v`, n.ID)
-		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
-	}
-	return nil
-}
-func (tq *TweetQuery) loadParent(ctx context.Context, query *TweetQuery, nodes []*Tweet, init func(*Tweet), assign func(*Tweet, *Tweet)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Tweet)
-	nids := make(map[int]map[*Tweet]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
-		}
-	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(tweet.ParentTable)
-		s.Join(joinT).On(s.C(tweet.FieldID), joinT.C(tweet.ParentPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(tweet.ParentPrimaryKey[0]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(tweet.ParentPrimaryKey[0]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
-	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Tweet]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Tweet](ctx, query, qr, query.inters)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected "parent" node returned %v`, n.ID)
-		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
-	}
-	return nil
-}
-func (tq *TweetQuery) loadHas(ctx context.Context, query *LikeQuery, nodes []*Tweet, init func(*Tweet), assign func(*Tweet, *Like)) error {
+func (tq *TweetQuery) loadChildren(ctx context.Context, query *TweetQuery, nodes []*Tweet, init func(*Tweet), assign func(*Tweet, *Tweet)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Tweet)
 	for i := range nodes {
@@ -738,23 +606,116 @@ func (tq *TweetQuery) loadHas(ctx context.Context, query *LikeQuery, nodes []*Tw
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.Like(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(tweet.HasColumn), fks...))
+	query.Where(predicate.Tweet(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(tweet.ChildrenColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.tweet_has
+		fk := n.tweet_parent
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "tweet_has" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "tweet_parent" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "tweet_has" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "tweet_parent" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (tq *TweetQuery) loadParent(ctx context.Context, query *TweetQuery, nodes []*Tweet, init func(*Tweet), assign func(*Tweet, *Tweet)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Tweet)
+	for i := range nodes {
+		if nodes[i].tweet_parent == nil {
+			continue
+		}
+		fk := *nodes[i].tweet_parent
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(tweet.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "tweet_parent" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (tq *TweetQuery) loadLikedBy(ctx context.Context, query *UserQuery, nodes []*Tweet, init func(*Tweet), assign func(*Tweet, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Tweet)
+	nids := make(map[int]map[*Tweet]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(tweet.LikedByTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(tweet.LikedByPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(tweet.LikedByPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(tweet.LikedByPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Tweet]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "liked_by" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
@@ -843,45 +804,31 @@ func (tq *TweetQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// WithNamedChild tells the query-builder to eager-load the nodes that are connected to the "child"
+// WithNamedChildren tells the query-builder to eager-load the nodes that are connected to the "children"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (tq *TweetQuery) WithNamedChild(name string, opts ...func(*TweetQuery)) *TweetQuery {
+func (tq *TweetQuery) WithNamedChildren(name string, opts ...func(*TweetQuery)) *TweetQuery {
 	query := (&TweetClient{config: tq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if tq.withNamedChild == nil {
-		tq.withNamedChild = make(map[string]*TweetQuery)
+	if tq.withNamedChildren == nil {
+		tq.withNamedChildren = make(map[string]*TweetQuery)
 	}
-	tq.withNamedChild[name] = query
+	tq.withNamedChildren[name] = query
 	return tq
 }
 
-// WithNamedParent tells the query-builder to eager-load the nodes that are connected to the "parent"
+// WithNamedLikedBy tells the query-builder to eager-load the nodes that are connected to the "liked_by"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (tq *TweetQuery) WithNamedParent(name string, opts ...func(*TweetQuery)) *TweetQuery {
-	query := (&TweetClient{config: tq.config}).Query()
+func (tq *TweetQuery) WithNamedLikedBy(name string, opts ...func(*UserQuery)) *TweetQuery {
+	query := (&UserClient{config: tq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	if tq.withNamedParent == nil {
-		tq.withNamedParent = make(map[string]*TweetQuery)
+	if tq.withNamedLikedBy == nil {
+		tq.withNamedLikedBy = make(map[string]*UserQuery)
 	}
-	tq.withNamedParent[name] = query
-	return tq
-}
-
-// WithNamedHas tells the query-builder to eager-load the nodes that are connected to the "has"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (tq *TweetQuery) WithNamedHas(name string, opts ...func(*LikeQuery)) *TweetQuery {
-	query := (&LikeClient{config: tq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if tq.withNamedHas == nil {
-		tq.withNamedHas = make(map[string]*LikeQuery)
-	}
-	tq.withNamedHas[name] = query
+	tq.withNamedLikedBy[name] = query
 	return tq
 }
 

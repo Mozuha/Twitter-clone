@@ -108,9 +108,9 @@ func (s *UsersHandlerTestSuite) TestGetUserByIdHandlerNotFound() {
 
 func (s *UsersHandlerTestSuite) TestCreateUserHandlerSuccess() {
 	user := models.User{
-		ScreenName: "test4",
-		Username:   "test 4",
-		Email:      "test4@ymail.ne.jp",
+		ScreenName: "test5",
+		Username:   "test 5",
+		Email:      "test5@ymail.ne.jp",
 		Password:   "12345",
 	}
 	jsonBody, _ := json.Marshal(user)
