@@ -6,8 +6,6 @@ on:
     paths:
       - api/app/**
       - .github/workflows/goCI.yml
-  pull_request:
-    types: [opened, edited]
 
 jobs:
   test:
