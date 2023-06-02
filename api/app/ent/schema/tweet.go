@@ -50,7 +50,7 @@ func (Tweet) Edges() []ent.Edge {
 
 func (Tweet) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField(),
+		entgql.QueryField("tweets(where: TweetWhereInput)"),
 		entgql.Mutations(entgql.MutationCreate()),
 	}
 }

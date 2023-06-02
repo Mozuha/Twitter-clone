@@ -19,17 +19,18 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			SchemaType(map[string]string{
+		field.String("name"). // name to be displayed without @ mark
+					SchemaType(map[string]string{
 				dialect.Postgres: "varchar(50)",
 			}).
 			NotEmpty().
 			Annotations(entgql.OrderField("NAME")),
-		field.String("screen_name").
-			SchemaType(map[string]string{
+		field.String("screen_name"). // aka handle name (@screen_name)
+						SchemaType(map[string]string{
 				dialect.Postgres: "varchar(15)",
 			}).
 			NotEmpty().
+			Unique().
 			Annotations(entgql.OrderField("SCREEN_NAME")),
 		field.String("email").
 			NotEmpty().
@@ -68,7 +69,7 @@ func (User) Edges() []ent.Edge {
 
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField(),
+		entgql.QueryField("users(where: UserWhereInput)"),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }
