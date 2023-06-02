@@ -21,13 +21,21 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 }
 
 // Tweets is the resolver for the tweets field.
-func (r *queryResolver) Tweets(ctx context.Context) ([]*ent.Tweet, error) {
-	return r.client.Tweet.Query().All(ctx)
+func (r *queryResolver) Tweets(ctx context.Context, where *ent.TweetWhereInput) ([]*ent.Tweet, error) {
+	pred, err := where.P()
+	if err != nil {
+		return nil, err
+	}
+	return r.client.Tweet.Query().Where(pred).All(ctx)
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
-	return r.client.User.Query().All(ctx)
+func (r *queryResolver) Users(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
+	pred, err := where.P()
+	if err != nil {
+		return nil, err
+	}
+	return r.client.User.Query().Where(pred).All(ctx)
 }
 
 // Query returns generated.QueryResolver implementation.

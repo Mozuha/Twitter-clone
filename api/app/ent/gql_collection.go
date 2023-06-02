@@ -144,6 +144,9 @@ func newTweetPaginateArgs(rv map[string]any) *tweetPaginateArgs {
 			}
 		}
 	}
+	if v, ok := rv[whereField].(*TweetWhereInput); ok {
+		args.opts = append(args.opts, WithTweetFilter(v.Filter))
+	}
 	return args
 }
 
@@ -302,6 +305,9 @@ func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 				args.opts = append(args.opts, WithUserOrder(v))
 			}
 		}
+	}
+	if v, ok := rv[whereField].(*UserWhereInput); ok {
+		args.opts = append(args.opts, WithUserFilter(v.Filter))
 	}
 	return args
 }

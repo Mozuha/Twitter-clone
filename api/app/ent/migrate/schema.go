@@ -40,7 +40,7 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(50)"}},
-		{Name: "screen_name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "varchar(15)"}},
+		{Name: "screen_name", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "varchar(15)"}},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "profile_image", Type: field.TypeString, Default: "images/default.jpg"},
