@@ -8,10 +8,18 @@ import (
 	"app/ent"
 	"app/gql/generated"
 	"context"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	input.Password = string(hash)
 	return r.client.User.Create().SetInput(input).Save(ctx)
 }
 
