@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"app/ent"
+	"app/ent/user"
 	"app/services"
 	"errors"
 	"log"
@@ -10,7 +12,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthorizeJWT() gin.HandlerFunc {
+// A private key for context that only this package can access. This is important
+// to prevent collisions between different context uses
+// https://gqlgen.com/recipes/authentication/
+var userCtxKey = &contextKey{"user"}
+
+type contextKey struct {
+	name string
+}
+
+func AuthorizeJWT(client *ent.Client) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Bearer token will be shown like `Authorization: Bearer <token>` in http header
 		const BEARER_SCHEMA = "Bearer "
@@ -24,16 +35,23 @@ func AuthorizeJWT() gin.HandlerFunc {
 
 		token, err := services.NewJWTService().ValidateToken(tokenString)
 
-		if token.Valid {
-			claims := token.Claims.(jwt.MapClaims)
-			log.Println("Claims[Email]: ", claims["email"])
-			log.Println("Claims[Issuer]: ", claims["iss"])
-			log.Println("Claims[IssuedAt]: ", claims["iat"])
-			log.Println("Claims[ExpiresAt]: ", claims["exp"])
-		} else {
+		if err != nil {
 			log.Println(err)
 			ctx.Redirect(http.StatusFound, "/login")
-			ctx.Abort()
+			ctx.AbortWithError(http.StatusForbidden, err)
 		}
+
+		claims := token.Claims.(jwt.MapClaims)
+		email := claims["email"].(string)
+
+		// check if user exists in db
+		user, err := client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
+		if err != nil {
+			ctx.Redirect(http.StatusFound, "/login")
+			ctx.AbortWithError(http.StatusNotFound, err)
+			return
+		}
+
+		ctx.Set(userCtxKey.name, user)
 	}
 }

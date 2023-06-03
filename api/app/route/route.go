@@ -10,23 +10,10 @@ import (
 
 func SetUpRouter(entClient *ent.Client) *gin.Engine {
 	router := gin.Default()
-	userHandlers := handlers.NewUsersHandler(entClient)
 
+	router.Use(middlewares.AuthorizeJWT(entClient))
 	router.POST("/query", handlers.GqlHandler(entClient))
 	router.GET("/gqlplayground", handlers.PlaygroundHandler())
-
-	// Authentication + Token creation
-	router.POST("/login", handlers.LoginHandler)
-
-	// JWT auth middleware applies to "/api" only
-	apiRoutes := router.Group("/api", middlewares.AuthorizeJWT())
-	{
-		apiRoutes.GET("/users", userHandlers.GetUsersHandler)
-
-		apiRoutes.GET("/users/:id", userHandlers.GetUserByIdHandler)
-
-		apiRoutes.POST("/user", userHandlers.CreateUserHandler)
-	}
 
 	return router
 }

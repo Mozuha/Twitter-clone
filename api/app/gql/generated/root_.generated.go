@@ -43,6 +43,7 @@ type ComplexityRoot struct {
 		CreateUser  func(childComplexity int, input ent.CreateUserInput) int
 		DeleteTweet func(childComplexity int, id int) int
 		DeleteUser  func(childComplexity int, id int) int
+		Signin      func(childComplexity int, email string, password string) int
 		UpdateUser  func(childComplexity int, id int, input ent.UpdateUserInput) int
 	}
 
@@ -58,6 +59,11 @@ type ComplexityRoot struct {
 		Nodes  func(childComplexity int, ids []int) int
 		Tweets func(childComplexity int, where *ent.TweetWhereInput) int
 		Users  func(childComplexity int, where *ent.UserWhereInput) int
+	}
+
+	SigninResponse struct {
+		Token  func(childComplexity int) int
+		UserID func(childComplexity int) int
 	}
 
 	Tweet struct {
@@ -148,6 +154,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(int)), true
 
+	case "Mutation.signin":
+		if e.complexity.Mutation.Signin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_signin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Signin(childComplexity, args["email"].(string), args["password"].(string)), true
+
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
 			break
@@ -235,6 +253,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Users(childComplexity, args["where"].(*ent.UserWhereInput)), true
+
+	case "SigninResponse.token":
+		if e.complexity.SigninResponse.Token == nil {
+			break
+		}
+
+		return e.complexity.SigninResponse.Token(childComplexity), true
+
+	case "SigninResponse.userId":
+		if e.complexity.SigninResponse.UserID == nil {
+			break
+		}
+
+		return e.complexity.SigninResponse.UserID(childComplexity), true
 
 	case "Tweet.children":
 		if e.complexity.Tweet.Children == nil {
@@ -753,6 +785,12 @@ input UserWhereInput {
   deleteUser(id: ID!): Boolean # Ent delete operation does not return the deleted entity; Use Boolean to mimic the behaviour of returning nothing
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
+  signin(email: String!, password: String!): SigninResponse!
+}
+
+type SigninResponse {
+  userId: ID!
+  token: String!
 }
 `, BuiltIn: false},
 }
