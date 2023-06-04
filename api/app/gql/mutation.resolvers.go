@@ -7,67 +7,91 @@ package gql
 import (
 	"app"
 	"app/ent"
-	"app/ent/user"
 	"app/gql/generated"
-	"app/services"
+	"app/middlewares"
+	"app/utils"
 	"context"
-	"fmt"
-
-	"golang.org/x/crypto/bcrypt"
+	"errors"
 )
 
 // CreateUser is the resolver for the createUser field.
+// This is for public usage upon signup
 func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-
-	input.Password = string(hash)
-	return r.client.User.Create().SetInput(input).Save(ctx)
+	return r.srv.CreateUser(ctx, input)
 }
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input ent.UpdateUserInput) (*ent.User, error) {
-	return r.client.User.UpdateOneID(id).SetInput(input).Save(ctx)
-}
-
-// DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*bool, error) {
-	err := r.client.User.DeleteOneID(id).Exec(ctx)
-	isErr := err == nil
-	return &isErr, err
-}
-
-// CreateTweet is the resolver for the createTweet field.
-func (r *mutationResolver) CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error) {
-	return r.client.Tweet.Create().SetInput(input).Save(ctx)
-}
-
-// DeleteTweet is the resolver for the deleteTweet field.
-func (r *mutationResolver) DeleteTweet(ctx context.Context, id int) (*bool, error) {
-	err := r.client.Tweet.DeleteOneID(id).Exec(ctx)
-	isErr := err == nil
-	return &isErr, err
-}
-
-// Signin is the resolver for the signin field.
-func (r *mutationResolver) Signin(ctx context.Context, email string, password string) (*app.SigninResponse, error) {
-	user, err := r.client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("no user with given email: %w", err)
-	}
-
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, fmt.Errorf("password incorrect: %w", err)
-	}
-
-	token, err := services.NewJWTService().GenerateToken(email)
+	gc, err := utils.GinContextFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &app.SigninResponse{UserID: user.ID, Token: token}, nil
+	if isAuthed := middlewares.ForContext(gc); !isAuthed {
+		return nil, errors.New("request not authorized")
+	} else {
+		return r.srv.UpdateUserById(ctx, id, input)
+	}
+}
+
+// DeleteUser is the resolver for the deleteUser field.
+func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*bool, error) {
+	gc, err := utils.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if isAuthed := middlewares.ForContext(gc); !isAuthed {
+		return nil, errors.New("request not authorized")
+	} else {
+		return r.srv.DeleteUserById(ctx, id)
+	}
+}
+
+// CreateTweet is the resolver for the createTweet field.
+func (r *mutationResolver) CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error) {
+	gc, err := utils.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if isAuthed := middlewares.ForContext(gc); !isAuthed {
+		return nil, errors.New("request not authorized")
+	} else {
+		return r.srv.CreateTweet(ctx, input)
+	}
+}
+
+// DeleteTweet is the resolver for the deleteTweet field.
+func (r *mutationResolver) DeleteTweet(ctx context.Context, id int) (*bool, error) {
+	gc, err := utils.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if isAuthed := middlewares.ForContext(gc); !isAuthed {
+		return nil, errors.New("request not authorized")
+	} else {
+		return r.srv.DeleteTweetById(ctx, id)
+	}
+}
+
+// Signin is the resolver for the signin field.
+// This is for public usage
+func (r *mutationResolver) Signin(ctx context.Context, email string, password string) (*app.SigninResponse, error) {
+	return r.srv.Signin(ctx, email, password)
+}
+
+// EmailExists is the resolver for the emailExists field.
+// This is for public usage upon signup
+func (r *queryResolver) EmailExists(ctx context.Context, email string) (*bool, error) {
+	return r.srv.CheckEmailExists(ctx, email)
+}
+
+// ScreenNameExists is the resolver for the screenNameExists field.
+// This is for public usage upon signup
+func (r *queryResolver) ScreenNameExists(ctx context.Context, screenName string) (*bool, error) {
+	return r.srv.CheckScreenNameExists(ctx, screenName)
 }
 
 // Mutation returns generated.MutationResolver implementation.

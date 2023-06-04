@@ -4,9 +4,9 @@ import (
 	"app/ent"
 	"app/ent/user"
 	"app/services"
+	"context"
 	"errors"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -15,43 +15,57 @@ import (
 // A private key for context that only this package can access. This is important
 // to prevent collisions between different context uses
 // https://gqlgen.com/recipes/authentication/
-var userCtxKey = &contextKey{"user"}
+var authedCheckCtxKey = &contextKey{"isAuthed"}
 
 type contextKey struct {
-	name string
+	isAuthed string
 }
 
-func AuthorizeJWT(client *ent.Client) gin.HandlerFunc {
+func JWTAuth(client *ent.Client) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
+		// add gin.Context to context.Context so the resolvers can access the gin.Context in order to retrieve the isAuthed value
+		// https://gqlgen.com/recipes/gin/
+		ctx.Set(authedCheckCtxKey.isAuthed, false)
+		c := context.WithValue(ctx.Request.Context(), "GinContextKey", ctx)
+		ctx.Request = ctx.Request.WithContext(c)
+
 		// Bearer token will be shown like `Authorization: Bearer <token>` in http header
 		const BEARER_SCHEMA = "Bearer "
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
 			log.Println(errors.New("auth header is invalid"))
-			ctx.AbortWithStatus(http.StatusBadRequest)
-			return
+			ctx.Next()
 		}
-		tokenString := authHeader[len(BEARER_SCHEMA):]
 
-		token, err := services.NewJWTService().ValidateToken(tokenString)
+		tokenString := authHeader[len(BEARER_SCHEMA):]
+		token, err := services.New(client).ValidateToken(tokenString)
 
 		if err != nil {
-			log.Println(err)
-			ctx.Redirect(http.StatusFound, "/login")
-			ctx.AbortWithError(http.StatusForbidden, err)
+			log.Println("authenticating request: ", err)
+			ctx.Next()
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
 		email := claims["email"].(string)
 
 		// check if user exists in db
-		user, err := client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
+		_, err = client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
 		if err != nil {
-			ctx.Redirect(http.StatusFound, "/login")
-			ctx.AbortWithError(http.StatusNotFound, err)
-			return
+			log.Println("authenicating request: ", err)
+			ctx.Next()
 		}
 
-		ctx.Set(userCtxKey.name, user)
+		// token verified, user exists; thus this request is authorized; overwrite context value
+		ctx.Set(authedCheckCtxKey.isAuthed, true)
+		c = context.WithValue(ctx.Request.Context(), "GinContextKey", ctx)
+		ctx.Request = ctx.Request.WithContext(c)
+		ctx.Next()
 	}
+}
+
+// ForContext finds the isAuthed value from the context. REQUIRES Middleware to have run.
+func ForContext(ctx context.Context) bool {
+	raw := ctx.Value(authedCheckCtxKey.isAuthed)
+	return raw.(bool)
 }

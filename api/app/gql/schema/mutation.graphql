@@ -11,3 +11,8 @@ type SigninResponse {
   userId: ID!
   token: String!
 }
+
+extend type Query {
+  emailExists(email: String!): Boolean
+  screenNameExists(screenName: String!): Boolean
+}

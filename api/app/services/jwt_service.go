@@ -9,11 +9,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type JWTService interface {
-	GenerateToken(email string) (string, error)
-	ValidateToken(tokenString string) (*jwt.Token, error)
-}
-
 type jwtCustomClaims struct {
 	Email string `json:"email"`
 	jwt.RegisteredClaims
@@ -23,13 +18,7 @@ type jwtService struct {
 	issuer string
 }
 
-func NewJWTService() JWTService {
-	return &jwtService{
-		issuer: "example_issuer",
-	}
-}
-
-func (jwtSrv *jwtService) GenerateToken(email string) (string, error) {
+func (j *jwtService) GenerateToken(email string) (string, error) {
 	tokenLifeSpan, err := strconv.Atoi(os.Getenv("JWT_TOKEN_EXP_HOUR"))
 	if err != nil {
 		return "", err
@@ -39,7 +28,7 @@ func (jwtSrv *jwtService) GenerateToken(email string) (string, error) {
 		email,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(tokenLifeSpan))),
-			Issuer:    jwtSrv.issuer,
+			Issuer:    j.issuer,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -54,7 +43,7 @@ func (jwtSrv *jwtService) GenerateToken(email string) (string, error) {
 	return t, err
 }
 
-func (jwtSrv *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
+func (j *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

@@ -55,10 +55,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Node   func(childComplexity int, id int) int
-		Nodes  func(childComplexity int, ids []int) int
-		Tweets func(childComplexity int, where *ent.TweetWhereInput) int
-		Users  func(childComplexity int, where *ent.UserWhereInput) int
+		EmailExists      func(childComplexity int, email string) int
+		Node             func(childComplexity int, id int) int
+		Nodes            func(childComplexity int, ids []int) int
+		ScreenNameExists func(childComplexity int, screenName string) int
+		Tweets           func(childComplexity int, where *ent.TweetWhereInput) int
+		Users            func(childComplexity int, where *ent.UserWhereInput) int
 	}
 
 	SigninResponse struct {
@@ -206,6 +208,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
+	case "Query.emailExists":
+		if e.complexity.Query.EmailExists == nil {
+			break
+		}
+
+		args, err := ec.field_Query_emailExists_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EmailExists(childComplexity, args["email"].(string)), true
+
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
 			break
@@ -229,6 +243,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]int)), true
+
+	case "Query.screenNameExists":
+		if e.complexity.Query.ScreenNameExists == nil {
+			break
+		}
+
+		args, err := ec.field_Query_screenNameExists_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ScreenNameExists(childComplexity, args["screenName"].(string)), true
 
 	case "Query.tweets":
 		if e.complexity.Query.Tweets == nil {
@@ -791,6 +817,11 @@ input UserWhereInput {
 type SigninResponse {
   userId: ID!
   token: String!
+}
+
+extend type Query {
+  emailExists(email: String!): Boolean
+  screenNameExists(screenName: String!): Boolean
 }
 `, BuiltIn: false},
 }

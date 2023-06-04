@@ -2,96 +2,82 @@ package services
 
 import (
 	"app/ent"
-	"app/models"
+	"app/ent/user"
 	"context"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO: create and use response type instead of models.User type
-type UserService interface {
-	GetUsers(context.Context) ([]models.User, error)
-	GetUserById(context.Context, uint) (models.User, error)
-	CreateUser(context.Context, models.User) (models.User, error)
-}
-
 type userService struct {
-	client *ent.UserClient
+	client *ent.Client
 }
 
-func NewUserService(userClient *ent.UserClient) UserService {
-	return &userService{
-		client: userClient,
+// Also handles getById and getByEmail and those kinds by specifying 'where' argument
+func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
+	pred, err := where.P()
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (srv *userService) GetUsers(ctx context.Context) ([]models.User, error) {
-	users, err := srv.client.Query().All(ctx)
+	users, err := u.client.User.Query().Where(pred).All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting users: %w", err)
 	}
 
-	var res []models.User
-	for _, user := range users {
-		res = append(res, models.User{
-			Id:           uint(user.ID),
-			ScreenName:   user.ScreenName,
-			Username:     user.Name,
-			Email:        user.Email,
-			Password:     user.Password,
-			ProfileImage: user.ProfileImage,
-			CreatedAt:    user.CreatedAt,
-			UpdatedAt:    user.UpdatedAt,
-		})
-	}
-
-	return res, nil
+	return users, nil
 }
 
-func (srv *userService) GetUserById(ctx context.Context, id uint) (models.User, error) {
-	user, err := srv.client.Get(ctx, int(id))
+func (u *userService) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return models.User{}, fmt.Errorf("getting user: %w", err)
+		return nil, err
 	}
 
-	res := models.User{
-		Id:           uint(user.ID),
-		ScreenName:   user.ScreenName,
-		Username:     user.Name,
-		Email:        user.Email,
-		Password:     user.Password,
-		ProfileImage: user.ProfileImage,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
+	input.Password = string(hash)
+	user, err := u.client.User.Create().SetInput(input).Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating user: %w", err)
 	}
 
-	return res, nil
+	return user, nil
 }
 
-func (srv *userService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	newUser, err := srv.client.
-		Create().
-		SetScreenName(user.ScreenName).
-		SetName(user.Username).
-		SetEmail(user.Email).
-		SetPassword(user.Password).
-		SetProfileImage(user.ProfileImage).
-		SetCreatedAt(user.CreatedAt).
-		SetUpdatedAt(user.UpdatedAt).
-		Save(ctx)
+func (u *userService) UpdateUserById(ctx context.Context, id int, input ent.UpdateUserInput) (*ent.User, error) {
+	user, err := u.client.User.UpdateOneID(id).SetInput(input).Save(ctx)
 	if err != nil {
-		return models.User{}, fmt.Errorf("creating user: %w", err)
+		return nil, fmt.Errorf("updating user: %w", err)
 	}
 
-	res := models.User{
-		Id:           uint(newUser.ID),
-		ScreenName:   newUser.ScreenName,
-		Username:     newUser.Name,
-		Email:        newUser.Email,
-		Password:     newUser.Password,
-		ProfileImage: newUser.ProfileImage,
-		CreatedAt:    newUser.CreatedAt,
-		UpdatedAt:    newUser.UpdatedAt,
+	return user, nil
+}
+
+func (u *userService) DeleteUserById(ctx context.Context, id int) (*bool, error) {
+	err := u.client.User.DeleteOneID(id).Exec(ctx)
+	isOk := err == nil
+	if !isOk {
+		return &isOk, fmt.Errorf("deleting user: %w", err)
 	}
 
-	return res, nil
+	return &isOk, nil
+}
+
+func (u *userService) CheckEmailExists(ctx context.Context, email string) (*bool, error) {
+	user, err := u.client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
+	isEmailExists := user != nil
+	if !isEmailExists {
+		return &isEmailExists, err
+	}
+
+	return &isEmailExists, nil
+}
+
+func (u *userService) CheckScreenNameExists(ctx context.Context, screenName string) (*bool, error) {
+	user, err := u.client.User.Query().Where(user.ScreenNameEQ(screenName)).Only(ctx)
+	isScreenNameExists := user != nil
+	if !isScreenNameExists {
+		return &isScreenNameExists, err
+	}
+
+	return &isScreenNameExists, nil
 }

@@ -1,26 +1,26 @@
 package handlers
 
-import (
-	"app/controllers"
-	"app/services"
-	"net/http"
+// import (
+// 	"app/controllers"
+// 	"app/services"
+// 	"net/http"
 
-	"github.com/gin-gonic/gin"
-)
+// 	"github.com/gin-gonic/gin"
+// )
 
-var (
-	loginService    services.LoginService       = services.NewLoginService()
-	jwtService      services.JWTService         = services.NewJWTService()
-	loginController controllers.LoginController = controllers.NewLoginController(loginService, jwtService)
-)
+// var (
+// 	loginService    services.LoginService       = services.NewLoginService()
+// 	jwtService      services.JWTService         = services.NewJWTService()
+// 	loginController controllers.LoginController = controllers.NewLoginController(loginService, jwtService)
+// )
 
-func LoginHandler(ctx *gin.Context) {
-	token, err := loginController.Login(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, nil)
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{
-			"token": token,
-		})
-	}
-}
+// func LoginHandler(ctx *gin.Context) {
+// 	token, err := loginController.Login(ctx)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusUnauthorized, nil)
+// 	} else {
+// 		ctx.JSON(http.StatusOK, gin.H{
+// 			"token": token,
+// 		})
+// 	}
+// }
