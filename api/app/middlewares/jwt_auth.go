@@ -47,10 +47,10 @@ func JWTAuth(client *ent.Client) gin.HandlerFunc {
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		email := claims["email"].(string)
+		screenName := claims["screen_name"].(string)
 
 		// check if user exists in db
-		_, err = client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
+		_, err = client.User.Query().Where(user.ScreenNameEQ(screenName)).Only(ctx)
 		if err != nil {
 			log.Println("authenicating request: ", err)
 			ctx.Next()

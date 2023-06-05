@@ -9,8 +9,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// use screen name rather than email for the security risk reason
 type jwtCustomClaims struct {
-	Email string `json:"email"`
+	ScreenName string `json:"screen_name"`
 	jwt.RegisteredClaims
 }
 
@@ -18,14 +19,14 @@ type jwtService struct {
 	issuer string
 }
 
-func (j *jwtService) GenerateToken(email string) (string, error) {
+func (j *jwtService) GenerateToken(screenName string) (string, error) {
 	tokenLifeSpan, err := strconv.Atoi(os.Getenv("JWT_TOKEN_EXP_HOUR"))
 	if err != nil {
 		return "", err
 	}
 
 	claims := &jwtCustomClaims{
-		email,
+		screenName,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(tokenLifeSpan))),
 			Issuer:    j.issuer,

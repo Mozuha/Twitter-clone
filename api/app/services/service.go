@@ -54,7 +54,7 @@ type SigninService interface {
 }
 
 type JWTService interface {
-	GenerateToken(email string) (string, error)
+	GenerateToken(screenName string) (string, error)
 	ValidateToken(tokenString string) (*jwt.Token, error)
 }
 

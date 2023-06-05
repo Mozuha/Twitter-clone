@@ -24,7 +24,7 @@ func (s *signinService) Signin(ctx context.Context, email string, password strin
 		return nil, fmt.Errorf("password incorrect: %w", err)
 	}
 
-	token, err := New(s.client).GenerateToken(email)
+	token, err := New(s.client).GenerateToken(user.ScreenName)
 	if err != nil {
 		return nil, err
 	}
