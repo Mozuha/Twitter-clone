@@ -39,12 +39,13 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateTweet func(childComplexity int, input ent.CreateTweetInput) int
-		CreateUser  func(childComplexity int, input ent.CreateUserInput) int
-		DeleteTweet func(childComplexity int, id int) int
-		DeleteUser  func(childComplexity int, id int) int
-		Signin      func(childComplexity int, email string, password string) int
-		UpdateUser  func(childComplexity int, id int, input ent.UpdateUserInput) int
+		CreateTweet  func(childComplexity int, input ent.CreateTweetInput) int
+		CreateUser   func(childComplexity int, input ent.CreateUserInput) int
+		DeleteTweet  func(childComplexity int, id int) int
+		DeleteUser   func(childComplexity int, id int) int
+		RefreshToken func(childComplexity int, token string) int
+		Signin       func(childComplexity int, email string, password string) int
+		UpdateUser   func(childComplexity int, id int, input ent.UpdateUserInput) int
 	}
 
 	PageInfo struct {
@@ -155,6 +156,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(int)), true
+
+	case "Mutation.refreshToken":
+		if e.complexity.Mutation.RefreshToken == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_refreshToken_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RefreshToken(childComplexity, args["token"].(string)), true
 
 	case "Mutation.signin":
 		if e.complexity.Mutation.Signin == nil {
@@ -805,13 +818,14 @@ input UserWhereInput {
   hasLikesWith: [TweetWhereInput!]
 }
 `, BuiltIn: false},
-	{Name: "../schema/mutation.graphql", Input: `type Mutation {
+	{Name: "../schema/custom.graphql", Input: `type Mutation {
   createUser(input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User!
   deleteUser(id: ID!): Boolean # Ent delete operation does not return the deleted entity; Use Boolean to mimic the behaviour of returning nothing
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
   signin(email: String!, password: String!): SigninResponse!
+  refreshToken(token: String!): String!
 }
 
 type SigninResponse {

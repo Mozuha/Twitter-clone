@@ -56,6 +56,7 @@ type SigninService interface {
 type JWTService interface {
 	GenerateToken(screenName string) (string, error)
 	ValidateToken(tokenString string) (*jwt.Token, error)
+	RefreshToken(tokenString string) (string, error)
 }
 
 type NodeService interface {

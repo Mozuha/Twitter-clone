@@ -59,3 +59,16 @@ func (j *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
 		return nil, err
 	}
 }
+
+// receive soon-to-be-expired token and return new token, for let the user stay logged in
+func (j *jwtService) RefreshToken(tokenString string) (string, error) {
+	token, err := j.ValidateToken(tokenString)
+	if err != nil {
+		return "", err
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	screenName := claims["screen_name"].(string)
+
+	return j.GenerateToken(screenName)
+}
