@@ -4,7 +4,7 @@ import (
 	"app/ent"
 	"app/ent/user"
 	"context"
-	"fmt"
+	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,14 +15,31 @@ type userService struct {
 
 // Also handles getById and getByEmail and those kinds by specifying 'where' argument
 func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
+	var (
+		users []*ent.User
+		err   error
+	)
+
 	pred, err := where.P()
 	if err != nil {
-		return nil, err
+		if err.Error() == "ent: empty predicate UserWhereInput" {
+			// for getting all users (no where predicate)
+			users, err = u.client.User.Query().All(ctx)
+		} else {
+			return nil, err
+		}
+	} else {
+		users, err = u.client.User.Query().Where(pred).All(ctx)
+
+		// even when no record was matched, All() will return empty slice and deem it not as an error
+		// need to set not found error if no record was matched
+		if len(users) == 0 {
+			err = errors.New("ent: user not found")
+		}
 	}
 
-	users, err := u.client.User.Query().Where(pred).All(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting users: %w", err)
+		return nil, err
 	}
 
 	return users, nil
@@ -37,16 +54,26 @@ func (u *userService) CreateUser(ctx context.Context, input ent.CreateUserInput)
 	input.Password = string(hash)
 	user, err := u.client.User.Create().SetInput(input).Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("creating user: %w", err)
+		return nil, err
 	}
 
 	return user, nil
 }
 
 func (u *userService) UpdateUserById(ctx context.Context, id int, input ent.UpdateUserInput) (*ent.User, error) {
+	// updated password must also be hashed
+	if input.Password != nil {
+		hash, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		hashStr := string(hash)
+		input.Password = &hashStr
+	}
+
 	user, err := u.client.User.UpdateOneID(id).SetInput(input).Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("updating user: %w", err)
+		return nil, err
 	}
 
 	return user, nil
@@ -56,7 +83,7 @@ func (u *userService) DeleteUserById(ctx context.Context, id int) (*bool, error)
 	err := u.client.User.DeleteOneID(id).Exec(ctx)
 	isOk := err == nil
 	if !isOk {
-		return &isOk, fmt.Errorf("deleting user: %w", err)
+		return &isOk, err
 	}
 
 	return &isOk, nil
