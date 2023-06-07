@@ -1,8 +1,8 @@
 package gql
 
 import (
-	"app/ent"
 	"app/gql/generated"
+	"app/services"
 
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -12,11 +12,11 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 // Resolver is the resolver root.
-type Resolver struct{ client *ent.Client }
+type Resolver struct{ srv services.Services }
 
 // NewSchema creates a graphql executable schema.
-func NewSchema(client *ent.Client) graphql.ExecutableSchema {
+func NewSchema(srv services.Services) graphql.ExecutableSchema {
 	return generated.NewExecutableSchema(generated.Config{
-		Resolvers: &Resolver{client},
+		Resolvers: &Resolver{srv},
 	})
 }

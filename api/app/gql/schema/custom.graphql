@@ -4,4 +4,16 @@ type Mutation {
   deleteUser(id: ID!): Boolean # Ent delete operation does not return the deleted entity; Use Boolean to mimic the behaviour of returning nothing
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
+  signin(email: String!, password: String!): SigninResponse!
+  refreshToken(token: String!): String!
+}
+
+type SigninResponse {
+  userId: ID!
+  token: String!
+}
+
+extend type Query {
+  emailExists(email: String!): Boolean
+  screenNameExists(screenName: String!): Boolean
 }

@@ -1,4 +1,4 @@
-package services
+package auth
 
 import (
 	"fmt"
@@ -9,37 +9,25 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type JWTService interface {
-	GenerateToken(email string) (string, error)
-	ValidateToken(tokenString string) (*jwt.Token, error)
-}
-
+// use screen name rather than email for the security risk reason
 type jwtCustomClaims struct {
-	Email string `json:"email"`
+	ScreenName string `json:"screen_name"`
 	jwt.RegisteredClaims
 }
 
-type jwtService struct {
-	issuer string
-}
+var issuer = "example_issuer"
 
-func NewJWTService() JWTService {
-	return &jwtService{
-		issuer: "example_issuer",
-	}
-}
-
-func (jwtSrv *jwtService) GenerateToken(email string) (string, error) {
+func GenerateToken(screenName string) (string, error) {
 	tokenLifeSpan, err := strconv.Atoi(os.Getenv("JWT_TOKEN_EXP_HOUR"))
 	if err != nil {
 		return "", err
 	}
 
 	claims := &jwtCustomClaims{
-		email,
+		screenName,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(tokenLifeSpan))),
-			Issuer:    jwtSrv.issuer,
+			Issuer:    issuer,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -54,12 +42,31 @@ func (jwtSrv *jwtService) GenerateToken(email string) (string, error) {
 	return t, err
 }
 
-func (jwtSrv *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func ValidateToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
+
+	if token.Valid {
+		return token, nil
+	} else {
+		return nil, err
+	}
+}
+
+// receive soon-to-be-expired token and return new token, for let the user stay logged in
+func RefreshToken(tokenString string) (string, error) {
+	token, err := ValidateToken(tokenString)
+	if err != nil {
+		return "", err
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	screenName := claims["screen_name"].(string)
+
+	return GenerateToken(screenName)
 }

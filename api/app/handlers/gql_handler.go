@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"app/ent"
 	"app/gql"
+	"app/services"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 )
 
-func GqlHandler(c *ent.Client) gin.HandlerFunc {
-	h := handler.NewDefaultServer(gql.NewSchema(c))
+func GqlHandler(srv services.Services) gin.HandlerFunc {
+	h := handler.NewDefaultServer(gql.NewSchema(srv))
 
 	return func(ctx *gin.Context) {
 		h.ServeHTTP(ctx.Writer, ctx.Request)

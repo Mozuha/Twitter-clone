@@ -7,35 +7,44 @@ package gql
 import (
 	"app/ent"
 	"app/gql/generated"
+	"app/utils"
 	"context"
 )
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
-	return r.client.Noder(ctx, id)
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
+		return nil, err
+	} else {
+		return r.srv.Node(ctx, id)
+	}
 }
 
 // Nodes is the resolver for the nodes field.
 func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids)
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
+		return nil, err
+	} else {
+		return r.srv.Nodes(ctx, ids)
+	}
 }
 
 // Tweets is the resolver for the tweets field.
 func (r *queryResolver) Tweets(ctx context.Context, where *ent.TweetWhereInput) ([]*ent.Tweet, error) {
-	pred, err := where.P()
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
+	} else {
+		return r.srv.GetTweets(ctx, where)
 	}
-	return r.client.Tweet.Query().Where(pred).All(ctx)
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
-	pred, err := where.P()
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
+	} else {
+		return r.srv.GetUsers(ctx, where)
 	}
-	return r.client.User.Query().Where(pred).All(ctx)
 }
 
 // Query returns generated.QueryResolver implementation.
