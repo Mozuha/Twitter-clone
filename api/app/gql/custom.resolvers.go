@@ -6,12 +6,11 @@ package gql
 
 import (
 	"app"
+	"app/auth"
 	"app/ent"
 	"app/gql/generated"
-	"app/middlewares"
 	"app/utils"
 	"context"
-	"errors"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -22,13 +21,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserI
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input ent.UpdateUserInput) (*ent.User, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.UpdateUserById(ctx, id, input)
 	}
@@ -36,13 +30,8 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input ent.Upd
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*bool, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.DeleteUserById(ctx, id)
 	}
@@ -50,13 +39,8 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*bool, error
 
 // CreateTweet is the resolver for the createTweet field.
 func (r *mutationResolver) CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.CreateTweet(ctx, input)
 	}
@@ -64,13 +48,8 @@ func (r *mutationResolver) CreateTweet(ctx context.Context, input ent.CreateTwee
 
 // DeleteTweet is the resolver for the deleteTweet field.
 func (r *mutationResolver) DeleteTweet(ctx context.Context, id int) (*bool, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.DeleteTweetById(ctx, id)
 	}
@@ -84,7 +63,7 @@ func (r *mutationResolver) Signin(ctx context.Context, email string, password st
 
 // RefreshToken is the resolver for the refreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (string, error) {
-	return r.srv.RefreshToken(token)
+	return auth.RefreshToken(token)
 }
 
 // EmailExists is the resolver for the emailExists field.

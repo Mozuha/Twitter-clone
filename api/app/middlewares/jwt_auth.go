@@ -1,9 +1,9 @@
 package middlewares
 
 import (
+	"app/auth"
 	"app/ent"
 	"app/ent/user"
-	"app/services"
 	"context"
 	"errors"
 	"log"
@@ -36,14 +36,16 @@ func JWTAuth(client *ent.Client) gin.HandlerFunc {
 		if authHeader == "" {
 			log.Println(errors.New("auth header is invalid"))
 			ctx.Next()
+			return
 		}
 
 		tokenString := authHeader[len(BEARER_SCHEMA):]
-		token, err := services.New(client).ValidateToken(tokenString)
+		token, err := auth.ValidateToken(tokenString)
 
 		if err != nil {
 			log.Println("authenticating request: ", err)
 			ctx.Next()
+			return
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
@@ -54,6 +56,7 @@ func JWTAuth(client *ent.Client) gin.HandlerFunc {
 		if err != nil {
 			log.Println("authenicating request: ", err)
 			ctx.Next()
+			return
 		}
 
 		// token verified, user exists; thus this request is authorized; overwrite context value

@@ -4,15 +4,12 @@ import (
 	"app"
 	"app/ent"
 	"context"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type Services interface {
 	UserService
 	TweetService
 	SigninService
-	JWTService
 	NodeService
 }
 
@@ -20,7 +17,6 @@ type services struct {
 	*userService
 	*tweetService
 	*signinService
-	*jwtService
 	*nodeService
 }
 
@@ -29,7 +25,6 @@ func New(client *ent.Client) Services {
 		userService:   &userService{client: client},
 		tweetService:  &tweetService{client: client},
 		signinService: &signinService{client: client},
-		jwtService:    &jwtService{issuer: "example_issuer"},
 		nodeService:   &nodeService{client: client},
 	}
 }
@@ -51,12 +46,6 @@ type TweetService interface {
 
 type SigninService interface {
 	Signin(ctx context.Context, email string, password string) (*app.SigninResponse, error)
-}
-
-type JWTService interface {
-	GenerateToken(screenName string) (string, error)
-	ValidateToken(tokenString string) (*jwt.Token, error)
-	RefreshToken(tokenString string) (string, error)
 }
 
 type NodeService interface {

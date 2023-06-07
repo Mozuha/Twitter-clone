@@ -1,4 +1,4 @@
-package services
+package auth
 
 import (
 	"fmt"
@@ -15,11 +15,9 @@ type jwtCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-type jwtService struct {
-	issuer string
-}
+var issuer = "example_issuer"
 
-func (j *jwtService) GenerateToken(screenName string) (string, error) {
+func GenerateToken(screenName string) (string, error) {
 	tokenLifeSpan, err := strconv.Atoi(os.Getenv("JWT_TOKEN_EXP_HOUR"))
 	if err != nil {
 		return "", err
@@ -29,7 +27,7 @@ func (j *jwtService) GenerateToken(screenName string) (string, error) {
 		screenName,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(tokenLifeSpan))),
-			Issuer:    j.issuer,
+			Issuer:    issuer,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -44,7 +42,7 @@ func (j *jwtService) GenerateToken(screenName string) (string, error) {
 	return t, err
 }
 
-func (j *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
+func ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -61,8 +59,8 @@ func (j *jwtService) ValidateToken(tokenString string) (*jwt.Token, error) {
 }
 
 // receive soon-to-be-expired token and return new token, for let the user stay logged in
-func (j *jwtService) RefreshToken(tokenString string) (string, error) {
-	token, err := j.ValidateToken(tokenString)
+func RefreshToken(tokenString string) (string, error) {
+	token, err := ValidateToken(tokenString)
 	if err != nil {
 		return "", err
 	}
@@ -70,5 +68,5 @@ func (j *jwtService) RefreshToken(tokenString string) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	screenName := claims["screen_name"].(string)
 
-	return j.GenerateToken(screenName)
+	return GenerateToken(screenName)
 }

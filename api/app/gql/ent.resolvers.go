@@ -7,21 +7,14 @@ package gql
 import (
 	"app/ent"
 	"app/gql/generated"
-	"app/middlewares"
 	"app/utils"
 	"context"
-	"errors"
 )
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.Node(ctx, id)
 	}
@@ -29,13 +22,8 @@ func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
 
 // Nodes is the resolver for the nodes field.
 func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.Nodes(ctx, ids)
 	}
@@ -43,13 +31,8 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 
 // Tweets is the resolver for the tweets field.
 func (r *queryResolver) Tweets(ctx context.Context, where *ent.TweetWhereInput) ([]*ent.Tweet, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.GetTweets(ctx, where)
 	}
@@ -57,13 +40,8 @@ func (r *queryResolver) Tweets(ctx context.Context, where *ent.TweetWhereInput) 
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
-	gc, err := utils.GinContextFromContext(ctx)
-	if err != nil {
+	if err := utils.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
-	}
-
-	if isAuthed := middlewares.ForContext(gc); !isAuthed {
-		return nil, errors.New("request not authorized")
 	} else {
 		return r.srv.GetUsers(ctx, where)
 	}
