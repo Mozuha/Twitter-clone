@@ -62,8 +62,8 @@ func (r *mutationResolver) Signin(ctx context.Context, email string, password st
 }
 
 // RefreshToken is the resolver for the refreshToken field.
-func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (string, error) {
-	return auth.RefreshToken(token)
+func (r *mutationResolver) RefreshToken(ctx context.Context, refreshToken string) (string, error) {
+	return auth.RefreshToken(refreshToken)
 }
 
 // EmailExists is the resolver for the emailExists field.

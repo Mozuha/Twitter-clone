@@ -61,10 +61,12 @@ func (s *SigninServiceTestSuite) TestSignin() {
 
 	s.Run("success", func() {
 		res, err := s.service.Signin(s.ctx, targetUser.Email, "12345")
-		token, err := auth.ValidateToken(res.Token)
+		accToken, err := auth.ValidateToken(res.AccessToken)
+		refToken, err := auth.ValidateToken(res.RefreshToken)
 
 		s.Equal(targetUser.ID, res.UserID)
-		s.NotEmpty(token)
+		s.NotEmpty(accToken)
+		s.NotEmpty(refToken)
 		s.NoError(err)
 	})
 

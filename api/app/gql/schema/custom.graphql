@@ -5,12 +5,13 @@ type Mutation {
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
   signin(email: String!, password: String!): SigninResponse!
-  refreshToken(token: String!): String!
+  refreshToken(refreshToken: String!): String!
 }
 
 type SigninResponse {
   userId: ID!
-  token: String!
+  accessToken: String!
+  refreshToken: String!
 }
 
 extend type Query {

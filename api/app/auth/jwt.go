@@ -17,8 +17,17 @@ type jwtCustomClaims struct {
 
 var issuer = "example_issuer"
 
-func GenerateToken(screenName string) (string, error) {
-	tokenLifeSpan, err := strconv.Atoi(os.Getenv("JWT_TOKEN_EXP_HOUR"))
+func GenerateToken(screenName string, forAccess bool) (string, error) {
+	var (
+		tokenLifeSpan int
+		err           error
+	)
+
+	if forAccess {
+		tokenLifeSpan, err = strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_EXP_HOUR"))
+	} else {
+		tokenLifeSpan, err = strconv.Atoi(os.Getenv("JWT_REFRESH_TOKEN_EXP_HOUR"))
+	}
 	if err != nil {
 		return "", err
 	}
@@ -39,6 +48,7 @@ func GenerateToken(screenName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return t, err
 }
 
@@ -58,9 +68,9 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 	}
 }
 
-// receive soon-to-be-expired token and return new token, for let the user stay logged in
-func RefreshToken(tokenString string) (string, error) {
-	token, err := ValidateToken(tokenString)
+// receive refresh token and return new access token, for let the user stay logged in
+func RefreshToken(refTokenString string) (string, error) {
+	token, err := ValidateToken(refTokenString)
 	if err != nil {
 		return "", err
 	}
@@ -68,5 +78,5 @@ func RefreshToken(tokenString string) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	screenName := claims["screen_name"].(string)
 
-	return GenerateToken(screenName)
+	return GenerateToken(screenName, true)
 }

@@ -25,10 +25,15 @@ func (s *signinService) Signin(ctx context.Context, email string, password strin
 		return nil, fmt.Errorf("password incorrect: %w", err)
 	}
 
-	token, err := auth.GenerateToken(user.ScreenName)
+	accToken, err := auth.GenerateToken(user.ScreenName, true)
 	if err != nil {
 		return nil, err
 	}
 
-	return &app.SigninResponse{UserID: user.ID, Token: token}, nil
+	refToken, err := auth.GenerateToken(user.ScreenName, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &app.SigninResponse{UserID: user.ID, AccessToken: accToken, RefreshToken: refToken}, nil
 }
