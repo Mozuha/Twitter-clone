@@ -3,6 +3,7 @@ package services
 import (
 	"app/ent"
 	"app/ent/user"
+	"app/utils"
 	"context"
 	"errors"
 
@@ -26,7 +27,8 @@ func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) (
 			// for getting all users (no where predicate)
 			users, err = u.client.User.Query().All(ctx)
 		} else {
-			return nil, err
+			gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to parse where predicate")
+			return nil, gErr
 		}
 	} else {
 		users, err = u.client.User.Query().Where(pred).All(ctx)
@@ -39,7 +41,8 @@ func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) (
 	}
 
 	if err != nil {
-		return nil, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to get users")
+		return nil, gErr
 	}
 
 	return users, nil
@@ -48,13 +51,15 @@ func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) (
 func (u *userService) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "")
+		return nil, gErr
 	}
 
 	input.Password = string(hash)
 	user, err := u.client.User.Create().SetInput(input).Save(ctx)
 	if err != nil {
-		return nil, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to create user")
+		return nil, gErr
 	}
 
 	return user, nil
@@ -65,7 +70,8 @@ func (u *userService) UpdateUserById(ctx context.Context, id int, input ent.Upda
 	if input.Password != nil {
 		hash, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, err
+			gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "")
+			return nil, gErr
 		}
 		hashStr := string(hash)
 		input.Password = &hashStr
@@ -73,7 +79,8 @@ func (u *userService) UpdateUserById(ctx context.Context, id int, input ent.Upda
 
 	user, err := u.client.User.UpdateOneID(id).SetInput(input).Save(ctx)
 	if err != nil {
-		return nil, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to update user")
+		return nil, gErr
 	}
 
 	return user, nil
@@ -83,7 +90,8 @@ func (u *userService) DeleteUserById(ctx context.Context, id int) (*bool, error)
 	err := u.client.User.DeleteOneID(id).Exec(ctx)
 	isOk := err == nil
 	if !isOk {
-		return &isOk, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to delete user")
+		return &isOk, gErr
 	}
 
 	return &isOk, nil

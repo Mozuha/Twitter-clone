@@ -2,6 +2,7 @@ package services
 
 import (
 	"app/ent"
+	"app/utils"
 	"context"
 	"errors"
 )
@@ -23,7 +24,8 @@ func (t *tweetService) GetTweets(ctx context.Context, where *ent.TweetWhereInput
 			// for getting all tweets (no where predicate)
 			tweets, err = t.client.Tweet.Query().All(ctx)
 		} else {
-			return nil, err
+			gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to parse where predicate")
+			return nil, gErr
 		}
 	} else {
 		tweets, err = t.client.Tweet.Query().Where(pred).All(ctx)
@@ -36,7 +38,8 @@ func (t *tweetService) GetTweets(ctx context.Context, where *ent.TweetWhereInput
 	}
 
 	if err != nil {
-		return nil, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to get tweets")
+		return nil, gErr
 	}
 
 	return tweets, nil
@@ -45,7 +48,8 @@ func (t *tweetService) GetTweets(ctx context.Context, where *ent.TweetWhereInput
 func (t *tweetService) CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error) {
 	tweet, err := t.client.Tweet.Create().SetInput(input).Save(ctx)
 	if err != nil {
-		return nil, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to create tweet")
+		return nil, gErr
 	}
 
 	return tweet, nil
@@ -55,8 +59,9 @@ func (t *tweetService) DeleteTweetById(ctx context.Context, id int) (*bool, erro
 	err := t.client.Tweet.DeleteOneID(id).Exec(ctx)
 	isOk := err == nil
 	if !isOk {
-		return &isOk, err
+		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to delete tweet")
+		return &isOk, gErr
 	}
 
-	return &isOk, err
+	return &isOk, nil
 }
