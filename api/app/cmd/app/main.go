@@ -30,7 +30,12 @@ func main() {
 	}
 	defer entClient.Close()
 
-	router := route.SetUpRouter(entClient)
+	redisStore, err := db.SetUpRedisStore(runningEnv)
+	if err != nil {
+		os.Exit(2)
+	}
+
+	router := route.SetUpRouter(entClient, redisStore)
 
 	router.Run(":8080")
 }
