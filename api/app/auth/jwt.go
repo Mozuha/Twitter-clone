@@ -82,6 +82,10 @@ func RefreshToken(sessionId string, refTokenString string) (string, error) {
 
 	claims := token.Claims.(jwt.MapClaims)
 	uId := claims["user_id"].(string)
+	sId := claims["session_id"].(string)
+	if sId != sessionId {
+		return "", fmt.Errorf("invalid session id")
+	}
 
 	// generate new access token
 	return GenerateToken(uId, sessionId, true)

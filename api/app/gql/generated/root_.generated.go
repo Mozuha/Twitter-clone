@@ -45,6 +45,7 @@ type ComplexityRoot struct {
 		DeleteUser   func(childComplexity int, id int) int
 		RefreshToken func(childComplexity int, refreshToken string) int
 		Signin       func(childComplexity int, email string, password string) int
+		Signout      func(childComplexity int) int
 		UpdateUser   func(childComplexity int, id int, input ent.UpdateUserInput) int
 	}
 
@@ -181,6 +182,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Signin(childComplexity, args["email"].(string), args["password"].(string)), true
+
+	case "Mutation.signout":
+		if e.complexity.Mutation.Signout == nil {
+			break
+		}
+
+		return e.complexity.Mutation.Signout(childComplexity), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -833,6 +841,7 @@ input UserWhereInput {
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
   signin(email: String!, password: String!): SigninResponse!
+  signout: Boolean
   refreshToken(refreshToken: String!): String!
 }
 

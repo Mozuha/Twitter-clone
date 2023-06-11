@@ -6,6 +6,7 @@ require (
 	entgo.io/contrib v0.4.6-0.20230514215512-b00990bedaf0
 	entgo.io/ent v0.12.3
 	github.com/99designs/gqlgen v0.17.31
+	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -26,7 +27,6 @@ require (
 	github.com/bytedance/sonic v1.8.8 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gin-contrib/sessions v0.0.5 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

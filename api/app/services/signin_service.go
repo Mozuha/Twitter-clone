@@ -73,6 +73,25 @@ func (s *signinService) Signin(ctx context.Context, email string, password strin
 	return &app.SigninResponse{UserID: user.ID, AccessToken: accToken, RefreshToken: refToken}, nil
 }
 
+func (s *signinService) Signout(ctx context.Context) (*bool, error) {
+	gc, err := utils.GinContextFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	session := sessions.Default(gc)
+	session.Clear()
+	session.Options(sessions.Options{MaxAge: -1})
+	err = session.Save()
+
+	isOk := err == nil
+	if !isOk {
+		return &isOk, err
+	}
+
+	return &isOk, nil
+}
+
 func (s *signinService) RefreshToken(ctx context.Context, refTokenString string) (string, error) {
 	gc, err := utils.GinContextFromContext(ctx)
 	if err != nil {

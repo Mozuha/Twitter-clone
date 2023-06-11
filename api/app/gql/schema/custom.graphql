@@ -5,6 +5,7 @@ type Mutation {
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
   signin(email: String!, password: String!): SigninResponse!
+  signout: Boolean
   refreshToken(refreshToken: String!): String!
 }
 

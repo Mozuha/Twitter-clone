@@ -46,6 +46,7 @@ type TweetService interface {
 
 type SigninService interface {
 	Signin(ctx context.Context, email string, password string) (*app.SigninResponse, error)
+	Signout(ctx context.Context) (*bool, error)
 	RefreshToken(ctx context.Context, refTokenString string) (string, error)
 }
 

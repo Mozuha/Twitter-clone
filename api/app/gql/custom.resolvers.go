@@ -60,6 +60,11 @@ func (r *mutationResolver) Signin(ctx context.Context, email string, password st
 	return r.srv.Signin(ctx, email, password)
 }
 
+// Signout is the resolver for the signout field.
+func (r *mutationResolver) Signout(ctx context.Context) (*bool, error) {
+	return r.srv.Signout(ctx)
+}
+
 // RefreshToken is the resolver for the refreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, refreshToken string) (string, error) {
 	return r.srv.RefreshToken(ctx, refreshToken)
