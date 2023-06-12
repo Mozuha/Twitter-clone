@@ -7,14 +7,13 @@ import (
 	"app/ent/user"
 	"app/utils"
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 )
 
-const TWEET_NOT_FOUND_ERROR = "ent: tweet not found"
+const TWEET_NOT_FOUND_ERROR = "input: ent: tweet not found"
 
 type TweetServiceTestSuite struct {
 	suite.Suite
@@ -26,13 +25,13 @@ type TweetServiceTestSuite struct {
 func (s *TweetServiceTestSuite) SetupTest() {
 	runningEnv, err := utils.LoadEnv()
 	if err != nil {
-		fmt.Println(err)
+		s.Fail("failed to load env: ", err)
 		os.Exit(2)
 	}
 
 	s.db, err = db.ConnectTestDB(runningEnv)
 	if err != nil {
-		fmt.Println(err)
+		s.Fail("failed to connect to db: ", err)
 		os.Exit(2)
 	}
 
@@ -51,27 +50,23 @@ func TestTweetServiceTestSuite(t *testing.T) {
 
 func (s *TweetServiceTestSuite) TestGetTweets() {
 	tweets, err := s.service.GetTweets(s.ctx, &ent.TweetWhereInput{})
-	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
-	}
 
 	s.NotEmpty(tweets)
+	s.NoError(err)
 }
 
 func (s *TweetServiceTestSuite) TestGetTweetByID() {
 	targetTweet, err := s.db.Tweet.Query().First(s.ctx)
 	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
+		s.Fail("failed to get tweet to be used: ", err)
 	}
 
 	s.Run("success", func() {
 		tweet, err := s.service.GetTweets(s.ctx, &ent.TweetWhereInput{ID: &targetTweet.ID})
-		if err != nil {
-			s.Fail("unexpected error occurred: ", err)
-		}
 
 		s.Equal(targetTweet.ID, tweet[0].ID)
 		s.Equal(targetTweet.Edges.PostedBy, tweet[0].Edges.PostedBy)
+		s.NoError(err)
 	})
 
 	s.Run("error/not found", func() {
@@ -89,7 +84,7 @@ func (s *TweetServiceTestSuite) TestGetTweetByID() {
 func (s *TweetServiceTestSuite) TestCreateTweet() {
 	postUser, err := s.db.User.Query().First(s.ctx)
 	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
+		s.Fail("failed to get user to be used: ", err)
 	}
 	expectedTweet := &ent.Tweet{
 		Text:  "sample tweet2",
@@ -103,14 +98,10 @@ func (s *TweetServiceTestSuite) TestCreateTweet() {
 		}
 
 		tweet, err := s.service.CreateTweet(s.ctx, input)
-		if err != nil {
-			s.Fail("unexpected error occurred: ", err)
-		}
+		s.NoError(err)
 
 		postedBy, err := tweet.PostedBy(s.ctx)
-		if err != nil {
-			s.Fail("unexpected error occurred: ", err)
-		}
+		s.NoError(err)
 
 		s.Equal(expectedTweet.Text, tweet.Text)
 		s.Equal(postUser.ID, postedBy.ID)
@@ -132,7 +123,7 @@ func (s *TweetServiceTestSuite) TestCreateTweet() {
 func (s *TweetServiceTestSuite) TestDeleteTweetByID() {
 	targetTweet, err := s.db.Tweet.Query().Where(tweet.HasPostedByWith(user.Email("test3@gmail.com"))).Only(s.ctx)
 	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
+		s.Fail("failed to get tweet to be deleted: ", err)
 	}
 
 	s.Run("success", func() {
@@ -140,7 +131,7 @@ func (s *TweetServiceTestSuite) TestDeleteTweetByID() {
 		s.Equal(true, *isDeleted)
 		s.NoError(err)
 
-		_, err = s.db.Tweet.Query().Where(tweet.ID(targetTweet.ID)).Only(s.ctx)
+		_, err = s.service.GetTweets(s.ctx, &ent.TweetWhereInput{ID: &targetTweet.ID})
 		s.Equal(true, err.Error() == TWEET_NOT_FOUND_ERROR)
 	})
 

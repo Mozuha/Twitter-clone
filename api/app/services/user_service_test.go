@@ -6,7 +6,6 @@ import (
 	"app/ent/user"
 	"app/utils"
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const USER_NOT_FOUND_ERROR = "ent: user not found"
+const USER_NOT_FOUND_ERROR = "input: ent: user not found"
 
 type UserServiceTestSuite struct {
 	suite.Suite
@@ -26,13 +25,13 @@ type UserServiceTestSuite struct {
 func (s *UserServiceTestSuite) SetupTest() {
 	runningEnv, err := utils.LoadEnv()
 	if err != nil {
-		fmt.Println(err)
+		s.Fail("failed to load env: ", err)
 		os.Exit(2)
 	}
 
 	s.db, err = db.ConnectTestDB(runningEnv)
 	if err != nil {
-		fmt.Println(err)
+		s.Fail("failed to connect to db: ", err)
 		os.Exit(2)
 	}
 
@@ -51,27 +50,23 @@ func TestUserServiceTestSuite(t *testing.T) {
 
 func (s *UserServiceTestSuite) TestGetUsers() {
 	users, err := s.service.GetUsers(s.ctx, &ent.UserWhereInput{})
-	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
-	}
 
 	s.NotEmpty(users)
+	s.NoError(err)
 }
 
 func (s *UserServiceTestSuite) TestGetUserByID() {
 	targetUser, err := s.db.User.Query().First(s.ctx)
 	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
+		s.Fail("failed to get user to be used: ", err)
 	}
 
 	s.Run("success", func() {
 		user, err := s.service.GetUsers(s.ctx, &ent.UserWhereInput{ID: &targetUser.ID})
-		if err != nil {
-			s.Fail("unexpected error occurred: ", err)
-		}
 
 		s.Equal(targetUser.ID, user[0].ID)
 		s.Equal(targetUser.Email, user[0].Email)
+		s.NoError(err)
 	})
 
 	s.Run("error/not found", func() {
@@ -102,15 +97,12 @@ func (s *UserServiceTestSuite) TestCreateUser() {
 		}
 
 		user, err := s.service.CreateUser(s.ctx, input)
-		if err != nil {
-			s.Fail("unexpected error occurred: ", err)
-		}
-
 		pwIntegrityErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(expectedUser.Password))
 
 		s.Equal(expectedUser.Name, user.Name)
 		s.Equal(expectedUser.ScreenName, user.ScreenName)
 		s.Equal(expectedUser.Email, user.Email)
+		s.NoError(err)
 		s.NoError(pwIntegrityErr)
 	})
 
@@ -145,7 +137,7 @@ func (s *UserServiceTestSuite) TestCreateUser() {
 func (s *UserServiceTestSuite) TestUpdateUserByID() {
 	targetUser, err := s.db.User.Query().Where(user.Email("test2@ymail.ne.jp")).Only(s.ctx)
 	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
+		s.Fail("failed to get user to be updated: ", err)
 	}
 
 	expectedUser := &ent.User{
@@ -164,15 +156,12 @@ func (s *UserServiceTestSuite) TestUpdateUserByID() {
 		}
 
 		user, err := s.service.UpdateUserById(s.ctx, targetUser.ID, input)
-		if err != nil {
-			s.Fail("unexpected error occurred: ", err)
-		}
-
 		pwIntegrityErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(expectedUser.Password))
 
 		s.Equal(expectedUser.Name, user.Name)
 		s.Equal(expectedUser.ScreenName, user.ScreenName)
 		s.Equal(expectedUser.Email, user.Email)
+		s.NoError(err)
 		s.NoError(pwIntegrityErr)
 	})
 
@@ -209,17 +198,31 @@ func (s *UserServiceTestSuite) TestUpdateUserByID() {
 }
 
 func (s *UserServiceTestSuite) TestDeleteUserByID() {
-	targetUser, err := s.db.User.Query().Where(user.Email("test4@ymail.ne.jp")).Only(s.ctx)
+	targetUser := &ent.User{
+		Name:       "test 4",
+		ScreenName: "test4",
+		Email:      "test4@ymail.ne.jp",
+		Password:   "tobedeleted",
+	}
+
+	input := ent.CreateUserInput{
+		Name:       targetUser.Name,
+		ScreenName: targetUser.ScreenName,
+		Email:      targetUser.Email,
+		Password:   targetUser.Password,
+	}
+
+	user, err := s.service.CreateUser(s.ctx, input)
 	if err != nil {
-		s.Fail("unexpected error occurred: ", err)
+		s.Fail("failed to create user to be deleted: ", err)
 	}
 
 	s.Run("success", func() {
-		isDeleted, err := s.service.DeleteUserById(s.ctx, targetUser.ID)
+		isDeleted, err := s.service.DeleteUserById(s.ctx, user.ID)
 		s.Equal(true, *isDeleted)
 		s.NoError(err)
 
-		_, err = s.db.User.Query().Where(user.Email("test4@ymail.ne.jp")).Only(s.ctx)
+		_, err = s.service.GetUsers(s.ctx, &ent.UserWhereInput{Email: &targetUser.Email})
 		s.Equal(true, err.Error() == USER_NOT_FOUND_ERROR)
 	})
 
