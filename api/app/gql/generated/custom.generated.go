@@ -23,7 +23,8 @@ type MutationResolver interface {
 	CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error)
 	DeleteTweet(ctx context.Context, id int) (*bool, error)
 	Signin(ctx context.Context, email string, password string) (*app.SigninResponse, error)
-	RefreshToken(ctx context.Context, token string) (string, error)
+	Signout(ctx context.Context) (*bool, error)
+	RefreshToken(ctx context.Context, refreshToken string) (string, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -94,14 +95,14 @@ func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+	if tmp, ok := rawArgs["refreshToken"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("refreshToken"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["token"] = arg0
+	args["refreshToken"] = arg0
 	return args, nil
 }
 
@@ -535,8 +536,10 @@ func (ec *executionContext) fieldContext_Mutation_signin(ctx context.Context, fi
 			switch field.Name {
 			case "userId":
 				return ec.fieldContext_SigninResponse_userId(ctx, field)
-			case "token":
-				return ec.fieldContext_SigninResponse_token(ctx, field)
+			case "accessToken":
+				return ec.fieldContext_SigninResponse_accessToken(ctx, field)
+			case "refreshToken":
+				return ec.fieldContext_SigninResponse_refreshToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SigninResponse", field.Name)
 		},
@@ -555,6 +558,47 @@ func (ec *executionContext) fieldContext_Mutation_signin(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_signout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_signout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Signout(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_signout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_refreshToken(ctx, field)
 	if err != nil {
@@ -569,7 +613,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RefreshToken(rctx, fc.Args["token"].(string))
+		return ec.resolvers.Mutation().RefreshToken(rctx, fc.Args["refreshToken"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -654,8 +698,8 @@ func (ec *executionContext) fieldContext_SigninResponse_userId(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _SigninResponse_token(ctx context.Context, field graphql.CollectedField, obj *app.SigninResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SigninResponse_token(ctx, field)
+func (ec *executionContext) _SigninResponse_accessToken(ctx context.Context, field graphql.CollectedField, obj *app.SigninResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SigninResponse_accessToken(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -668,7 +712,7 @@ func (ec *executionContext) _SigninResponse_token(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Token, nil
+		return obj.AccessToken, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -685,7 +729,51 @@ func (ec *executionContext) _SigninResponse_token(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SigninResponse_token(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SigninResponse_accessToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SigninResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SigninResponse_refreshToken(ctx context.Context, field graphql.CollectedField, obj *app.SigninResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SigninResponse_refreshToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RefreshToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SigninResponse_refreshToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SigninResponse",
 		Field:      field,
@@ -777,6 +865,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "signout":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_signout(ctx, field)
+			})
+
 		case "refreshToken":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -814,9 +908,16 @@ func (ec *executionContext) _SigninResponse(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "token":
+		case "accessToken":
 
-			out.Values[i] = ec._SigninResponse_token(ctx, field, obj)
+			out.Values[i] = ec._SigninResponse_accessToken(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "refreshToken":
+
+			out.Values[i] = ec._SigninResponse_refreshToken(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

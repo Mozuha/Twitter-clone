@@ -26,7 +26,6 @@ func InsertMockData(ctx context.Context, client *ent.Client) error {
 		{ScreenName: "test1", Name: "test 1", Email: "test1@gmail.com", Password: "pass", ProfileImage: "images/test1.jpg"},
 		{ScreenName: "test2", Name: "test 2", Email: "test2@ymail.ne.jp", Password: "word", ProfileImage: "images/test2.jpg"},
 		{ScreenName: "test3", Name: "test 3", Email: "test3@gmail.com", Password: "password", ProfileImage: "images/test3.jpg"},
-		{ScreenName: "test4", Name: "test 4", Email: "test4@ymail.ne.jp", Password: "tobedeleted", ProfileImage: "images/test4.jpg"},
 	}
 
 	usersBulk := make([]*ent.UserCreate, len(usersMock))

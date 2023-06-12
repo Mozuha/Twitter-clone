@@ -3,6 +3,7 @@
 package app
 
 type SigninResponse struct {
-	UserID int    `json:"userId"`
-	Token  string `json:"token"`
+	UserID       int    `json:"userId"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }

@@ -9,22 +9,36 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// use screen name rather than email for the security risk reason
+/*
+include session id in the token so that we can invalidate the token by deleting the session
+https://zenn.dev/ritou/articles/4a5d6597a5f250#%E3%80%8C%E3%82%BB%E3%83%83%E3%82%B7%E3%83%A7%E3%83%B3id%E3%82%92jwt%E3%81%AB%E5%86%85%E5%8C%85%E3%80%8D%E3%81%A8%E3%81%84%E3%81%86%E8%80%83%E3%81%88%E6%96%B9
+*/
 type jwtCustomClaims struct {
-	ScreenName string `json:"screen_name"`
+	UserId    string `json:"user_id"`
+	SessionId string `json:"session_id"`
 	jwt.RegisteredClaims
 }
 
 var issuer = "example_issuer"
 
-func GenerateToken(screenName string) (string, error) {
-	tokenLifeSpan, err := strconv.Atoi(os.Getenv("JWT_TOKEN_EXP_HOUR"))
+func GenerateToken(userId string, sessionId string, forAccess bool) (string, error) {
+	var (
+		tokenLifeSpan int
+		err           error
+	)
+
+	if forAccess {
+		tokenLifeSpan, err = strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_EXP_HOUR"))
+	} else {
+		tokenLifeSpan, err = strconv.Atoi(os.Getenv("JWT_REFRESH_TOKEN_EXP_HOUR"))
+	}
 	if err != nil {
 		return "", err
 	}
 
 	claims := &jwtCustomClaims{
-		screenName,
+		userId,
+		sessionId,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(tokenLifeSpan))),
 			Issuer:    issuer,
@@ -39,6 +53,7 @@ func GenerateToken(screenName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return t, err
 }
 
@@ -51,22 +66,27 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
-	if token.Valid {
+	if token != nil && token.Valid {
 		return token, nil
 	} else {
 		return nil, err
 	}
 }
 
-// receive soon-to-be-expired token and return new token, for let the user stay logged in
-func RefreshToken(tokenString string) (string, error) {
-	token, err := ValidateToken(tokenString)
+// receive refresh token and return new access token, for let the user stay logged in
+func RefreshToken(sessionId string, refTokenString string) (string, error) {
+	token, err := ValidateToken(refTokenString)
 	if err != nil {
 		return "", err
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	screenName := claims["screen_name"].(string)
+	uId := claims["user_id"].(string)
+	sId := claims["session_id"].(string)
+	if sId != sessionId {
+		return "", fmt.Errorf("invalid session id")
+	}
 
-	return GenerateToken(screenName)
+	// generate new access token
+	return GenerateToken(uId, sessionId, true)
 }

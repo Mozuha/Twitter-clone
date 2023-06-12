@@ -43,8 +43,9 @@ type ComplexityRoot struct {
 		CreateUser   func(childComplexity int, input ent.CreateUserInput) int
 		DeleteTweet  func(childComplexity int, id int) int
 		DeleteUser   func(childComplexity int, id int) int
-		RefreshToken func(childComplexity int, token string) int
+		RefreshToken func(childComplexity int, refreshToken string) int
 		Signin       func(childComplexity int, email string, password string) int
+		Signout      func(childComplexity int) int
 		UpdateUser   func(childComplexity int, id int, input ent.UpdateUserInput) int
 	}
 
@@ -65,8 +66,9 @@ type ComplexityRoot struct {
 	}
 
 	SigninResponse struct {
-		Token  func(childComplexity int) int
-		UserID func(childComplexity int) int
+		AccessToken  func(childComplexity int) int
+		RefreshToken func(childComplexity int) int
+		UserID       func(childComplexity int) int
 	}
 
 	Tweet struct {
@@ -167,7 +169,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RefreshToken(childComplexity, args["token"].(string)), true
+		return e.complexity.Mutation.RefreshToken(childComplexity, args["refreshToken"].(string)), true
 
 	case "Mutation.signin":
 		if e.complexity.Mutation.Signin == nil {
@@ -180,6 +182,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Signin(childComplexity, args["email"].(string), args["password"].(string)), true
+
+	case "Mutation.signout":
+		if e.complexity.Mutation.Signout == nil {
+			break
+		}
+
+		return e.complexity.Mutation.Signout(childComplexity), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -293,12 +302,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Users(childComplexity, args["where"].(*ent.UserWhereInput)), true
 
-	case "SigninResponse.token":
-		if e.complexity.SigninResponse.Token == nil {
+	case "SigninResponse.accessToken":
+		if e.complexity.SigninResponse.AccessToken == nil {
 			break
 		}
 
-		return e.complexity.SigninResponse.Token(childComplexity), true
+		return e.complexity.SigninResponse.AccessToken(childComplexity), true
+
+	case "SigninResponse.refreshToken":
+		if e.complexity.SigninResponse.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.SigninResponse.RefreshToken(childComplexity), true
 
 	case "SigninResponse.userId":
 		if e.complexity.SigninResponse.UserID == nil {
@@ -825,12 +841,14 @@ input UserWhereInput {
   createTweet(input: CreateTweetInput!): Tweet!
   deleteTweet(id: ID!): Boolean
   signin(email: String!, password: String!): SigninResponse!
-  refreshToken(token: String!): String!
+  signout: Boolean
+  refreshToken(refreshToken: String!): String!
 }
 
 type SigninResponse {
   userId: ID!
-  token: String!
+  accessToken: String!
+  refreshToken: String!
 }
 
 extend type Query {

@@ -10,43 +10,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:alpine
-        env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_DATABASE }}
-        ports:
-          - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v3
 
       - name: Create env file
-        working-directory: ./api/app
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
-
-      - name: Go mod tidy
-        working-directory: ./api/app
-        run: go mod tidy
-
-      - name: Build
-        working-directory: ./api/app
-        run: go build -v
+      - name: Up containers
+        run: docker compose up -d
 
       - name: Test
-        working-directory: ./api/app
-        run: go test -v ./...
+        run: docker compose exec api go test -v ./...
