@@ -18,7 +18,7 @@ func SetUpRouter(entClient *ent.Client, redisStore redis.Store) *gin.Engine {
 	// set session instance to gin context
 	router.Use(sessions.Sessions("mysession", redisStore))
 
-	router.POST("/query", middlewares.AuthMiddleware(entClient), handlers.GqlHandler(service))
+	router.POST("/query", middlewares.AuthMiddleware(), handlers.GqlHandler(service))
 	router.GET("/gqlplayground", handlers.PlaygroundHandler())
 
 	return router

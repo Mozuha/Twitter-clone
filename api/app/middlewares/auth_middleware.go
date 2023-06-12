@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"app/auth"
-	"app/ent"
 	"app/utils"
 	"context"
 	"errors"
@@ -26,7 +25,7 @@ type contextKey struct {
 
 // Rather than shutting down the request at this point, this middleware will just set the isAuthed value and let the resolvers decide what to do with it
 // so that each resolver can be either public or private, just like the endpoints in a REST API
-func AuthMiddleware(client *ent.Client) gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		// add gin.Context to context.Context so the resolvers can access the gin.Context in order to retrieve the isAuthed value
