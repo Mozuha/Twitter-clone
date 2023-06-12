@@ -31,6 +31,11 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - ${DB_PORT}:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db-test:
     image: postgres:alpine
@@ -42,12 +47,22 @@ services:
       - POSTGRES_DB=${DB_DATABASE}
     ports:
       - ${DB_TEST_PORT}:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
     container_name: ${REDIS_HOST}
     ports:
       - ${REDIS_PORT}:6379
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres-data:
