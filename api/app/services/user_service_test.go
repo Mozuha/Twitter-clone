@@ -104,6 +104,8 @@ func (s *UserServiceTestSuite) TestCreateUser() {
 		s.Equal(expectedUser.Email, user.Email)
 		s.NoError(err)
 		s.NoError(pwIntegrityErr)
+
+		s.service.DeleteUserById(s.ctx, user.ID)
 	})
 
 	s.Run("error/name field (required) is missing", func() {

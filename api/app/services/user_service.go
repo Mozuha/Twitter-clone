@@ -94,6 +94,8 @@ func (u *userService) DeleteUserById(ctx context.Context, id int) (*bool, error)
 		return &isOk, gErr
 	}
 
+	// TODO: should the session be deleted here?
+
 	return &isOk, nil
 }
 

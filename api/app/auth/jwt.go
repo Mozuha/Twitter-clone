@@ -66,7 +66,7 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
-	if token.Valid {
+	if token != nil && token.Valid {
 		return token, nil
 	} else {
 		return nil, err

@@ -47,8 +47,7 @@ func (s *SigninServiceTestSuite) SetupTest() {
 	gc.Request = httptest.NewRequest("GET", "/", nil)
 
 	// set session instance to gin context
-	ghf := sessions.Sessions("mysession", s.store)
-	ghf(gc)
+	sessions.Sessions("mysession", s.store)(gc)
 
 	// set gin context to context
 	s.ctx = context.WithValue(gc.Request.Context(), "GinContextKey", gc)
@@ -102,6 +101,7 @@ func (s *SigninServiceTestSuite) TestSignin() {
 		s.Equal(true, err.Error() == "input: crypto/bcrypt: hashedPassword is not the hash of the given password")
 	})
 
+	s.service.DeleteUserById(s.ctx, targetUser.ID)
 	s.service.Signout(s.ctx)
 }
 
@@ -128,4 +128,6 @@ func (s *SigninServiceTestSuite) TestSignout() {
 		s.Equal(true, *isSignedout)
 		s.NoError(err)
 	})
+
+	s.service.DeleteUserById(s.ctx, targetUser.ID)
 }
