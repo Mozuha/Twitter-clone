@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
 const withMT = require('@material-tailwind/react/utils/withMT');
+const colors = require('tailwindcss/colors');
 
 module.exports = withMT({
   content: [
@@ -15,6 +16,7 @@ module.exports = withMT({
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       colors: {
+        ...colors,
         'twitter-blue': '#1D9BF0',
         'twitter-black': '#000',
         'twitter-text': '#D9D9D9',

@@ -1,5 +1,5 @@
 'use client';
 
-import { Button, Card, Input } from '@material-tailwind/react';
+import { Button, Card, Input, Tooltip } from '@material-tailwind/react';
 
-export { Button, Card, Input };
+export { Button, Card, Input, Tooltip };
