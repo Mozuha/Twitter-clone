@@ -74,8 +74,44 @@ type Query {
     """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
-  tweets(where: TweetWhereInput): [Tweet!]!
-  users(where: UserWhereInput): [User!]!
+  tweets(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
+  users(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
 }
 """The builtin Time type"""
 scalar Time
@@ -84,9 +120,61 @@ type Tweet implements Node {
   text: String!
   createdAt: Time!
   postedBy: User!
-  children: [Tweet!]
+  children(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
   parent: Tweet
-  likedBy: [User!]
+  likedBy(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
+}
+"""A connection to a list of items."""
+type TweetConnection {
+  """A list of edges."""
+  edges: [TweetEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type TweetEdge {
+  """The item at the end of the edge."""
+  node: Tweet
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 """Ordering options for Tweet connections"""
 input TweetOrder {
@@ -184,10 +272,80 @@ type User implements Node {
   profileImage: String!
   createdAt: Time!
   updatedAt: Time!
-  posts: [Tweet!]
-  followers: [User!]
+  posts(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
+  followers(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
   following: [User!]
-  likes: [Tweet!]
+  likes(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
+}
+"""A connection to a list of items."""
+type UserConnection {
+  """A list of edges."""
+  edges: [UserEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type UserEdge {
+  """The item at the end of the edge."""
+  node: User
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 """Ordering options for User connections"""
 input UserOrder {

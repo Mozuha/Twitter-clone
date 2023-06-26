@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 
+	"entgo.io/contrib/entgql"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,28 +15,37 @@ type userService struct {
 	client *ent.Client
 }
 
+type UsersConnection struct {
+	After   *entgql.Cursor[int]
+	First   *int
+	Before  *entgql.Cursor[int]
+	Last    *int
+	OrderBy *ent.UserOrder
+	Where   *ent.UserWhereInput
+}
+
 // Also handles getById and getByEmail and those kinds by specifying 'where' argument
-func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
+func (u *userService) GetUsers(ctx context.Context, conn *UsersConnection) (*ent.UserConnection, error) {
 	var (
-		users []*ent.User
-		err   error
+		usersConn *ent.UserConnection
+		err       error
 	)
 
-	pred, err := where.P()
+	_, err = conn.Where.P()
 	if err != nil {
 		if err.Error() == "ent: empty predicate UserWhereInput" {
 			// for getting all users (no where predicate)
-			users, err = u.client.User.Query().All(ctx)
+			usersConn, err = u.client.User.Query().Paginate(ctx, conn.After, conn.First, conn.Before, conn.Last, ent.WithUserOrder(conn.OrderBy))
 		} else {
 			gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to parse where predicate")
 			return nil, gErr
 		}
 	} else {
-		users, err = u.client.User.Query().Where(pred).All(ctx)
+		usersConn, err = u.client.User.Query().Paginate(ctx, conn.After, conn.First, conn.Before, conn.Last, ent.WithUserOrder(conn.OrderBy), ent.WithUserFilter(conn.Where.Filter))
 
 		// even when no record was matched, All() will return empty slice and deem it not as an error
 		// need to set not found error if no record was matched
-		if len(users) == 0 {
+		if usersConn.TotalCount == 0 {
 			err = errors.New("ent: user not found")
 		}
 	}
@@ -45,7 +55,7 @@ func (u *userService) GetUsers(ctx context.Context, where *ent.UserWhereInput) (
 		return nil, gErr
 	}
 
-	return users, nil
+	return usersConn, nil
 }
 
 func (u *userService) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {

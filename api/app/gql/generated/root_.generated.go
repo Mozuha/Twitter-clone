@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
@@ -61,8 +62,8 @@ type ComplexityRoot struct {
 		Node             func(childComplexity int, id int) int
 		Nodes            func(childComplexity int, ids []int) int
 		ScreenNameExists func(childComplexity int, screenName string) int
-		Tweets           func(childComplexity int, where *ent.TweetWhereInput) int
-		Users            func(childComplexity int, where *ent.UserWhereInput) int
+		Tweets           func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TweetOrder, where *ent.TweetWhereInput) int
+		Users            func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 	}
 
 	SigninResponse struct {
@@ -72,27 +73,49 @@ type ComplexityRoot struct {
 	}
 
 	Tweet struct {
-		Children  func(childComplexity int) int
+		Children  func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TweetOrder, where *ent.TweetWhereInput) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
-		LikedBy   func(childComplexity int) int
+		LikedBy   func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 		Parent    func(childComplexity int) int
 		PostedBy  func(childComplexity int) int
 		Text      func(childComplexity int) int
 	}
 
+	TweetConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	TweetEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	User struct {
 		CreatedAt    func(childComplexity int) int
 		Email        func(childComplexity int) int
-		Followers    func(childComplexity int) int
+		Followers    func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 		Following    func(childComplexity int) int
 		ID           func(childComplexity int) int
-		Likes        func(childComplexity int) int
+		Likes        func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TweetOrder, where *ent.TweetWhereInput) int
 		Name         func(childComplexity int) int
-		Posts        func(childComplexity int) int
+		Posts        func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TweetOrder, where *ent.TweetWhereInput) int
 		ProfileImage func(childComplexity int) int
 		ScreenName   func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
+	}
+
+	UserConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	UserEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 }
 
@@ -288,7 +311,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Tweets(childComplexity, args["where"].(*ent.TweetWhereInput)), true
+		return e.complexity.Query.Tweets(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.TweetOrder), args["where"].(*ent.TweetWhereInput)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -300,7 +323,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["where"].(*ent.UserWhereInput)), true
+		return e.complexity.Query.Users(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
 
 	case "SigninResponse.accessToken":
 		if e.complexity.SigninResponse.AccessToken == nil {
@@ -328,7 +351,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Tweet.Children(childComplexity), true
+		args, err := ec.field_Tweet_children_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Tweet.Children(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.TweetOrder), args["where"].(*ent.TweetWhereInput)), true
 
 	case "Tweet.createdAt":
 		if e.complexity.Tweet.CreatedAt == nil {
@@ -349,7 +377,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Tweet.LikedBy(childComplexity), true
+		args, err := ec.field_Tweet_likedBy_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Tweet.LikedBy(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
 
 	case "Tweet.parent":
 		if e.complexity.Tweet.Parent == nil {
@@ -372,6 +405,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Tweet.Text(childComplexity), true
 
+	case "TweetConnection.edges":
+		if e.complexity.TweetConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.TweetConnection.Edges(childComplexity), true
+
+	case "TweetConnection.pageInfo":
+		if e.complexity.TweetConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.TweetConnection.PageInfo(childComplexity), true
+
+	case "TweetConnection.totalCount":
+		if e.complexity.TweetConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.TweetConnection.TotalCount(childComplexity), true
+
+	case "TweetEdge.cursor":
+		if e.complexity.TweetEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.TweetEdge.Cursor(childComplexity), true
+
+	case "TweetEdge.node":
+		if e.complexity.TweetEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.TweetEdge.Node(childComplexity), true
+
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
 			break
@@ -391,7 +459,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.User.Followers(childComplexity), true
+		args, err := ec.field_User_followers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.User.Followers(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.UserOrder), args["where"].(*ent.UserWhereInput)), true
 
 	case "User.following":
 		if e.complexity.User.Following == nil {
@@ -412,7 +485,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.User.Likes(childComplexity), true
+		args, err := ec.field_User_likes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.User.Likes(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.TweetOrder), args["where"].(*ent.TweetWhereInput)), true
 
 	case "User.name":
 		if e.complexity.User.Name == nil {
@@ -426,7 +504,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.User.Posts(childComplexity), true
+		args, err := ec.field_User_posts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.User.Posts(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.TweetOrder), args["where"].(*ent.TweetWhereInput)), true
 
 	case "User.profileImage":
 		if e.complexity.User.ProfileImage == nil {
@@ -448,6 +531,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
+
+	case "UserConnection.edges":
+		if e.complexity.UserConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.Edges(childComplexity), true
+
+	case "UserConnection.pageInfo":
+		if e.complexity.UserConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.PageInfo(childComplexity), true
+
+	case "UserConnection.totalCount":
+		if e.complexity.UserConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.TotalCount(childComplexity), true
+
+	case "UserEdge.cursor":
+		if e.complexity.UserEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.UserEdge.Cursor(childComplexity), true
+
+	case "UserEdge.node":
+		if e.complexity.UserEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.UserEdge.Node(childComplexity), true
 
 	}
 	return 0, false
@@ -600,8 +718,44 @@ type Query {
     """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
-  tweets(where: TweetWhereInput): [Tweet!]!
-  users(where: UserWhereInput): [User!]!
+  tweets(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
+  users(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
 }
 """The builtin Time type"""
 scalar Time
@@ -610,9 +764,61 @@ type Tweet implements Node {
   text: String!
   createdAt: Time!
   postedBy: User!
-  children: [Tweet!]
+  children(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
   parent: Tweet
-  likedBy: [User!]
+  likedBy(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
+}
+"""A connection to a list of items."""
+type TweetConnection {
+  """A list of edges."""
+  edges: [TweetEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type TweetEdge {
+  """The item at the end of the edge."""
+  node: Tweet
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 """Ordering options for Tweet connections"""
 input TweetOrder {
@@ -710,10 +916,80 @@ type User implements Node {
   profileImage: String!
   createdAt: Time!
   updatedAt: Time!
-  posts: [Tweet!]
-  followers: [User!]
+  posts(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
+  followers(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
   following: [User!]
-  likes: [Tweet!]
+  likes(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Tweets returned from the connection."""
+    orderBy: TweetOrder
+
+    """Filtering options for Tweets returned from the connection."""
+    where: TweetWhereInput
+  ): TweetConnection!
+}
+"""A connection to a list of items."""
+type UserConnection {
+  """A list of edges."""
+  edges: [UserEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type UserEdge {
+  """The item at the end of the edge."""
+  node: User
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 """Ordering options for User connections"""
 input UserOrder {

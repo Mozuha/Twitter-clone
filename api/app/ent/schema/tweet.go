@@ -42,15 +42,18 @@ func (Tweet) Edges() []ent.Edge {
 		// one parent many child, one child one parent
 		edge.To("parent", Tweet.Type).
 			Unique().
-			From("children"),
+			From("children").
+			Annotations(entgql.RelayConnection()),
 		edge.From("liked_by", User.Type).
-			Ref("likes"),
+			Ref("likes").
+			Annotations(entgql.RelayConnection()),
 	}
 }
 
 func (Tweet) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField("tweets(where: TweetWhereInput)"),
+		entgql.RelayConnection(),
+		entgql.QueryField(),
 		entgql.Mutations(entgql.MutationCreate()),
 	}
 }

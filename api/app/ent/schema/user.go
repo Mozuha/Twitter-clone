@@ -61,15 +61,20 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("posts", Tweet.Type),
-		edge.To("following", User.Type).From("followers"),
-		edge.To("likes", Tweet.Type),
+		edge.To("posts", Tweet.Type).
+			Annotations(entgql.RelayConnection()),
+		edge.To("following", User.Type).
+			From("followers").
+			Annotations(entgql.RelayConnection()),
+		edge.To("likes", Tweet.Type).
+			Annotations(entgql.RelayConnection()),
 	}
 }
 
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.QueryField("users(where: UserWhereInput)"),
+		entgql.RelayConnection(),
+		entgql.QueryField(),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }
