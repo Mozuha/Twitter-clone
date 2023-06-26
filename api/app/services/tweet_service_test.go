@@ -49,10 +49,29 @@ func TestTweetServiceTestSuite(t *testing.T) {
 }
 
 func (s *TweetServiceTestSuite) TestGetTweets() {
-	tweetsConn, err := s.service.GetTweets(s.ctx, &TweetsConnection{Where: &ent.TweetWhereInput{}})
 
-	s.NotEmpty(tweetsConn)
-	s.NoError(err)
+	s.Run("success", func() {
+		tweetsConn, err := s.service.GetTweets(s.ctx, &TweetsConnection{Where: &ent.TweetWhereInput{}})
+
+		s.NotEmpty(tweetsConn)
+		s.NoError(err)
+	})
+
+	// assuming that there are 3 tweets in the database
+	s.Run("success/pagination", func() {
+		first := 2
+		// take first 2 tweets
+		tweetsConn, err := s.service.GetTweets(s.ctx, &TweetsConnection{First: &first, Where: &ent.TweetWhereInput{}})
+
+		s.Equal(first, len(tweetsConn.Edges))
+		s.NoError(err)
+
+		// take the remaining 1 tweet after the last cursor of the first 2 tweet
+		tweetsConn, err = s.service.GetTweets(s.ctx, &TweetsConnection{After: tweetsConn.PageInfo.EndCursor, Where: &ent.TweetWhereInput{}})
+
+		s.Equal(1, len(tweetsConn.Edges))
+		s.NoError(err)
+	})
 }
 
 func (s *TweetServiceTestSuite) TestGetTweetByID() {

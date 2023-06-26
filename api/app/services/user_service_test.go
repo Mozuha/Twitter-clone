@@ -49,10 +49,29 @@ func TestUserServiceTestSuite(t *testing.T) {
 }
 
 func (s *UserServiceTestSuite) TestGetUsers() {
-	usersConn, err := s.service.GetUsers(s.ctx, &UsersConnection{Where: &ent.UserWhereInput{}})
 
-	s.NotEmpty(usersConn)
-	s.NoError(err)
+	s.Run("success", func() {
+		usersConn, err := s.service.GetUsers(s.ctx, &UsersConnection{Where: &ent.UserWhereInput{}})
+
+		s.NotEmpty(usersConn)
+		s.NoError(err)
+	})
+
+	// assuming that there are 3 users in the database
+	s.Run("success/pagination", func() {
+		first := 2
+		// take first 2 users
+		usersConn, err := s.service.GetUsers(s.ctx, &UsersConnection{First: &first, Where: &ent.UserWhereInput{}})
+
+		s.Equal(first, len(usersConn.Edges))
+		s.NoError(err)
+
+		// take the remaining 1 user after the last cursor of the first 2 users
+		usersConn, err = s.service.GetUsers(s.ctx, &UsersConnection{After: usersConn.PageInfo.EndCursor, Where: &ent.UserWhereInput{}})
+
+		s.Equal(1, len(usersConn.Edges))
+		s.NoError(err)
+	})
 }
 
 func (s *UserServiceTestSuite) TestGetUserByID() {
