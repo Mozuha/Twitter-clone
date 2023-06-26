@@ -49,9 +49,9 @@ func TestUserServiceTestSuite(t *testing.T) {
 }
 
 func (s *UserServiceTestSuite) TestGetUsers() {
-	users, err := s.service.GetUsers(s.ctx, &ent.UserWhereInput{})
+	usersConn, err := s.service.GetUsers(s.ctx, &UsersConnection{Where: &ent.UserWhereInput{}})
 
-	s.NotEmpty(users)
+	s.NotEmpty(usersConn)
 	s.NoError(err)
 }
 
@@ -62,16 +62,16 @@ func (s *UserServiceTestSuite) TestGetUserByID() {
 	}
 
 	s.Run("success", func() {
-		user, err := s.service.GetUsers(s.ctx, &ent.UserWhereInput{ID: &targetUser.ID})
+		userConn, err := s.service.GetUsers(s.ctx, &UsersConnection{Where: &ent.UserWhereInput{ID: &targetUser.ID}})
 
-		s.Equal(targetUser.ID, user[0].ID)
-		s.Equal(targetUser.Email, user[0].Email)
+		s.Equal(targetUser.ID, userConn.Edges[0].Node.ID)
+		s.Equal(targetUser.Email, userConn.Edges[0].Node.Email)
 		s.NoError(err)
 	})
 
 	s.Run("error/not found", func() {
 		notExistingId := 100
-		_, err := s.service.GetUsers(s.ctx, &ent.UserWhereInput{ID: &notExistingId})
+		_, err := s.service.GetUsers(s.ctx, &UsersConnection{Where: &ent.UserWhereInput{ID: &notExistingId}})
 		if err.Error() != USER_NOT_FOUND_ERROR {
 			s.Fail("unexpected error occurred: ", err)
 		}
@@ -224,7 +224,7 @@ func (s *UserServiceTestSuite) TestDeleteUserByID() {
 		s.Equal(true, *isDeleted)
 		s.NoError(err)
 
-		_, err = s.service.GetUsers(s.ctx, &ent.UserWhereInput{Email: &targetUser.Email})
+		_, err = s.service.GetUsers(s.ctx, &UsersConnection{Where: &ent.UserWhereInput{Email: &targetUser.Email}})
 		s.Equal(true, err.Error() == USER_NOT_FOUND_ERROR)
 	})
 
