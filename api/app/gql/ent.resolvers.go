@@ -8,7 +8,10 @@ import (
 	"app/ent"
 	"app/gql/generated"
 	"app/middlewares"
+	"app/services"
 	"context"
+
+	"entgo.io/contrib/entgql"
 )
 
 // Node is the resolver for the node field.
@@ -30,20 +33,20 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 }
 
 // Tweets is the resolver for the tweets field.
-func (r *queryResolver) Tweets(ctx context.Context, where *ent.TweetWhereInput) ([]*ent.Tweet, error) {
+func (r *queryResolver) Tweets(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TweetOrder, where *ent.TweetWhereInput) (*ent.TweetConnection, error) {
 	if err := middlewares.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
 	} else {
-		return r.srv.GetTweets(ctx, where)
+		return r.srv.GetTweets(ctx, &services.TweetsConnection{After: after, First: first, Before: before, Last: last, OrderBy: orderBy, Where: where})
 	}
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error) {
+func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	if err := middlewares.CheckIsAuthedFromCtx(ctx); err != nil {
 		return nil, err
 	} else {
-		return r.srv.GetUsers(ctx, where)
+		return r.srv.GetUsers(ctx, &services.UsersConnection{After: after, First: first, Before: before, Last: last, OrderBy: orderBy, Where: where})
 	}
 }
 

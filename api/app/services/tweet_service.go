@@ -5,34 +5,45 @@ import (
 	"app/utils"
 	"context"
 	"errors"
+
+	"entgo.io/contrib/entgql"
 )
 
 type tweetService struct {
 	client *ent.Client
 }
 
+type TweetsConnection struct {
+	After   *entgql.Cursor[int]
+	First   *int
+	Before  *entgql.Cursor[int]
+	Last    *int
+	OrderBy *ent.TweetOrder
+	Where   *ent.TweetWhereInput
+}
+
 // Also handles getById and those kinds by specifying 'where' argument
-func (t *tweetService) GetTweets(ctx context.Context, where *ent.TweetWhereInput) ([]*ent.Tweet, error) {
+func (t *tweetService) GetTweets(ctx context.Context, conn *TweetsConnection) (*ent.TweetConnection, error) {
 	var (
-		tweets []*ent.Tweet
-		err    error
+		tweetsConn *ent.TweetConnection
+		err        error
 	)
 
-	pred, err := where.P()
+	_, err = conn.Where.P()
 	if err != nil {
 		if err.Error() == "ent: empty predicate TweetWhereInput" {
 			// for getting all tweets (no where predicate)
-			tweets, err = t.client.Tweet.Query().All(ctx)
+			tweetsConn, err = t.client.Tweet.Query().Paginate(ctx, conn.After, conn.First, conn.Before, conn.Last, ent.WithTweetOrder(conn.OrderBy))
 		} else {
 			gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to parse where predicate")
 			return nil, gErr
 		}
 	} else {
-		tweets, err = t.client.Tweet.Query().Where(pred).All(ctx)
+		tweetsConn, err = t.client.Tweet.Query().Paginate(ctx, conn.After, conn.First, conn.Before, conn.Last, ent.WithTweetOrder(conn.OrderBy), ent.WithTweetFilter(conn.Where.Filter))
 
 		// even when no record was matched, All() will return empty slice and deem it not as an error
 		// need to set not found error if no record was matched
-		if len(tweets) == 0 {
+		if tweetsConn.TotalCount == 0 {
 			err = errors.New("ent: tweet not found")
 		}
 	}
@@ -42,7 +53,7 @@ func (t *tweetService) GetTweets(ctx context.Context, where *ent.TweetWhereInput
 		return nil, gErr
 	}
 
-	return tweets, nil
+	return tweetsConn, nil
 }
 
 func (t *tweetService) CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error) {

@@ -49,10 +49,29 @@ func TestTweetServiceTestSuite(t *testing.T) {
 }
 
 func (s *TweetServiceTestSuite) TestGetTweets() {
-	tweets, err := s.service.GetTweets(s.ctx, &ent.TweetWhereInput{})
 
-	s.NotEmpty(tweets)
-	s.NoError(err)
+	s.Run("success", func() {
+		tweetsConn, err := s.service.GetTweets(s.ctx, &TweetsConnection{Where: &ent.TweetWhereInput{}})
+
+		s.NotEmpty(tweetsConn)
+		s.NoError(err)
+	})
+
+	// assuming that there are 3 tweets in the database
+	s.Run("success/pagination", func() {
+		first := 2
+		// take first 2 tweets
+		tweetsConn, err := s.service.GetTweets(s.ctx, &TweetsConnection{First: &first, Where: &ent.TweetWhereInput{}})
+
+		s.Equal(first, len(tweetsConn.Edges))
+		s.NoError(err)
+
+		// take the remaining 1 tweet after the last cursor of the first 2 tweet
+		tweetsConn, err = s.service.GetTweets(s.ctx, &TweetsConnection{After: tweetsConn.PageInfo.EndCursor, Where: &ent.TweetWhereInput{}})
+
+		s.Equal(1, len(tweetsConn.Edges))
+		s.NoError(err)
+	})
 }
 
 func (s *TweetServiceTestSuite) TestGetTweetByID() {
@@ -62,16 +81,16 @@ func (s *TweetServiceTestSuite) TestGetTweetByID() {
 	}
 
 	s.Run("success", func() {
-		tweet, err := s.service.GetTweets(s.ctx, &ent.TweetWhereInput{ID: &targetTweet.ID})
+		tweetConn, err := s.service.GetTweets(s.ctx, &TweetsConnection{Where: &ent.TweetWhereInput{ID: &targetTweet.ID}})
 
-		s.Equal(targetTweet.ID, tweet[0].ID)
-		s.Equal(targetTweet.Edges.PostedBy, tweet[0].Edges.PostedBy)
+		s.Equal(targetTweet.ID, tweetConn.Edges[0].Node.ID)
+		s.Equal(targetTweet.Edges.PostedBy, tweetConn.Edges[0].Node.Edges.PostedBy)
 		s.NoError(err)
 	})
 
 	s.Run("error/not found", func() {
 		notExistingId := 100
-		_, err := s.service.GetTweets(s.ctx, &ent.TweetWhereInput{ID: &notExistingId})
+		_, err := s.service.GetTweets(s.ctx, &TweetsConnection{Where: &ent.TweetWhereInput{ID: &notExistingId}})
 
 		if err.Error() != TWEET_NOT_FOUND_ERROR {
 			s.Fail("unexpected error occurred: ", err)
@@ -131,7 +150,7 @@ func (s *TweetServiceTestSuite) TestDeleteTweetByID() {
 		s.Equal(true, *isDeleted)
 		s.NoError(err)
 
-		_, err = s.service.GetTweets(s.ctx, &ent.TweetWhereInput{ID: &targetTweet.ID})
+		_, err = s.service.GetTweets(s.ctx, &TweetsConnection{Where: &ent.TweetWhereInput{ID: &targetTweet.ID}})
 		s.Equal(true, err.Error() == TWEET_NOT_FOUND_ERROR)
 	})
 

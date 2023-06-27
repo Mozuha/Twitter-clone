@@ -2,6 +2,7 @@ package db
 
 import (
 	"app/ent"
+	entUser "app/ent/user"
 	"context"
 	"fmt"
 )
@@ -40,6 +41,13 @@ func InsertMockData(ctx context.Context, client *ent.Client) error {
 	}
 
 	users, err := client.User.CreateBulk(usersBulk...).Save(ctx)
+
+	u, err := client.User.Query().Where(entUser.ScreenNameEQ("test2")).Only(ctx)
+	_, err = client.User.Update().Where(entUser.ScreenNameEQ("test1")).AddFollowing(u).Save(ctx)
+
+	u, err = client.User.Query().Where(entUser.ScreenNameEQ("test3")).Only(ctx)
+	_, err = client.User.Update().Where(entUser.ScreenNameEQ("test2")).AddFollowing(u).Save(ctx)
+
 	if err != nil {
 		return fmt.Errorf("creating mock users: %w\n", err)
 	}

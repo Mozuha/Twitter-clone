@@ -30,7 +30,7 @@ func New(client *ent.Client) Services {
 }
 
 type UserService interface {
-	GetUsers(ctx context.Context, where *ent.UserWhereInput) ([]*ent.User, error)
+	GetUsers(ctx context.Context, conn *UsersConnection) (*ent.UserConnection, error)
 	CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error)
 	UpdateUserById(ctx context.Context, id int, input ent.UpdateUserInput) (*ent.User, error)
 	DeleteUserById(ctx context.Context, id int) (*bool, error)
@@ -39,7 +39,7 @@ type UserService interface {
 }
 
 type TweetService interface {
-	GetTweets(ctx context.Context, where *ent.TweetWhereInput) ([]*ent.Tweet, error)
+	GetTweets(ctx context.Context, conn *TweetsConnection) (*ent.TweetConnection, error)
 	CreateTweet(ctx context.Context, input ent.CreateTweetInput) (*ent.Tweet, error)
 	DeleteTweetById(ctx context.Context, id int) (*bool, error)
 }
