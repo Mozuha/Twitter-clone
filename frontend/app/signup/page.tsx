@@ -1,5 +1,6 @@
-import SigninupCard from '@components/signinup-card';
-import SignupForm from '@components/signup-form';
+import SignupForm from '@/app/components/signup/signup-form';
+
+import SigninupCard from '@components/signup/signinup-card';
 
 export default function SignupPage() {
   return (

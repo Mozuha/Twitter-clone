@@ -103,6 +103,11 @@
             "pattern": "@components/**",
             "group": "internal",
             "position": "after"
+          },
+          {
+            "pattern": "@types-constants/**",
+            "group": "internal",
+            "position": "after"
           }
         ],
         "pathGroupsExcludedImportTypes": ["react", "next/**"],
