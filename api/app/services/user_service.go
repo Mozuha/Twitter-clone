@@ -128,7 +128,7 @@ func (u *userService) CheckScreenNameExists(ctx context.Context, screenName stri
 	isScreenNameExists := user != nil
 	if !isScreenNameExists {
 		if ent.IsNotFound(err) {
-			return &isScreenNameExists, err
+			return &isScreenNameExists, nil
 		} else {
 			return nil, err
 		}
