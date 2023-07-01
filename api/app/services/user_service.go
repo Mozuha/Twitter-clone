@@ -113,17 +113,25 @@ func (u *userService) CheckEmailExists(ctx context.Context, email string) (*bool
 	user, err := u.client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
 	isEmailExists := user != nil
 	if !isEmailExists {
-		return &isEmailExists, err
+		if ent.IsNotFound(err) {
+			return &isEmailExists, nil // false, i.e. not exists
+		} else {
+			return nil, err // other kind of error
+		}
 	}
 
-	return &isEmailExists, nil
+	return &isEmailExists, nil // true, i.e. exists
 }
 
 func (u *userService) CheckScreenNameExists(ctx context.Context, screenName string) (*bool, error) {
 	user, err := u.client.User.Query().Where(user.ScreenNameEQ(screenName)).Only(ctx)
 	isScreenNameExists := user != nil
 	if !isScreenNameExists {
-		return &isScreenNameExists, err
+		if ent.IsNotFound(err) {
+			return &isScreenNameExists, err
+		} else {
+			return nil, err
+		}
 	}
 
 	return &isScreenNameExists, nil
