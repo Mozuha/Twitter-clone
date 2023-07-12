@@ -1,13 +1,13 @@
 import { Suspense, useState } from 'react';
 
 import { ErrorMessage } from '@hookform/error-message';
-import { useController, type UseControllerProps, useWatch } from 'react-hook-form';
+import { useController, useWatch } from 'react-hook-form';
 import { graphql, useQueryLoader } from 'react-relay';
 
 import { Input } from '@components/material-tailwind';
 import ScreenNameNotExistMsg from '@components/ScreenNameNotExistMsg';
 
-import type { FormData } from '@types-constants/form';
+import type { FormFieldProps } from '@types-constants/form';
 
 import type { ScreenNameFieldQuery } from '@relay/__generated__/ScreenNameFieldQuery.graphql';
 
@@ -19,7 +19,7 @@ export const screenNameExistsQuery = graphql`
   }
 `;
 
-export default function ScreenNameField(props: UseControllerProps<FormData>) {
+export default function ScreenNameField(props: FormFieldProps) {
   const [isScreenNameFocused, setIsScreenNameFocused] = useState(false);
   const [prevWatch, setPrevWatch] = useState('');
 
@@ -48,6 +48,7 @@ export default function ScreenNameField(props: UseControllerProps<FormData>) {
         <Input
           size="lg"
           label="@Screen_name"
+          aria-label="ScreenName"
           type="text"
           maxLength={15}
           className="text-white text-[15px]"
@@ -63,6 +64,7 @@ export default function ScreenNameField(props: UseControllerProps<FormData>) {
           onFocus={() => setIsScreenNameFocused(true)}
           onBlur={handleBlur}
           {...rest}
+          disabled={props.disabled}
         />
         {isScreenNameFocused && (
           <span className="text-xs text-twitter-grey font-normal !absolute right-1 top-1 pr-1 pt-0.5">

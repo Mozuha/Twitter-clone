@@ -1,16 +1,16 @@
 import { useState } from 'react';
 
 import { ErrorMessage } from '@hookform/error-message';
-import { useController, type UseControllerProps } from 'react-hook-form';
+import { useController } from 'react-hook-form';
 
 import { HiOutlineInformationCircle } from 'react-icons/hi';
 import { VscEye, VscEyeClosed } from 'react-icons/vsc';
 
 import { Button, Input } from '@components/material-tailwind';
 
-import type { FormData } from '@types-constants/form';
+import type { FormFieldProps } from '@types-constants/form';
 
-export default function PasswordField(props: UseControllerProps<FormData>) {
+export default function PasswordField(props: FormFieldProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const {
     field,
@@ -27,6 +27,7 @@ export default function PasswordField(props: UseControllerProps<FormData>) {
         <Input
           size="lg"
           label="Password"
+          aria-label="Password"
           type={isPasswordVisible ? 'text' : 'password'}
           autoComplete="new-password"
           className="text-white text-[15px] pr-12"
@@ -34,14 +35,17 @@ export default function PasswordField(props: UseControllerProps<FormData>) {
           containerProps={{ className: 'min-w-0' }}
           error={!!errors.password}
           {...field}
+          disabled={props.disabled}
         />
         <Button
+          aria-label="PasswordVisibility"
           variant="text"
           size="sm"
           color="gray"
           ripple={false}
           className="w-9 h-9 p-0 !absolute right-1 top-1"
           onClick={togglePasswordVisibility}
+          disabled={props.disabled}
         >
           {isPasswordVisible ? (
             <VscEyeClosed color="gray" className="w-6 h-6 ml-1.5" />

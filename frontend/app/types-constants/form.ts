@@ -1,8 +1,14 @@
+import type { UseControllerProps } from 'react-hook-form';
+
 export type FormData = {
   name: string;
   screenName: string;
   email: string;
   password: string;
+};
+
+export type FormFieldProps = UseControllerProps<FormData> & {
+  disabled?: boolean;
 };
 
 export const emailRegex =

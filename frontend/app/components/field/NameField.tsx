@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 import { ErrorMessage } from '@hookform/error-message';
-import { useController, type UseControllerProps, useWatch } from 'react-hook-form';
+import { useController, useWatch } from 'react-hook-form';
 
 import { Input } from '@components/material-tailwind';
 
-import type { FormData } from '@types-constants/form';
+import type { FormFieldProps } from '@types-constants/form';
 
-export default function NameField(props: UseControllerProps<FormData>) {
+export default function NameField(props: FormFieldProps) {
   const [isNameFocused, setIsNameFocused] = useState(false);
   const {
     field,
@@ -22,6 +22,7 @@ export default function NameField(props: UseControllerProps<FormData>) {
         <Input
           size="lg"
           label="Name"
+          aria-label="Name"
           type="text"
           maxLength={50}
           className="text-white text-[15px]"
@@ -30,6 +31,7 @@ export default function NameField(props: UseControllerProps<FormData>) {
           onFocus={() => setIsNameFocused(true)}
           onBlur={() => setIsNameFocused(false)}
           {...rest}
+          disabled={props.disabled}
         />
         {isNameFocused && (
           <span className="text-xs text-twitter-grey font-normal !absolute right-1 top-1 pr-1 pt-0.5">

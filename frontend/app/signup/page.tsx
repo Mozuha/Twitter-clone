@@ -17,7 +17,13 @@ export default function SignupPage() {
   return (
     <RelayEnvironmentProvider environment={environment}>
       <div className="fixed flex justify-center bg-signin-background w-screen h-full">
-        <Suspense fallback={<Spinner className="text-twitter-blue/10" />}>
+        <Suspense
+          fallback={
+            <div className="m-[50vh_50vw]">
+              <Spinner className="text-twitter-blue/10" />
+            </div>
+          }
+        >
           <SigninupCard>
             <span className="text-white text-3xl font-semibold">Join Twitter today</span>
             <SignupForm />

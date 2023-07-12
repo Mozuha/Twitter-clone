@@ -1,13 +1,13 @@
 import { Suspense, useState } from 'react';
 
 import { ErrorMessage } from '@hookform/error-message';
-import { useController, type UseControllerProps, useWatch } from 'react-hook-form';
+import { useController, useWatch } from 'react-hook-form';
 import { graphql, useQueryLoader } from 'react-relay';
 
 import EmailNotExistMsg from '@components/EmailNotExistMsg';
 import { Input } from '@components/material-tailwind';
 
-import type { FormData } from '@types-constants/form';
+import type { FormFieldProps } from '@types-constants/form';
 
 import type { EmailFieldQuery } from '@relay/__generated__/EmailFieldQuery.graphql';
 
@@ -19,7 +19,7 @@ export const emailExistsQuery = graphql`
   }
 `;
 
-export default function EmailField(props: UseControllerProps<FormData>) {
+export default function EmailField(props: FormFieldProps) {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [prevWatch, setPrevWatch] = useState('');
 
@@ -45,6 +45,7 @@ export default function EmailField(props: UseControllerProps<FormData>) {
       <Input
         size="lg"
         label="Email"
+        aria-label="Email"
         type="email"
         autoComplete="email"
         className="text-white text-[15px]"
@@ -60,6 +61,7 @@ export default function EmailField(props: UseControllerProps<FormData>) {
         onFocus={() => setIsEmailFocused(true)}
         onBlur={handleBlur}
         {...rest}
+        disabled={props.disabled}
       />
       <ErrorMessage
         errors={errors}
