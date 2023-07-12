@@ -57,19 +57,8 @@
       }
     ],
 
-    // force including extensions into import files if it is not .js, .jsx, .ts, or .tsx
-    "import/extensions": [
-      "error",
-      {
-        "ignorePackages": true,
-        "pattern": {
-          "js": "never",
-          "jsx": "never",
-          "ts": "never",
-          "tsx": "never"
-        }
-      }
-    ],
+    // force including extensions into import files if it is not .js, .jsx, .ts, .tsx, or .graphql
+    "import/extensions": [0, { "js": "always", "jsx": "always", "ts": "always", "tsx": "always", "graphql": "always" }],
 
     // force adding empty line after last import statement
     "import/newline-after-import": "error",
@@ -106,6 +95,11 @@
           },
           {
             "pattern": "@types-constants/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@relay/**",
             "group": "internal",
             "position": "after"
           }

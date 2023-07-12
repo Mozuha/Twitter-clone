@@ -653,3 +653,22 @@ input UserWhereInput {
   hasLikes: Boolean
   hasLikesWith: [TweetWhereInput!]
 }
+type Mutation {
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean # Ent delete operation does not return the deleted entity; Use Boolean to mimic the behaviour of returning nothing
+  createTweet(input: CreateTweetInput!): Tweet!
+  deleteTweet(id: ID!): Boolean
+  signin(email: String!, password: String!): SigninResponse!
+  signout: Boolean
+  refreshToken(refreshToken: String!): String!
+}
+type SigninResponse {
+  userId: ID!
+  accessToken: String!
+  refreshToken: String!
+}
+extend type Query {
+  emailExists(email: String!): Boolean
+  screenNameExists(screenName: String!): Boolean
+}

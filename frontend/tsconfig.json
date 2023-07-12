@@ -23,7 +23,8 @@
     "paths": {
       "@/*": ["./*"],
       "@components/*": ["app/components/*"],
-      "@types-constants/*": ["app/types-constants/*"]
+      "@types-constants/*": ["app/types-constants/*"],
+      "@relay/*": ["app/relay/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -14,7 +14,7 @@ export default function NameField(props: UseControllerProps<FormData>) {
     formState: { errors },
   } = useController(props);
   const { onBlur: _, ...rest } = field;
-  const watchName = useWatch({ control: props.control, name: props.name });
+  const nameWatch = useWatch({ control: props.control, name: props.name });
 
   return (
     <>
@@ -33,7 +33,7 @@ export default function NameField(props: UseControllerProps<FormData>) {
         />
         {isNameFocused && (
           <span className="text-xs text-twitter-grey font-normal !absolute right-1 top-1 pr-1 pt-0.5">
-            {watchName.length + ' / 50'}
+            {nameWatch.length + ' / 50'}
           </span>
         )}
       </div>

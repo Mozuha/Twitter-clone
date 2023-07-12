@@ -1,20 +1,46 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 
 import { ErrorMessage } from '@hookform/error-message';
 import { useController, type UseControllerProps, useWatch } from 'react-hook-form';
+import { graphql, useQueryLoader } from 'react-relay';
 
 import { Input } from '@components/material-tailwind';
+import ScreenNameNotExistMsg from '@components/screenname-not-exist-message';
 
 import type { FormData } from '@types-constants/form';
 
+import type { screennameFieldQuery } from '@relay/__generated__/screennameFieldQuery.graphql';
+
+// Replace params.text in relay/__generated__/screennameFieldQuery.graphql.ts with this if it is null
+// 'query screennameFieldQuery(\n  $screenName: String!\n) {\n  screenNameExists(screenName: $screenName)\n}\n'
+export const screenNameExistsQuery = graphql`
+  query screennameFieldQuery($screenName: String!) {
+    screenNameExists(screenName: $screenName)
+  }
+`;
+
 export default function ScreenNameField(props: UseControllerProps<FormData>) {
   const [isScreenNameFocused, setIsScreenNameFocused] = useState(false);
+  const [prevWatch, setPrevWatch] = useState('');
+
   const {
     field,
     formState: { errors },
   } = useController(props);
   const { onBlur: _, ...rest } = field;
-  const watchScreenName = useWatch({ control: props.control, name: props.name });
+  const screenNameWatch = useWatch({ control: props.control, name: props.name });
+
+  const [queryRef, loadQuery] = useQueryLoader<screennameFieldQuery>(screenNameExistsQuery);
+
+  const handleBlur = () => {
+    if (prevWatch !== screenNameWatch) {
+      // always send query to check the latest availability of the screen name
+      // send query only when screen name is not empty and is changed on blur to reduce the number of queries
+      screenNameWatch.length && loadQuery({ screenName: screenNameWatch }, { fetchPolicy: 'network-only' });
+      setPrevWatch(screenNameWatch);
+    }
+    setIsScreenNameFocused(false);
+  };
 
   return (
     <>
@@ -26,14 +52,21 @@ export default function ScreenNameField(props: UseControllerProps<FormData>) {
           maxLength={15}
           className="text-white text-[15px]"
           labelProps={{ className: 'peer-placeholder-shown:text-twitter-grey' }}
-          error={!!errors.screenName}
+          error={
+            !!errors.screenName ||
+            Boolean(
+              queryRef?.environment.getStore().getSource().get('client:root')?.[
+                `screenNameExists(screenName:"${queryRef.variables.screenName}")`
+              ]
+            )
+          }
           onFocus={() => setIsScreenNameFocused(true)}
-          onBlur={() => setIsScreenNameFocused(false)}
+          onBlur={handleBlur}
           {...rest}
         />
         {isScreenNameFocused && (
           <span className="text-xs text-twitter-grey font-normal !absolute right-1 top-1 pr-1 pt-0.5">
-            {watchScreenName.length + ' / 15'}
+            {screenNameWatch.length + ' / 15'}
           </span>
         )}
       </div>
@@ -50,6 +83,9 @@ export default function ScreenNameField(props: UseControllerProps<FormData>) {
             : null
         }
       />
+      <Suspense>
+        {queryRef != null && !isScreenNameFocused && screenNameWatch && <ScreenNameNotExistMsg queryRef={queryRef} />}
+      </Suspense>
     </>
   );
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import { useForm } from 'react-hook-form';
 
 import EmailField from '@components/field/email-field';
@@ -12,10 +10,6 @@ import { emailRegex } from '@types-constants/form';
 import type { FormData } from '@types-constants/form';
 
 import type { SubmitHandler } from 'react-hook-form';
-
-/**
- * TODO?: Make min-height work
- */
 
 export default function SignupForm() {
   const {
