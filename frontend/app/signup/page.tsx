@@ -2,10 +2,10 @@
 
 import { Suspense } from 'react';
 
-import SignupForm from '@/app/components/signup/signup-form';
+import SignupForm from '@/app/components/signup/SignupForm';
 
 import { Spinner } from '@components/material-tailwind';
-import SigninupCard from '@components/signup/signinup-card';
+import SigninupCard from '@components/signup/SigninupCard';
 
 import { getCurrentEnvironment } from '@relay/environment';
 

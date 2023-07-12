@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
 
-import EmailField from '@components/field/email-field';
-import NameField from '@components/field/name-field';
-import PasswordField from '@components/field/password-field';
-import ScreenNameField from '@components/field/screenname-field';
+import EmailField from '@components/field/EmailField';
+import NameField from '@components/field/NameField';
+import PasswordField from '@components/field/PasswordField';
+import ScreenNameField from '@components/field/ScreenNameField';
 import { Button } from '@components/material-tailwind';
 
 import { emailRegex } from '@types-constants/form';

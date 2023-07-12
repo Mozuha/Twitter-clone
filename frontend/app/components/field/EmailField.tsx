@@ -4,17 +4,17 @@ import { ErrorMessage } from '@hookform/error-message';
 import { useController, type UseControllerProps, useWatch } from 'react-hook-form';
 import { graphql, useQueryLoader } from 'react-relay';
 
-import EmailNotExistMsg from '@components/email-not-exist-message';
+import EmailNotExistMsg from '@components/EmailNotExistMsg';
 import { Input } from '@components/material-tailwind';
 
 import type { FormData } from '@types-constants/form';
 
-import type { emailFieldQuery } from '@relay/__generated__/emailFieldQuery.graphql';
+import type { EmailFieldQuery } from '@relay/__generated__/EmailFieldQuery.graphql';
 
 // Replace params.text in relay/__generated__/screennameFieldQuery.graphql.ts with this if it is null
 // 'query emailFieldQuery(\n  $email: String!\n) {\n  emailExists(email: $email)\n}\n'
 export const emailExistsQuery = graphql`
-  query emailFieldQuery($email: String!) {
+  query EmailFieldQuery($email: String!) {
     emailExists(email: $email)
   }
 `;
@@ -30,7 +30,7 @@ export default function EmailField(props: UseControllerProps<FormData>) {
   const { onBlur: _, ...rest } = field;
   const emailWatch = useWatch({ control: props.control, name: props.name });
 
-  const [queryRef, loadQuery] = useQueryLoader<emailFieldQuery>(emailExistsQuery);
+  const [queryRef, loadQuery] = useQueryLoader<EmailFieldQuery>(emailExistsQuery);
 
   const handleBlur = () => {
     if (prevWatch !== emailWatch) {

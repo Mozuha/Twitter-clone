@@ -5,16 +5,16 @@ import { useController, type UseControllerProps, useWatch } from 'react-hook-for
 import { graphql, useQueryLoader } from 'react-relay';
 
 import { Input } from '@components/material-tailwind';
-import ScreenNameNotExistMsg from '@components/screenname-not-exist-message';
+import ScreenNameNotExistMsg from '@components/ScreenNameNotExistMsg';
 
 import type { FormData } from '@types-constants/form';
 
-import type { screennameFieldQuery } from '@relay/__generated__/screennameFieldQuery.graphql';
+import type { ScreenNameFieldQuery } from '@relay/__generated__/ScreenNameFieldQuery.graphql';
 
 // Replace params.text in relay/__generated__/screennameFieldQuery.graphql.ts with this if it is null
 // 'query screennameFieldQuery(\n  $screenName: String!\n) {\n  screenNameExists(screenName: $screenName)\n}\n'
 export const screenNameExistsQuery = graphql`
-  query screennameFieldQuery($screenName: String!) {
+  query ScreenNameFieldQuery($screenName: String!) {
     screenNameExists(screenName: $screenName)
   }
 `;
@@ -30,7 +30,7 @@ export default function ScreenNameField(props: UseControllerProps<FormData>) {
   const { onBlur: _, ...rest } = field;
   const screenNameWatch = useWatch({ control: props.control, name: props.name });
 
-  const [queryRef, loadQuery] = useQueryLoader<screennameFieldQuery>(screenNameExistsQuery);
+  const [queryRef, loadQuery] = useQueryLoader<ScreenNameFieldQuery>(screenNameExistsQuery);
 
   const handleBlur = () => {
     if (prevWatch !== screenNameWatch) {

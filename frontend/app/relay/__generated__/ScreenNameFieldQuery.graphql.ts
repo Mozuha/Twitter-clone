@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d706171997b54ba37cd324ee8e0f2d5f>>
+ * @generated SignedSource<<cbb05a8510439b99c98b82cf9c533959>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,15 +9,15 @@
 // @ts-nocheck
 
 import { ClientRequest, ClientQuery } from 'relay-runtime';
-export type screennameFieldQuery$variables = {
+export type ScreenNameFieldQuery$variables = {
   screenName: string;
 };
-export type screennameFieldQuery$data = {
+export type ScreenNameFieldQuery$data = {
   readonly screenNameExists: boolean | null;
 };
-export type screennameFieldQuery = {
-  response: screennameFieldQuery$data;
-  variables: screennameFieldQuery$variables;
+export type ScreenNameFieldQuery = {
+  response: ScreenNameFieldQuery$data;
+  variables: ScreenNameFieldQuery$variables;
 };
 
 const node: ClientRequest = (function () {
@@ -53,7 +53,7 @@ const node: ClientRequest = (function () {
       argumentDefinitions: v0 /*: any*/,
       kind: 'Fragment',
       metadata: null,
-      name: 'screennameFieldQuery',
+      name: 'ScreenNameFieldQuery',
       selections: v1 /*: any*/,
       type: 'Query',
       abstractKey: null,
@@ -62,20 +62,20 @@ const node: ClientRequest = (function () {
     operation: {
       argumentDefinitions: v0 /*: any*/,
       kind: 'Operation',
-      name: 'screennameFieldQuery',
+      name: 'ScreenNameFieldQuery',
       selections: v1 /*: any*/,
     },
     params: {
-      cacheID: '441a34c23ab712801c816c1837b5b23f',
+      cacheID: '5f470779f36b396e6aeec715bdc579a0',
       id: null,
       metadata: {},
-      name: 'screennameFieldQuery',
+      name: 'ScreenNameFieldQuery',
       operationKind: 'query',
       text: 'query screennameFieldQuery(\n  $screenName: String!\n) {\n  screenNameExists(screenName: $screenName)\n}\n',
     },
   };
 })();
 
-(node as any).hash = 'b40f30efb8cc7e2a0d9d518a7dd1f751';
+(node as any).hash = '6606503be03a94aa6997fd43640835eb';
 
 export default node;

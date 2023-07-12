@@ -1,13 +1,13 @@
 import { usePreloadedQuery } from 'react-relay';
 
-import { emailExistsQuery } from '@components/field/email-field';
+import { emailExistsQuery } from '@components/field/EmailField';
 
-import type { emailFieldQuery } from '@relay/__generated__/emailFieldQuery.graphql';
+import type { EmailFieldQuery } from '@relay/__generated__/EmailFieldQuery.graphql';
 
 import type { PreloadedQuery } from 'react-relay';
 
 type Props = {
-  queryRef: PreloadedQuery<emailFieldQuery>;
+  queryRef: PreloadedQuery<EmailFieldQuery>;
 };
 
 export default function EmailNotExistMsg(props: Props) {

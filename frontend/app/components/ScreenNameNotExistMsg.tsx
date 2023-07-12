@@ -1,13 +1,13 @@
 import { usePreloadedQuery } from 'react-relay';
 
-import { screenNameExistsQuery } from '@components/field/screenname-field';
+import { screenNameExistsQuery } from '@components/field/ScreenNameField';
 
-import type { screennameFieldQuery } from '@relay/__generated__/screennameFieldQuery.graphql';
+import type { ScreenNameFieldQuery } from '@relay/__generated__/ScreenNameFieldQuery.graphql';
 
 import type { PreloadedQuery } from 'react-relay';
 
 type Props = {
-  queryRef: PreloadedQuery<screennameFieldQuery>;
+  queryRef: PreloadedQuery<ScreenNameFieldQuery>;
 };
 
 export default function ScreenNameNotExistMsg(props: Props) {

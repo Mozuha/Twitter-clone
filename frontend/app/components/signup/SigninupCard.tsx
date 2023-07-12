@@ -1,6 +1,6 @@
 import { FaTwitter } from 'react-icons/fa';
 
-import CloseButton from '@components/close-button';
+import CloseButton from '@components/CloseButton';
 import { Card } from '@components/material-tailwind';
 
 export default function SigninupCard({ children }: { children: React.ReactNode }) {
