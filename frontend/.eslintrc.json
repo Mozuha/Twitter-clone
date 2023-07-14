@@ -1,3 +1,145 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "import", "unused-imports"],
+  "rules": {
+    // force adding empty line before return statement
+    // except for the case right after only one line const statement
+    "padding-line-between-statements": [
+      "error",
+      {
+        "blankLine": "always",
+        "prev": "*",
+        "next": "return"
+      },
+      {
+        "blankLine": "any",
+        "prev": "singleline-const",
+        "next": "return"
+      }
+    ],
+
+    // force type info only imports' format to be 'import type {...}'
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "fixStyle": "separate-type-imports"
+      }
+    ],
+
+    // force writing returning type of function
+    "@typescript-eslint/explicit-function-return-type": "off",
+
+    // allow require statement
+    "@typescript-eslint/no-var-requires": "off",
+
+    // auto remove unused imports
+    // ignore unused vars if it has '_' prefix
+    "@typescript-eslint/no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+
+    // force including extensions into import files if it is not .js, .jsx, .ts, .tsx, or .graphql
+    "import/extensions": [0, { "js": "always", "jsx": "always", "ts": "always", "tsx": "always", "graphql": "always" }],
+
+    // force adding empty line after last import statement
+    "import/newline-after-import": "error",
+
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", ["parent", "sibling"], "object", "type", "index"],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "next/**",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "react-icons/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@components/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@types-constants/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@relay/**",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["react", "next/**"],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+
+    // sort imports inside curly braces
+    "sort-imports": [
+      "error",
+      {
+        "allowSeparatedGroups": true,
+        "ignoreCase": true,
+        "ignoreDeclarationSort": true,
+        "ignoreMemberSort": false,
+        "memberSyntaxSortOrder": ["none", "all", "multiple", "single"]
+      }
+    ],
+
+    // for the case using eslint-plugin-react with React ^17
+    // avoiding unnecessary errors by turning them off
+    "react/jsx-uses-react": "off",
+    "react/react-in-jsx-scope": "off",
+
+    // force not adding curly brace to string values
+    "react/jsx-curly-brace-presence": "error",
+
+    // force components without child using self closing tag
+    "react/self-closing-comp": ["error"],
+
+    // warn if no dependencies were specified in second argument of react hooks
+    "react-hooks/exhaustive-deps": "warn",
+
+    // allow using <img> components in Next.js
+    "@next/next/no-img-element": "off"
+  }
 }
