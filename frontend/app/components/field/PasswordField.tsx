@@ -54,7 +54,7 @@ export default function PasswordField(props: FormFieldProps) {
           )}
         </Button>
         <div className="group round-full !absolute -right-7 top-3">
-          <span className="bg-slate-500 text-white opacity-0 invisible rounded group-hover:visible opacity-100 absolute bottom-7 -right-14 w-80 text-sm p-1">
+          <span className="bg-slate-500 text-white opacity-0 invisible rounded group-hover:visible opacity-95 absolute bottom-7 right-1 w-80 sm:w-[80vw] text-sm p-1">
             {'Uppercase, Lowercase, Numbers, Symbols (~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/) are allowed.'}
           </span>
           <HiOutlineInformationCircle size="1.2rem" color="gray" />

@@ -25,7 +25,7 @@ export default function SignupPage() {
           }
         >
           <SigninupCard>
-            <span className="text-white text-3xl font-semibold">Join Twitter today</span>
+            <span className="text-white text-3xl sm:text-xl font-semibold">Join Twitter today</span>
             <SignupForm />
           </SigninupCard>
         </Suspense>
