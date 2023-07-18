@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<cbb05a8510439b99c98b82cf9c533959>>
+ * @generated SignedSource<<4749159d084b83f5ce572fd74b177333>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -8,7 +8,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ClientRequest, ClientQuery } from 'relay-runtime';
+import { ConcreteRequest, Query } from 'relay-runtime';
 export type ScreenNameFieldQuery$variables = {
   screenName: string;
 };
@@ -20,7 +20,7 @@ export type ScreenNameFieldQuery = {
   variables: ScreenNameFieldQuery$variables;
 };
 
-const node: ClientRequest = (function () {
+const node: ConcreteRequest = (function () {
   var v0 = [
       {
         defaultValue: null,
@@ -30,22 +30,17 @@ const node: ClientRequest = (function () {
     ],
     v1 = [
       {
-        kind: 'ClientExtension',
-        selections: [
+        alias: null,
+        args: [
           {
-            alias: null,
-            args: [
-              {
-                kind: 'Variable',
-                name: 'screenName',
-                variableName: 'screenName',
-              },
-            ],
-            kind: 'ScalarField',
-            name: 'screenNameExists',
-            storageKey: null,
+            kind: 'Variable',
+            name: 'screenName',
+            variableName: 'screenName',
           },
         ],
+        kind: 'ScalarField',
+        name: 'screenNameExists',
+        storageKey: null,
       },
     ];
   return {
@@ -66,12 +61,12 @@ const node: ClientRequest = (function () {
       selections: v1 /*: any*/,
     },
     params: {
-      cacheID: '5f470779f36b396e6aeec715bdc579a0',
+      cacheID: '61b390a8b5381018225e6be00ba4034d',
       id: null,
       metadata: {},
       name: 'ScreenNameFieldQuery',
       operationKind: 'query',
-      text: 'query screennameFieldQuery(\n  $screenName: String!\n) {\n  screenNameExists(screenName: $screenName)\n}\n',
+      text: 'query ScreenNameFieldQuery(\n  $screenName: String!\n) {\n  screenNameExists(screenName: $screenName)\n}\n',
     },
   };
 })();
