@@ -158,6 +158,8 @@ type Query {
     """
     where: UserWhereInput
   ): UserConnection!
+  emailExists(email: String!): Boolean
+  screenNameExists(screenName: String!): Boolean
 }
 """
 The builtin Time type
@@ -667,8 +669,4 @@ type SigninResponse {
   userId: ID!
   accessToken: String!
   refreshToken: String!
-}
-extend type Query {
-  emailExists(email: String!): Boolean
-  screenNameExists(screenName: String!): Boolean
 }

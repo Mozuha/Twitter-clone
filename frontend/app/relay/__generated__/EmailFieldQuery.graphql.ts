@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<bf3b8524f8372994ebb63db5f9629fae>>
+ * @generated SignedSource<<5a0460fc79ce705fdc193070e6f471da>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -8,7 +8,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ClientRequest, ClientQuery } from 'relay-runtime';
+import { ConcreteRequest, Query } from 'relay-runtime';
 export type EmailFieldQuery$variables = {
   email: string;
 };
@@ -20,7 +20,7 @@ export type EmailFieldQuery = {
   variables: EmailFieldQuery$variables;
 };
 
-const node: ClientRequest = (function () {
+const node: ConcreteRequest = (function () {
   var v0 = [
       {
         defaultValue: null,
@@ -30,22 +30,17 @@ const node: ClientRequest = (function () {
     ],
     v1 = [
       {
-        kind: 'ClientExtension',
-        selections: [
+        alias: null,
+        args: [
           {
-            alias: null,
-            args: [
-              {
-                kind: 'Variable',
-                name: 'email',
-                variableName: 'email',
-              },
-            ],
-            kind: 'ScalarField',
-            name: 'emailExists',
-            storageKey: null,
+            kind: 'Variable',
+            name: 'email',
+            variableName: 'email',
           },
         ],
+        kind: 'ScalarField',
+        name: 'emailExists',
+        storageKey: null,
       },
     ];
   return {
@@ -66,12 +61,12 @@ const node: ClientRequest = (function () {
       selections: v1 /*: any*/,
     },
     params: {
-      cacheID: '8bf572ff2bb584e9a3aa4df417d896b4',
+      cacheID: '6fa1a90a5a637f8497283e5e9f68993a',
       id: null,
       metadata: {},
       name: 'EmailFieldQuery',
       operationKind: 'query',
-      text: 'query emailFieldQuery(\n  $email: String!\n) {\n  emailExists(email: $email)\n}\n',
+      text: 'query EmailFieldQuery(\n  $email: String!\n) {\n  emailExists(email: $email)\n}\n',
     },
   };
 })();

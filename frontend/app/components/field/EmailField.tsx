@@ -11,8 +11,6 @@ import type { FormFieldProps } from '@types-constants/form';
 
 import type { EmailFieldQuery } from '@relay/__generated__/EmailFieldQuery.graphql';
 
-// Replace params.text in relay/__generated__/screennameFieldQuery.graphql.ts with this if it is null
-// 'query emailFieldQuery(\n  $email: String!\n) {\n  emailExists(email: $email)\n}\n'
 export const emailExistsQuery = graphql`
   query EmailFieldQuery($email: String!) {
     emailExists(email: $email)

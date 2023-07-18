@@ -11,8 +11,6 @@ import type { FormFieldProps } from '@types-constants/form';
 
 import type { ScreenNameFieldQuery } from '@relay/__generated__/ScreenNameFieldQuery.graphql';
 
-// Replace params.text in relay/__generated__/screennameFieldQuery.graphql.ts with this if it is null
-// 'query screennameFieldQuery(\n  $screenName: String!\n) {\n  screenNameExists(screenName: $screenName)\n}\n'
 export const screenNameExistsQuery = graphql`
   query ScreenNameFieldQuery($screenName: String!) {
     screenNameExists(screenName: $screenName)
