@@ -18,7 +18,7 @@ export default function NameField(props: FormFieldProps) {
 
   return (
     <>
-      <div className="relative flex w-full max-w-[24rem]">
+      <div className="relative flex w-full">
         <Input
           size="lg"
           label="Name"
