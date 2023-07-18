@@ -53,7 +53,11 @@ export default function PasswordField(props: FormFieldProps) {
             <VscEye color="gray" className="w-6 h-6 ml-1.5" />
           )}
         </Button>
-        <div className="group round-full !absolute -right-7 top-3">
+        <div
+          role="tooltip"
+          className="group round-full !absolute -right-7 top-3"
+          aria-label="allowed-characters-for-password"
+        >
           <span className="bg-slate-500 text-white opacity-0 invisible rounded group-hover:visible opacity-95 absolute bottom-7 right-1 w-80 sm:w-[80vw] text-sm p-1">
             {'Uppercase, Lowercase, Numbers, Symbols (~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/) are allowed.'}
           </span>
@@ -66,7 +70,7 @@ export default function PasswordField(props: FormFieldProps) {
         render={({ messages }) =>
           messages
             ? Object.entries(messages).map(([type, message]) => (
-                <span key={type} className="text-xs font-light text-red-500 -mt-5">
+                <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
                   {message}
                 </span>
               ))
