@@ -1,0 +1,32 @@
+name: Jest CI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - frontend/**
+      - .github/workflows/jestCI.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - uses: actions/cache@v3
+        id: node_modules_cache
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install packages if cache not hit
+        if: ${{ steps.node_modules_cache.outputs.cache-hit != 'true' }}
+        run: npm install
+
+      - name: Run tests
+        run: npm run test
