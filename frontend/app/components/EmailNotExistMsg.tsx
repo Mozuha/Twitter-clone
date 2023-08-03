@@ -14,6 +14,8 @@ export default function EmailNotExistMsg(props: Props) {
   const res = usePreloadedQuery(emailExistsQuery, props.queryRef);
 
   return res.emailExists ? (
-    <span className="text-xs font-light text-red-500 -mt-5">This email address is already registered</span>
+    <span role="alert" className="text-xs font-light text-red-500 -mt-5">
+      This email address is already registered
+    </span>
   ) : null;
 }

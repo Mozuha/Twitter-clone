@@ -45,7 +45,7 @@ export default function NameField(props: FormFieldProps) {
         render={({ messages }) =>
           messages
             ? Object.entries(messages).map(([type, message]) => (
-                <span key={type} className="text-xs font-light text-red-500 -mt-5">
+                <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
                   {message}
                 </span>
               ))

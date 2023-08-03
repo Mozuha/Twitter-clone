@@ -66,7 +66,7 @@ export default function SignupForm() {
   //       so setting disabled props will just make fields flickered. Remove them?
   return (
     <>
-      <form className="w-11/12 mt-7" onSubmit={handleSubmit(onSubmit)}>
+      <form className="w-11/12 mt-7" onSubmit={handleSubmit(onSubmit)} aria-label="signup-form">
         <div className="flex flex-col gap-6">
           <NameField
             control={control}
@@ -115,13 +115,14 @@ export default function SignupForm() {
               size="sm"
               type="submit"
               className="bg-twitter-blue rounded-full mt-2 normal-case text-[13px]"
+              ripple={false}
               disabled={!isValid}
             >
               Sign up
             </Button>
           )}
           {isSubmitErr && (
-            <span className="text-xs font-light text-red-500 -mt-5">
+            <span role="alert" className="text-xs font-light text-red-500 -mt-5">
               Something went wrong on signing up. Please try again later.
             </span>
           )}

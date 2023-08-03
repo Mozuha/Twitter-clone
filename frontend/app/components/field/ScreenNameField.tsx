@@ -34,7 +34,9 @@ export default function ScreenNameField(props: FormFieldProps) {
     if (prevWatch !== screenNameWatch) {
       // always send query to check the latest availability of the screen name
       // send query only when screen name is not empty and is changed on blur to reduce the number of queries
-      screenNameWatch.length && loadQuery({ screenName: screenNameWatch }, { fetchPolicy: 'network-only' });
+      screenNameWatch.length &&
+        !errors.screenName &&
+        loadQuery({ screenName: screenNameWatch }, { fetchPolicy: 'network-only' });
       setPrevWatch(screenNameWatch);
     }
     setIsScreenNameFocused(false);
@@ -76,7 +78,7 @@ export default function ScreenNameField(props: FormFieldProps) {
         render={({ messages }) =>
           messages
             ? Object.entries(messages).map(([type, message]) => (
-                <span key={type} className="text-xs font-light text-red-500 -mt-5">
+                <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
                   {message}
                 </span>
               ))

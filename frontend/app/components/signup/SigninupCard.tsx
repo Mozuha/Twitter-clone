@@ -10,7 +10,7 @@ export default function SigninupCard({ children }: { children: React.ReactNode }
         <CloseButton />
       </div>
       <div className="row-span-1 col-auto">
-        <FaTwitter color="white" className="w-9 h-9 mt-9" />
+        <FaTwitter color="white" className="w-9 h-9 mt-9" aria-label="twitter-icon" />
       </div>
       <div className="row-auto col-span-2 h-full overflow-x-auto overflow-y-none">
         <div className="flex flex-col flex-nowrap items-center justify-start mx-[100px] sm:mx-7 mt-10 mb-5">
