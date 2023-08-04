@@ -13,7 +13,7 @@ import ScreenNameField from '@components/field/ScreenNameField';
 import { Button, Spinner } from '@components/material-tailwind';
 
 import { emailRegex } from '@types-constants/form';
-import type { FormData } from '@types-constants/form';
+import type { FormData, GraphQLError } from '@types-constants/form';
 
 import type { SignupFormMutation } from '@relay/__generated__/SignupFormMutation.graphql';
 
@@ -56,7 +56,7 @@ export default function SignupForm() {
         router.push('/signin');
       },
       onError(err) {
-        console.log(err);
+        console.log((err as GraphQLError).details);
         setIsSubmitErr(true);
       },
     });
@@ -84,6 +84,8 @@ export default function SignupForm() {
               required: 'Screen name is required.',
               maxLength: { value: 15, message: 'Screen name must be less than 15 characters.' },
             }}
+            checkExistenceOnBlur
+            toggleAlert
             // disabled={isMutationInFlight}
           />
           <EmailField
@@ -93,6 +95,8 @@ export default function SignupForm() {
               required: 'Email is required.',
               pattern: { value: emailRegex, message: 'Please enter a valid email.' },
             }}
+            checkExistenceOnBlur
+            toggleAlert
             // disabled={isMutationInFlight}
           />
           <PasswordField
@@ -103,6 +107,7 @@ export default function SignupForm() {
               minLength: { value: 8, message: 'Password must be more than 8 characters.' },
               maxLength: { value: 50, message: 'Password must be less than 50 characters.' },
             }}
+            showTooltip
             // disabled={isMutationInFlight}
           />
           {isMutationInFlight ? (

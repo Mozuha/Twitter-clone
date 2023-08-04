@@ -4,10 +4,9 @@ import { Suspense } from 'react';
 
 import { RelayEnvironmentProvider } from 'react-relay';
 
-import SignupForm from '@/app/components/signup/SignupForm';
-
 import { Spinner } from '@components/material-tailwind';
-import SigninupCard from '@components/signup/SigninupCard';
+import SigninupCard from '@components/signinup/SigninupCard';
+import SignupForm from '@components/signinup/SignupForm';
 
 import { getCurrentEnvironment } from '@relay/environment';
 

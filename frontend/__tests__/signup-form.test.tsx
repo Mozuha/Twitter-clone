@@ -8,7 +8,7 @@ import { createMockEnvironment, MockPayloadGenerator } from 'relay-test-utils';
 
 import { emailExistsQuery } from '@components/field/EmailField';
 import { screenNameExistsQuery } from '@components/field/ScreenNameField';
-import SignupForm from '@components/signup/SignupForm';
+import SignupForm from '@components/signinup/SignupForm';
 
 import type { RelayMockEnvironment } from 'relay-test-utils/lib/RelayModernMockEnvironment';
 
