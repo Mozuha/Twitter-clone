@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+
 import { useRouter } from 'next/navigation';
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -8,7 +9,7 @@ import { createMockEnvironment, MockPayloadGenerator } from 'relay-test-utils';
 
 import { emailExistsQuery } from '@components/field/EmailField';
 import { screenNameExistsQuery } from '@components/field/ScreenNameField';
-import SignupForm from '@components/signup/SignupForm';
+import SignupForm from '@components/signinup/SignupForm';
 
 import type { RelayMockEnvironment } from 'relay-test-utils/lib/RelayModernMockEnvironment';
 
@@ -263,6 +264,14 @@ describe('SignupForm', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Sign up' }));
 
       expect(mockRouterPush).toHaveBeenCalledWith('/signin');
+    });
+  });
+
+  describe('signin link', () => {
+    test('should have correct path jump to', async () => {
+      renderSignupForm();
+
+      expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/signin');
     });
   });
 });

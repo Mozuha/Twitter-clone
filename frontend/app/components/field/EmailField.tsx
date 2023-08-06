@@ -4,7 +4,7 @@ import { ErrorMessage } from '@hookform/error-message';
 import { useController, useWatch } from 'react-hook-form';
 import { graphql, useQueryLoader } from 'react-relay';
 
-import EmailNotExistMsg from '@components/EmailNotExistMsg';
+import ExistenceMsg from '@components/ExistenceMsg';
 import { Input } from '@components/material-tailwind';
 
 import type { FormFieldProps } from '@types-constants/form';
@@ -17,7 +17,12 @@ export const emailExistsQuery = graphql`
   }
 `;
 
-export default function EmailField(props: FormFieldProps) {
+type Props = FormFieldProps & {
+  toggleAlert: boolean;
+  checkExistenceOnBlur: boolean;
+};
+
+export default function EmailField(props: Props) {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [prevWatch, setPrevWatch] = useState('');
 
@@ -50,14 +55,15 @@ export default function EmailField(props: FormFieldProps) {
         labelProps={{ className: 'peer-placeholder-shown:text-twitter-grey' }}
         error={
           !!errors.email ||
-          Boolean(
-            queryRef?.environment.getStore().getSource().get('client:root')?.[
-              `emailExists(email:"${queryRef.variables.email}")`
-            ]
-          )
+          (props.checkExistenceOnBlur &&
+            Boolean(
+              queryRef?.environment.getStore().getSource().get('client:root')?.[
+                `emailExists(email:"${queryRef.variables.email}")`
+              ]
+            ) === props.toggleAlert)
         }
         onFocus={() => setIsEmailFocused(true)}
-        onBlur={handleBlur}
+        onBlur={props.checkExistenceOnBlur ? handleBlur : undefined}
         {...rest}
         disabled={props.disabled}
       />
@@ -65,17 +71,18 @@ export default function EmailField(props: FormFieldProps) {
         errors={errors}
         name="email"
         render={({ messages }) =>
-          messages
-            ? Object.entries(messages).map(([type, message]) => (
-                <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
-                  {message}
-                </span>
-              ))
-            : null
+          messages &&
+          Object.entries(messages).map(([type, message]) => (
+            <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
+              {message}
+            </span>
+          ))
         }
       />
       <Suspense>
-        {queryRef != null && !isEmailFocused && emailWatch && <EmailNotExistMsg queryRef={queryRef} />}
+        {queryRef != null && !isEmailFocused && emailWatch && !errors.email && (
+          <ExistenceMsg queryRef={queryRef} gqlQuery={emailExistsQuery} toggleAlert={props.toggleAlert} />
+        )}
       </Suspense>
     </>
   );

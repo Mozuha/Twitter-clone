@@ -14,3 +14,16 @@ export type FormFieldProps = UseControllerProps<FormData> & {
 export const emailRegex =
   // eslint-disable-next-line
   /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+export type GraphQLError = Error & {
+  details: [
+    {
+      message: string;
+      path: string;
+      extensions: {
+        code: string;
+        userMessage?: string;
+      };
+    }
+  ];
+};
