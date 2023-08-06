@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 
 import { useRouter } from 'next/navigation';
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RelayEnvironmentProvider } from 'react-relay';
 import { createMockEnvironment, MockPayloadGenerator } from 'relay-test-utils';
@@ -90,17 +90,19 @@ describe('SigninForm', () => {
       await userEvent.type(screen.getByLabelText('Password'), 'arbitrarypass');
       await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
-      environment.mock.rejectMostRecentOperation({
-        details: [
-          {
-            message: 'email not found',
-            path: 'signin',
-            extensions: {
-              code: 'NOT_FOUND',
+      await waitFor(() =>
+        environment.mock.rejectMostRecentOperation({
+          details: [
+            {
+              message: 'email not found',
+              path: 'signin',
+              extensions: {
+                code: 'NOT_FOUND',
+              },
             },
-          },
-        ],
-      } as GraphQLError);
+          ],
+        } as GraphQLError)
+      );
 
       expect(await screen.findByRole('alert')).toHaveTextContent('This email address is not registered');
     });
@@ -134,17 +136,19 @@ describe('SigninForm', () => {
       await userEvent.type(screen.getByLabelText('Password'), 'incorrectpass');
       await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
-      environment.mock.rejectMostRecentOperation({
-        details: [
-          {
-            message: 'password incorrect',
-            path: 'signin',
-            extensions: {
-              code: 'UNAUTHORIZED',
+      await waitFor(() =>
+        environment.mock.rejectMostRecentOperation({
+          details: [
+            {
+              message: 'password incorrect',
+              path: 'signin',
+              extensions: {
+                code: 'UNAUTHORIZED',
+              },
             },
-          },
-        ],
-      } as GraphQLError);
+          ],
+        } as GraphQLError)
+      );
 
       expect(await screen.findByRole('alert')).toHaveTextContent('Password incorrect');
     });
