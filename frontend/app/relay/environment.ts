@@ -1,8 +1,6 @@
 import { Environment, Network, RecordSource, Store } from 'relay-runtime';
 import { QueryResponseCache } from 'relay-runtime';
 
-import type { GraphQLError } from '@types-constants/form';
-
 import type { CacheConfig, GraphQLResponse, RequestParameters, Variables } from 'relay-runtime';
 
 // Reference:
@@ -13,15 +11,9 @@ const CACHE_TTL = 5 * 1000; // 5 seconds, to resolve preloaded results
 
 // All relay query will eventually call this fetch with params.text which is a graphql body compiled by relay
 export async function networkFetch(params: RequestParameters, variables: Variables): Promise<GraphQLResponse> {
-  const accessToken = localStorage.getItem('accessToken');
-  let headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (accessToken != null) {
-    headers = { ...headers, Authorization: `Bearer ${accessToken}` };
-  }
-
   const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_URL, {
     method: 'POST',
-    headers: headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query: params.text,
       variables,
@@ -29,8 +21,15 @@ export async function networkFetch(params: RequestParameters, variables: Variabl
   });
   const json = await response.json();
 
-  if (json && json.errors) {
-    throw { details: json.errors as GraphQLError };
+  // GraphQL returns exceptions (for example, a missing required variable) in the "errors"
+  // property of the response. If any exceptions occurred when processing the request,
+  // print an error to indicate to the developer what went wrong.
+  if (Array.isArray(json.errors)) {
+    console.error(
+      `Error fetching GraphQL query '${params.name}' with variables '${JSON.stringify(variables)}': ${JSON.stringify(
+        json.errors
+      )}`
+    );
   }
 
   return json;

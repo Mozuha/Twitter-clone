@@ -10,11 +10,7 @@ import { Button, Input } from '@components/material-tailwind';
 
 import type { FormFieldProps } from '@types-constants/form';
 
-type Props = FormFieldProps & {
-  showTooltip?: boolean;
-};
-
-export default function PasswordField(props: Props) {
+export default function PasswordField(props: FormFieldProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const {
     field,
@@ -57,29 +53,28 @@ export default function PasswordField(props: Props) {
             <VscEye color="gray" className="w-6 h-6 ml-1.5" />
           )}
         </Button>
-        {props.showTooltip && (
-          <div
-            role="tooltip"
-            className="group round-full !absolute -right-7 top-3"
-            aria-label="allowed-characters-for-password"
-          >
-            <span className="bg-slate-500 text-white opacity-0 invisible rounded group-hover:visible opacity-95 absolute bottom-7 right-1 w-80 sm:w-[80vw] text-sm p-1">
-              {'Uppercase, Lowercase, Numbers, Symbols (~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/) are allowed.'}
-            </span>
-            <HiOutlineInformationCircle size="1.2rem" color="gray" />
-          </div>
-        )}
+        <div
+          role="tooltip"
+          className="group round-full !absolute -right-7 top-3"
+          aria-label="allowed-characters-for-password"
+        >
+          <span className="bg-slate-500 text-white opacity-0 invisible rounded group-hover:visible opacity-95 absolute bottom-7 right-1 w-80 sm:w-[80vw] text-sm p-1">
+            {'Uppercase, Lowercase, Numbers, Symbols (~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/) are allowed.'}
+          </span>
+          <HiOutlineInformationCircle size="1.2rem" color="gray" />
+        </div>
       </div>
       <ErrorMessage
         errors={errors}
         name="password"
         render={({ messages }) =>
-          messages &&
-          Object.entries(messages).map(([type, message]) => (
-            <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
-              {message}
-            </span>
-          ))
+          messages
+            ? Object.entries(messages).map(([type, message]) => (
+                <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
+                  {message}
+                </span>
+              ))
+            : null
         }
       />
     </>

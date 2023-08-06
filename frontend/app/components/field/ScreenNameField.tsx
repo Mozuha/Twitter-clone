@@ -4,8 +4,8 @@ import { ErrorMessage } from '@hookform/error-message';
 import { useController, useWatch } from 'react-hook-form';
 import { graphql, useQueryLoader } from 'react-relay';
 
-import ExistenceMsg from '@components/ExistenceMsg';
 import { Input } from '@components/material-tailwind';
+import ScreenNameNotExistMsg from '@components/ScreenNameNotExistMsg';
 
 import type { FormFieldProps } from '@types-constants/form';
 
@@ -17,12 +17,7 @@ export const screenNameExistsQuery = graphql`
   }
 `;
 
-type Props = FormFieldProps & {
-  toggleAlert: boolean;
-  checkExistenceOnBlur: boolean;
-};
-
-export default function ScreenNameField(props: Props) {
+export default function ScreenNameField(props: FormFieldProps) {
   const [isScreenNameFocused, setIsScreenNameFocused] = useState(false);
   const [prevWatch, setPrevWatch] = useState('');
 
@@ -60,16 +55,14 @@ export default function ScreenNameField(props: Props) {
           labelProps={{ className: 'peer-placeholder-shown:text-twitter-grey' }}
           error={
             !!errors.screenName ||
-            (props.checkExistenceOnBlur &&
-              // query res XOR toggleAlert
-              Boolean(
-                queryRef?.environment.getStore().getSource().get('client:root')?.[
-                  `screenNameExists(screenName:"${queryRef.variables.screenName}")`
-                ]
-              ) === props.toggleAlert)
+            Boolean(
+              queryRef?.environment.getStore().getSource().get('client:root')?.[
+                `screenNameExists(screenName:"${queryRef.variables.screenName}")`
+              ]
+            )
           }
           onFocus={() => setIsScreenNameFocused(true)}
-          onBlur={props.checkExistenceOnBlur ? handleBlur : undefined}
+          onBlur={handleBlur}
           {...rest}
           disabled={props.disabled}
         />
@@ -83,19 +76,17 @@ export default function ScreenNameField(props: Props) {
         errors={errors}
         name="screenName"
         render={({ messages }) =>
-          messages &&
-          Object.entries(messages).map(([type, message]) => (
-            <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
-              {message}
-            </span>
-          ))
+          messages
+            ? Object.entries(messages).map(([type, message]) => (
+                <span key={type} role="alert" className="text-xs font-light text-red-500 -mt-5">
+                  {message}
+                </span>
+              ))
+            : null
         }
       />
       <Suspense>
-        {queryRef != null && !isScreenNameFocused && screenNameWatch && !errors.screenName && (
-          // expect query to be thrown and msg to be appear only if there is no preliminary validation error
-          <ExistenceMsg queryRef={queryRef} gqlQuery={screenNameExistsQuery} toggleAlert={props.toggleAlert} />
-        )}
+        {queryRef != null && !isScreenNameFocused && screenNameWatch && <ScreenNameNotExistMsg queryRef={queryRef} />}
       </Suspense>
     </>
   );
