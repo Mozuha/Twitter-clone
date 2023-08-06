@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+
 import { useRouter } from 'next/navigation';
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -263,6 +264,14 @@ describe('SignupForm', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Sign up' }));
 
       expect(mockRouterPush).toHaveBeenCalledWith('/signin');
+    });
+  });
+
+  describe('signin link', () => {
+    test('should have correct path jump to', async () => {
+      renderSignupForm();
+
+      expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/signin');
     });
   });
 });
