@@ -24,6 +24,7 @@ module.exports = withMT({
         'twitter-grey': '#6E767D',
         'twitter-border-color': '#2F3336',
         'signin-background': '#242D34',
+        'dark-hover': '#1B1B1B',
       },
     },
     screens: {

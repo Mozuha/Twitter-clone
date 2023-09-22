@@ -1,5 +1,17 @@
 'use client';
 
-import { Button, Card, Input, Spinner, Tooltip } from '@material-tailwind/react';
+import {
+  Avatar,
+  Button,
+  Card,
+  Input,
+  List,
+  ListItem,
+  Popover,
+  PopoverContent,
+  PopoverHandler,
+  Spinner,
+  Tooltip,
+} from '@material-tailwind/react';
 
-export { Button, Card, Input, Tooltip, Spinner };
+export { Avatar, Button, Card, Input, List, ListItem, Tooltip, Spinner, Popover, PopoverHandler, PopoverContent };
