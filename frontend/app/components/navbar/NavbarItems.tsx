@@ -66,7 +66,7 @@ export default function NavbarItems() {
     );
 
   return (
-    <nav className="flex flex-col">
+    <nav className="flex flex-col lg:mx-[auto]">
       <ul>
         {navbarItems.map((item, idx) => (
           <li key={idx}>

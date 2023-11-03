@@ -6,7 +6,7 @@ import Navbar from '@components/navbar/Navbar';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[25%_50%_25%]">
+    <div className="grid lg:grid-cols-[10%_90%] grid-cols-[25%_50%_25%]">
       <div className="col-start-1 col-span-1 h-screen">
         <Suspense fallback={<Spinner />}>
           <Navbar />
