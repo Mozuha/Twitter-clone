@@ -24,20 +24,27 @@ module.exports = withMT({
         'twitter-grey': '#6E767D',
         'twitter-border-color': '#2F3336',
         'signin-background': '#242D34',
+        'dark-hover': '#1B1B1B',
       },
     },
     screens: {
-      xl: { max: '1279px' },
-      // => @media (max-width: 1279px) { ... }
+      // lg:w-10 means apply w-10 if screen is lg or smaller
 
-      lg: { max: '1023px' },
-      // => @media (max-width: 1023px) { ... }
+      // desktop
+      xl: { max: '1279.98px' },
+      // => @media (max-width: 1279.98px) { ... }
 
-      md: { max: '767px' },
-      // => @media (max-width: 767px) { ... }
+      // laptop
+      lg: { max: '1023.98px' },
+      // => @media (max-width: 1023.98px) { ... }
 
-      sm: { max: '639px' },
-      // => @media (max-width: 639px) { ... }
+      // tablet
+      md: { max: '767.98px' },
+      // => @media (max-width: 767.98px) { ... }
+
+      // mobile
+      sm: { max: '639.98px' },
+      // => @media (max-width: 639.98px) { ... }
     },
   },
   plugins: [],

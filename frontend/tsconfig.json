@@ -23,6 +23,7 @@
     "paths": {
       "@/*": ["./*"],
       "@components/*": ["app/components/*"],
+      "@hooks/*": ["app/hooks/*"],
       "@types-constants/*": ["app/types-constants/*"],
       "@relay/*": ["app/relay/*"]
     }
