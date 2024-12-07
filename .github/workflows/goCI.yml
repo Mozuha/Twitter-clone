@@ -17,7 +17,7 @@ jobs:
         run: echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Up containers
-        run: docker compose up -d
+        run: docker compose up -d api
 
       - name: Test
         run: docker compose exec api go test -v ./...

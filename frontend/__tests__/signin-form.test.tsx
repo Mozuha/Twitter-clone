@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 
+import { cookies } from 'next/headers';
 import { useRouter } from 'next/navigation';
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -15,6 +16,10 @@ import type { RelayMockEnvironment } from 'relay-test-utils/lib/RelayModernMockE
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+}));
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
 }));
 
 describe('SigninForm', () => {
@@ -176,6 +181,11 @@ describe('SigninForm', () => {
       const mockRouterPush = jest.fn();
       (useRouter as jest.Mock).mockReturnValue({
         push: mockRouterPush,
+      });
+
+      const mockCookieSet = jest.fn();
+      (cookies as jest.Mock).mockReturnValue({
+        set: mockCookieSet,
       });
 
       callQueueOperationResolver();
