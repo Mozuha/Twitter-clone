@@ -9,7 +9,7 @@ import { createMockEnvironment, MockPayloadGenerator } from 'relay-test-utils';
 
 import SigninForm, { signinMutation } from '@components/signinup/SigninForm';
 
-import type { GraphQLError } from '@types-constants/form';
+import type { GraphQLError } from '@lib/constants';
 
 import type { RelayMockEnvironment } from 'relay-test-utils/lib/RelayModernMockEnvironment';
 
@@ -92,15 +92,11 @@ describe('SigninForm', () => {
 
       await waitFor(() =>
         environment.mock.rejectMostRecentOperation({
-          details: [
-            {
-              message: 'email not found',
-              path: 'signin',
-              extensions: {
-                code: 'NOT_FOUND',
-              },
-            },
-          ],
+          message: 'email not found',
+          path: 'signin',
+          extensions: {
+            code: 'NOT_FOUND',
+          },
         } as GraphQLError)
       );
 
@@ -138,15 +134,11 @@ describe('SigninForm', () => {
 
       await waitFor(() =>
         environment.mock.rejectMostRecentOperation({
-          details: [
-            {
-              message: 'password incorrect',
-              path: 'signin',
-              extensions: {
-                code: 'UNAUTHORIZED',
-              },
-            },
-          ],
+          message: 'password incorrect',
+          path: 'signin',
+          extensions: {
+            code: 'UNAUTHORIZED',
+          },
         } as GraphQLError)
       );
 

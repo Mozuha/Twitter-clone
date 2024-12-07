@@ -7,7 +7,7 @@ import { graphql, useQueryLoader } from 'react-relay';
 import ExistenceMsg from '@components/ExistenceMsg';
 import { Input } from '@components/material-tailwind';
 
-import type { FormFieldProps } from '@types-constants/form';
+import type { FormFieldProps } from '@lib/constants';
 
 import type { EmailFieldQuery } from '@relay/__generated__/EmailFieldQuery.graphql';
 

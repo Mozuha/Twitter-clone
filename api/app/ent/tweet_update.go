@@ -34,6 +34,14 @@ func (tu *TweetUpdate) SetText(s string) *TweetUpdate {
 	return tu
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (tu *TweetUpdate) SetNillableText(s *string) *TweetUpdate {
+	if s != nil {
+		tu.SetText(*s)
+	}
+	return tu
+}
+
 // SetPostedByID sets the "posted_by" edge to the User entity by ID.
 func (tu *TweetUpdate) SetPostedByID(id int) *TweetUpdate {
 	tu.mutation.SetPostedByID(id)
@@ -187,7 +195,7 @@ func (tu *TweetUpdate) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Tweet.text": %w`, err)}
 		}
 	}
-	if _, ok := tu.mutation.PostedByID(); tu.mutation.PostedByCleared() && !ok {
+	if tu.mutation.PostedByCleared() && len(tu.mutation.PostedByIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Tweet.posted_by"`)
 	}
 	return nil
@@ -382,6 +390,14 @@ func (tuo *TweetUpdateOne) SetText(s string) *TweetUpdateOne {
 	return tuo
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (tuo *TweetUpdateOne) SetNillableText(s *string) *TweetUpdateOne {
+	if s != nil {
+		tuo.SetText(*s)
+	}
+	return tuo
+}
+
 // SetPostedByID sets the "posted_by" edge to the User entity by ID.
 func (tuo *TweetUpdateOne) SetPostedByID(id int) *TweetUpdateOne {
 	tuo.mutation.SetPostedByID(id)
@@ -548,7 +564,7 @@ func (tuo *TweetUpdateOne) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Tweet.text": %w`, err)}
 		}
 	}
-	if _, ok := tuo.mutation.PostedByID(); tuo.mutation.PostedByCleared() && !ok {
+	if tuo.mutation.PostedByCleared() && len(tuo.mutation.PostedByIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Tweet.posted_by"`)
 	}
 	return nil

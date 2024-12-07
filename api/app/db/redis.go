@@ -3,8 +3,10 @@ package db
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 )
 
@@ -37,7 +39,13 @@ func SetUpRedisStore(runningEnv string) (redis.Store, error) {
 	// Idially, set MaxAge to be that of the refresh token
 	// whether setting httponly to true depends on frontend
 	// whether setting maxage depends on frontend (use cookie or not)
-	// store.Options(sessions.Options{Path: "/", Secure: true, SameSite: http.SameSiteLaxMode})
+	store.Options(sessions.Options{
+		MaxAge:   86400 * 14,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	})
 
 	return store, nil
 }

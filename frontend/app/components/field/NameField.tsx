@@ -5,7 +5,7 @@ import { useController, useWatch } from 'react-hook-form';
 
 import { Input } from '@components/material-tailwind';
 
-import type { FormFieldProps } from '@types-constants/form';
+import type { FormFieldProps } from '@lib/constants';
 
 export default function NameField(props: FormFieldProps) {
   const [isNameFocused, setIsNameFocused] = useState(false);

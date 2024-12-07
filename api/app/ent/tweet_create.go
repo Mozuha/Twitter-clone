@@ -155,7 +155,7 @@ func (tc *TweetCreate) check() error {
 	if _, ok := tc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Tweet.created_at"`)}
 	}
-	if _, ok := tc.mutation.PostedByID(); !ok {
+	if len(tc.mutation.PostedByIDs()) == 0 {
 		return &ValidationError{Name: "posted_by", err: errors.New(`ent: missing required edge "Tweet.posted_by"`)}
 	}
 	return nil
@@ -264,11 +264,15 @@ func (tc *TweetCreate) createSpec() (*Tweet, *sqlgraph.CreateSpec) {
 // TweetCreateBulk is the builder for creating many Tweet entities in bulk.
 type TweetCreateBulk struct {
 	config
+	err      error
 	builders []*TweetCreate
 }
 
 // Save creates the Tweet entities in the database.
 func (tcb *TweetCreateBulk) Save(ctx context.Context) ([]*Tweet, error) {
+	if tcb.err != nil {
+		return nil, tcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tcb.builders))
 	nodes := make([]*Tweet, len(tcb.builders))
 	mutators := make([]Mutator, len(tcb.builders))

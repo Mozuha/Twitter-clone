@@ -8,8 +8,10 @@ import EmailField from '@components/field/EmailField';
 import PasswordField from '@components/field/PasswordField';
 import { Button, Spinner } from '@components/material-tailwind';
 
-import { emailRegex } from '@types-constants/form';
-import type { FormData, GraphQLError } from '@types-constants/form';
+import { setCookieAction } from '@actions/cookieActions';
+
+import { EmailRegex } from '@lib/constants';
+import type { AuthFormData, GraphQLError } from '@lib/constants';
 
 import type { SigninFormMutation } from '@relay/__generated__/SigninFormMutation.graphql';
 
@@ -33,7 +35,7 @@ export default function SigninForm() {
     control,
     formState: { isValid },
     setError,
-  } = useForm<FormData>({
+  } = useForm<AuthFormData>({
     mode: 'onChange',
     criteriaMode: 'all',
     defaultValues: { email: '', password: '' },
@@ -41,23 +43,26 @@ export default function SigninForm() {
 
   const [commitMutation, isMutationInFlight] = useMutation<SigninFormMutation>(signinMutation);
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<AuthFormData> = (data) => {
     commitMutation({
       variables: {
         email: data.email,
         password: data.password,
       },
       onCompleted(res) {
-        localStorage.setItem('userId', res.signin.userId);
-        localStorage.setItem('accessToken', res.signin.accessToken);
-        localStorage.setItem('refreshToken', res.signin.refreshToken);
-        router.push('/home');
+        Promise.all([
+          setCookieAction('userId', res.signin.userId),
+          setCookieAction('accessToken', res.signin.accessToken),
+          setCookieAction('refreshToken', res.signin.refreshToken),
+        ]).then(() => {
+          router.push('/home');
+        });
       },
       onError(err) {
-        const details = (err as GraphQLError).details;
-        console.log(details);
+        console.log(err);
+        const gerr = err as GraphQLError;
 
-        if (details[0].extensions.code === 'NOT_FOUND') {
+        if (gerr.extensions.code === 'NOT_FOUND') {
           setError('email', {
             types: {
               not_found: 'This email address is not registered',
@@ -65,7 +70,7 @@ export default function SigninForm() {
           });
         }
 
-        if (details[0].extensions.code === 'UNAUTHORIZED') {
+        if (gerr.extensions.code === 'UNAUTHORIZED') {
           setError('password', {
             types: {
               unauthorized: 'Password incorrect',
@@ -85,7 +90,7 @@ export default function SigninForm() {
             name="email"
             rules={{
               required: 'Email is required.',
-              pattern: { value: emailRegex, message: 'Please enter a valid email.' },
+              pattern: { value: EmailRegex, message: 'Please enter a valid email.' },
             }}
             checkExistenceOnBlur={false}
             toggleAlert={false}

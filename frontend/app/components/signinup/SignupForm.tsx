@@ -12,8 +12,8 @@ import PasswordField from '@components/field/PasswordField';
 import ScreenNameField from '@components/field/ScreenNameField';
 import { Button, Spinner } from '@components/material-tailwind';
 
-import { emailRegex } from '@types-constants/form';
-import type { FormData, GraphQLError } from '@types-constants/form';
+import { EmailRegex } from '@lib/constants';
+import type { AuthFormData } from '@lib/constants';
 
 import type { SignupFormMutation } from '@relay/__generated__/SignupFormMutation.graphql';
 
@@ -35,7 +35,7 @@ export default function SignupForm() {
     handleSubmit,
     control,
     formState: { isValid },
-  } = useForm<FormData>({
+  } = useForm<AuthFormData>({
     mode: 'onChange',
     criteriaMode: 'all',
     defaultValues: { name: '', screenName: '', email: '', password: '' },
@@ -43,7 +43,7 @@ export default function SignupForm() {
 
   const [commitMutation, isMutationInFlight] = useMutation<SignupFormMutation>(createUserMutation);
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<AuthFormData> = (data) => {
     commitMutation({
       variables: {
         name: data.name,
@@ -52,11 +52,10 @@ export default function SignupForm() {
         password: data.password,
       },
       onCompleted(res) {
-        localStorage.setItem('userId', res.createUser.id);
         router.push('/signin');
       },
       onError(err) {
-        console.log((err as GraphQLError).details);
+        console.log(err);
         setIsSubmitErr(true);
       },
     });
@@ -93,7 +92,7 @@ export default function SignupForm() {
             name="email"
             rules={{
               required: 'Email is required.',
-              pattern: { value: emailRegex, message: 'Please enter a valid email.' },
+              pattern: { value: EmailRegex, message: 'Please enter a valid email.' },
             }}
             checkExistenceOnBlur
             toggleAlert

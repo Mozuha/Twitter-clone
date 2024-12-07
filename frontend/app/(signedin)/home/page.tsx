@@ -1,10 +1,12 @@
-import TweetField from '@components/field/TweetField';
 import Timeline from '@components/timeline/Timeline';
+import TweetForm from '@components/TweetForm';
 
 export default function HomePage() {
   return (
     <>
-      <TweetField />
+      <div className="border-b border-twitter-grey p-4">
+        <TweetForm />
+      </div>
       <Timeline />
     </>
   );

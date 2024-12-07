@@ -8,7 +8,7 @@ import { VscEye, VscEyeClosed } from 'react-icons/vsc';
 
 import { Button, Input } from '@components/material-tailwind';
 
-import type { FormFieldProps } from '@types-constants/form';
+import type { FormFieldProps } from '@lib/constants';
 
 type Props = FormFieldProps & {
   showTooltip?: boolean;

@@ -24,7 +24,8 @@
       "@/*": ["./*"],
       "@components/*": ["app/components/*"],
       "@hooks/*": ["app/hooks/*"],
-      "@types-constants/*": ["app/types-constants/*"],
+      "@actions/*": ["app/actions/*"],
+      "@lib/*": ["app/lib/*"],
       "@relay/*": ["app/relay/*"]
     }
   },

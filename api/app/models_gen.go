@@ -2,6 +2,10 @@
 
 package app
 
+type RefreshTokenResponse struct {
+	AccessToken string `json:"accessToken"`
+}
+
 type SigninResponse struct {
 	UserID       int    `json:"userId"`
 	AccessToken  string `json:"accessToken"`

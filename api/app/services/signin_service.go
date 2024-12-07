@@ -37,6 +37,16 @@ func (s *signinService) Signin(ctx context.Context, email string, password strin
 	uId := strconv.Itoa(user.ID)
 
 	session := sessions.Default(gc)
+
+	if session.Get("user") != nil {
+		session.Clear()
+		session.Options(sessions.Options{MaxAge: -1})
+		if err = session.Save(); err != nil {
+			gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "")
+			return nil, gErr
+		}
+	}
+
 	session.Set("user", uId)
 	session.Options(sessions.Options{MaxAge: 86400 * 14})
 	if err = session.Save(); err != nil {
@@ -82,19 +92,19 @@ func (s *signinService) Signout(ctx context.Context) (*bool, error) {
 	return &isOk, nil
 }
 
-func (s *signinService) RefreshToken(ctx context.Context, refTokenString string) (string, error) {
+func (s *signinService) RefreshToken(ctx context.Context, refTokenString string) (*app.RefreshTokenResponse, error) {
 	gc, err := utils.GinContextFromContext(ctx)
 	if err != nil {
 		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "")
-		return "", gErr
+		return nil, gErr
 	}
 
 	sessionId := sessions.Default(gc).ID()
 	token, err := auth.RefreshToken(sessionId, refTokenString)
 	if err != nil {
 		gErr := utils.CreateGqlErr(ctx, err, utils.INTERNAL_SERVER_ERROR, "failed to refresh token")
-		return "", gErr
+		return nil, gErr
 	}
 
-	return token, nil
+	return &app.RefreshTokenResponse{AccessToken: token}, nil
 }

@@ -663,10 +663,13 @@ type Mutation {
   deleteTweet(id: ID!): Boolean
   signin(email: String!, password: String!): SigninResponse!
   signout: Boolean
-  refreshToken(refreshToken: String!): String!
+  refreshToken(refreshToken: String!): RefreshTokenResponse!
 }
 type SigninResponse {
   userId: ID!
   accessToken: String!
   refreshToken: String!
+}
+type RefreshTokenResponse {
+  accessToken: String!
 }
