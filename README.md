@@ -1,4 +1,4 @@
-# Twitter Clone
+<!-- # Twitter Clone
 
 ## Aim
 Learn basics of full stack application as a whole
@@ -8,4 +8,4 @@ Learn basics of full stack application as a whole
 - Go
 - GraphQL
 - Next.js
-- Docker
+- Docker -->
